@@ -112,6 +112,18 @@ export type AsxAnnouncementsSummary = {
   };
 };
 
+export type ExplainabilityFeature = {
+  feature?: string;
+  importance?: number;
+};
+
+export type ModelExplainability = {
+  status?: string;
+  model_version?: string;
+  path?: string;
+  features?: ExplainabilityFeature[];
+};
+
 export type ModelCompare = {
   status?: string;
   model?: string;
@@ -166,9 +178,22 @@ export async function getFeatureImportance(model = "model_a_ml", limit = 10, opt
   return request<FeatureImportance>(`/insights/feature-importance?${params.toString()}`, options);
 }
 
+export async function getModelExplainability(modelVersion = "v1_2", limit = 20, options?: FetchOptions) {
+  const params = new URLSearchParams({ model_version: modelVersion, limit: String(limit) });
+  return request<ModelExplainability>(`/model/explainability?${params.toString()}`, options);
+}
+
 export async function getAsxAnnouncements(limit = 10, lookbackDays = 30, options?: FetchOptions) {
   const params = new URLSearchParams({ limit: String(limit), lookback_days: String(lookbackDays) });
   return request<AsxAnnouncementsSummary>(`/insights/announcements?${params.toString()}`, options);
+}
+
+export async function sendAssistantChat(query: string, options?: FetchOptions) {
+  return request<{ reply?: string }>(`/assistant/chat`, {
+    method: "POST",
+    body: JSON.stringify({ query }),
+    ...options
+  });
 }
 
 export async function getModelCompare(

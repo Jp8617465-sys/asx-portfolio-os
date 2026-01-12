@@ -573,6 +573,9 @@ class DriftAuditReq(BaseModel):
     current_label: str
     metrics: Dict[str, Any]
 
+class AssistantChatReq(BaseModel):
+    query: str
+
 
 @app.post("/run/model_a_v1_1")
 def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(default=None)):
@@ -1270,6 +1273,23 @@ def persist_drift_audit(req: DriftAuditReq, x_api_key: Optional[str] = Header(de
     return {"status": "ok", "id": int(new_id)}
 
 
+@app.post("/assistant/chat")
+def assistant_chat(req: AssistantChatReq, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    try:
+        from services.chat_engine import generate_response
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Assistant module import failed: {exc}")
+
+    try:
+        reply = generate_response(req.query)
+    except Exception as exc:
+        logger.exception("Assistant chat failed: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    return {"reply": reply}
+
+
 @app.get("/drift/summary")
 def drift_summary(
     model: Optional[str] = None,
@@ -1635,6 +1655,42 @@ def feature_importance_summary(
         "updated_at": data["updated_at"],
         "features": data["features"][:limit],
     }
+
+
+@app.get("/model/explainability")
+def model_explainability(
+    model_version: str = "v1_2",
+    limit: int = 20,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    require_key(x_api_key)
+
+    candidates = [
+        os.path.join(OUTPUT_DIR, f"feature_importance_{model_version}.json"),
+        os.path.join(PROJECT_ROOT, f"feature_importance_{model_version}.json"),
+        os.path.join(PROJECT_ROOT, "outputs", "feature_importance_latest.json"),
+        os.path.join(PROJECT_ROOT, "models", f"feature_importance_{model_version}.json"),
+    ]
+    path = next((p for p in candidates if os.path.exists(p)), None)
+    if not path:
+        raise HTTPException(status_code=404, detail="No feature importance file found.")
+
+    try:
+        with open(path, "r") as f:
+            payload = json.load(f)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to read feature importance: {exc}")
+
+    if isinstance(payload, dict):
+        rows = payload.get("features") or payload.get("data") or []
+    else:
+        rows = payload
+
+    if not isinstance(rows, list):
+        raise HTTPException(status_code=500, detail="Invalid feature importance format.")
+
+    trimmed = rows[:limit]
+    return {"status": "ok", "model_version": model_version, "path": path, "features": trimmed}
 
 
 @app.get("/insights/asx_announcements")
