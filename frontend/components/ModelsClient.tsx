@@ -15,7 +15,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Skeleton } from "./ui/skeleton";
-import { getDashboard, getDriftSummary, getFeatureImportance, getModelStatusSummary } from "../lib/api";
+import { getDriftSummary, getFeatureImportance, getModelCompare, getModelStatusSummary, getSignalsLive } from "../lib/api";
 
 type ModelStatusSummary = {
   last_run?: {
@@ -42,19 +42,35 @@ type DriftSummary = {
   }>;
 };
 
-type DashboardSummary = {
-  targets?: Array<{
-    symbol?: string;
-    rank?: number;
-    score?: number;
-    target_weight?: number;
-  }>;
-};
-
 type FeatureImportance = {
   features?: Array<{
     feature: string;
     importance: number;
+  }>;
+};
+
+type ModelCompare = {
+  left?: {
+    version?: string;
+    created_at?: string;
+    metrics?: Record<string, number | null>;
+  };
+  right?: {
+    version?: string;
+    created_at?: string;
+    metrics?: Record<string, number | null>;
+  };
+  delta?: Record<string, number | null>;
+};
+
+type SignalsLive = {
+  as_of?: string;
+  signals?: Array<{
+    symbol?: string;
+    rank?: number;
+    score?: number;
+    ml_prob?: number;
+    ml_expected_return?: number;
   }>;
 };
 
@@ -63,11 +79,6 @@ export default function ModelsClient() {
     "model-status-summary",
     () => getModelStatusSummary("model_a_ml")
   );
-  const asOf = summary?.signals?.as_of;
-  const { data: dashboard, isLoading: dashboardLoading } = useSWR<DashboardSummary>(
-    asOf ? `dashboard-${asOf}` : null,
-    () => getDashboard(asOf as string, "model_a_v1_1")
-  );
   const { data: drift } = useSWR<DriftSummary>(
     "drift-summary",
     () => getDriftSummary("model_a_ml")
@@ -75,6 +86,14 @@ export default function ModelsClient() {
   const { data: importance, isLoading: importanceLoading } = useSWR<FeatureImportance>(
     "feature-importance",
     () => getFeatureImportance("model_a_ml", 8)
+  );
+  const { data: compare, isLoading: compareLoading } = useSWR<ModelCompare>(
+    "model-compare",
+    () => getModelCompare("model_a_ml")
+  );
+  const { data: liveSignals, isLoading: signalsLoading } = useSWR<SignalsLive>(
+    "signals-live",
+    () => getSignalsLive("model_a_ml", 20)
   );
 
   const featureImportance = (importance?.features || []).map((row: any) => ({
@@ -87,7 +106,8 @@ export default function ModelsClient() {
     psi: row.metrics?.psi_mean ?? 0
   })).reverse();
 
-  const targets = (dashboard?.targets || []).slice(0, 8);
+  const compareDelta = compare?.delta || {};
+  const liveRows = (liveSignals?.signals || []).slice(0, 12);
 
   return (
     <div className="flex flex-col gap-10">
@@ -156,9 +176,50 @@ export default function ModelsClient() {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+        </Card>
 
         <div className="flex flex-col gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Model Compare</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+              {compareLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span>Left</span>
+                    <span className="font-semibold text-ink dark:text-mist">
+                      {compare?.left?.version ?? "n/a"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Right</span>
+                    <span className="font-semibold text-ink dark:text-mist">
+                      {compare?.right?.version ?? "n/a"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Δ ROC-AUC</span>
+                    <span className="font-semibold text-ink dark:text-mist">
+                      {compareDelta.roc_auc_mean?.toFixed?.(3) ?? "n/a"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Δ RMSE</span>
+                    <span className="font-semibold text-ink dark:text-mist">
+                      {compareDelta.rmse_mean?.toFixed?.(3) ?? "n/a"}
+                    </span>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Feature Importance</CardTitle>
@@ -199,11 +260,11 @@ export default function ModelsClient() {
                 <TableHead>Rank</TableHead>
                 <TableHead>Symbol</TableHead>
                 <TableHead>Score</TableHead>
-                <TableHead>Target Weight</TableHead>
+                <TableHead>ML Prob</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dashboardLoading ? (
+              {signalsLoading ? (
                 <TableRow>
                   <TableCell colSpan={4}>
                     <div className="grid gap-3 md:grid-cols-4">
@@ -214,13 +275,13 @@ export default function ModelsClient() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : targets.length ? (
-                targets.map((row: any) => (
+              ) : liveRows.length ? (
+                liveRows.map((row: any) => (
                   <TableRow key={row.symbol}>
                     <TableCell>{row.rank}</TableCell>
                     <TableCell className="font-semibold">{row.symbol}</TableCell>
                     <TableCell>{row.score?.toFixed?.(4) ?? "n/a"}</TableCell>
-                    <TableCell>{row.target_weight?.toFixed?.(4) ?? "n/a"}</TableCell>
+                    <TableCell>{row.ml_prob?.toFixed?.(4) ?? "n/a"}</TableCell>
                   </TableRow>
                 ))
               ) : (

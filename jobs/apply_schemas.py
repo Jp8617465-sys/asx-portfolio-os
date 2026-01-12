@@ -3,6 +3,7 @@ jobs/apply_schemas.py
 Apply SQL schema files via psycopg2 (psql fallback).
 """
 
+import glob
 import os
 from dotenv import load_dotenv
 import psycopg2
@@ -13,20 +14,12 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise SystemExit("DATABASE_URL not set")
 
-SCHEMAS = [
-    "schemas/fundamentals.sql",
-    "schemas/etf_data.sql",
-    "schemas/sentiment.sql",
-    "schemas/macro.sql",
-    "schemas/model_a_backtests.sql",
-    "schemas/model_a_features_extended.sql",
-    "schemas/model_a_predictions.sql",
-]
+schema_files = sorted(glob.glob("schemas/*.sql"))
+if not schema_files:
+    raise SystemExit("No schema files found in schemas/.")
 
 with psycopg2.connect(DATABASE_URL) as con:
-    for path in SCHEMAS:
-        if not os.path.exists(path):
-            raise SystemExit(f"Missing schema file: {path}")
+    for path in schema_files:
         with open(path, "r") as f:
             sql = f.read().strip()
         if not sql:

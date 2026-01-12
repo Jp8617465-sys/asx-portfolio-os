@@ -118,6 +118,102 @@ def debug_db_check(x_api_key: Optional[str] = Header(default=None)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class PropertyValuationReq(BaseModel):
+    region: str = "Sydney"
+    horizon_months: int = 12
+    persist: bool = False
+    train_model: bool = False
+
+
+class LoanSimulateReq(BaseModel):
+    principal: float
+    annual_rate: float
+    years: int
+    extra_payment: float = 0.0
+    persist: bool = False
+
+
+@app.post("/property/valuation")
+def property_valuation(req: PropertyValuationReq, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    try:
+        from jobs.property_module_template import (
+            fetch_property_data,
+            engineer_property_features,
+            train_valuation_model,
+            forecast_property_growth,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Property module import failed: {e}")
+
+    df = fetch_property_data(req.region)
+    df = engineer_property_features(df)
+    if req.train_model:
+        train_valuation_model(df)
+    forecast = forecast_property_growth(df, horizon_months=req.horizon_months)
+    df.to_csv("outputs/property_features_latest.csv", index=False)
+
+    summary = {
+        "region": req.region,
+        "rows": int(len(df)),
+        "avg_price": float(df["price"].mean()) if "price" in df.columns else None,
+        "avg_yield": float(df["yield_est"].mean()) if "yield_est" in df.columns else None,
+        "forecast_multiplier": float(forecast) if forecast is not None else None,
+    }
+
+    if req.persist:
+        with db() as con, con.cursor() as cur:
+            cur.execute(
+                """
+                insert into property_assets (region, avg_price, avg_yield, sample_count)
+                values (%s, %s, %s, %s)
+                """,
+                (summary["region"], summary["avg_price"], summary["avg_yield"], summary["rows"]),
+            )
+            con.commit()
+
+    return {"status": "ok", "summary": summary}
+
+
+@app.post("/loan/simulate")
+def loan_simulate(req: LoanSimulateReq, x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    try:
+        from jobs.loan_simulator import loan_amortization
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Loan module import failed: {e}")
+
+    schedule = loan_amortization(req.principal, req.annual_rate, req.years, req.extra_payment)
+    monthly_payment = schedule["principal_paid"].iloc[0] + schedule["interest"].iloc[0]
+    total_interest = float(schedule["interest"].sum())
+
+    if req.persist:
+        with db() as con, con.cursor() as cur:
+            cur.execute(
+                """
+                insert into loan_accounts (principal, annual_rate, years, extra_payment, monthly_payment, total_interest)
+                values (%s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    float(req.principal),
+                    float(req.annual_rate),
+                    int(req.years),
+                    float(req.extra_payment),
+                    float(monthly_payment),
+                    float(total_interest),
+                ),
+            )
+            con.commit()
+
+    return {
+        "status": "ok",
+        "monthly_payment": float(monthly_payment),
+        "total_interest": float(total_interest),
+        "months": int(len(schedule)),
+        "preview": schedule.head(6).to_dict(orient="records"),
+    }
+
+
 # -------------------------
 # Refresh universe
 # -------------------------
@@ -1052,7 +1148,15 @@ def openapi_actions(request: Request):
     }
 
     # OPTIONAL (recommended): only expose safe endpoints to GPT Actions
-    allowed_paths = {"/health", "/dashboard/model_a_v1_1"}
+    allowed_paths = {
+        "/health",
+        "/dashboard/model_a_v1_1",
+        "/model/status/summary",
+        "/model/compare",
+        "/signals/live",
+        "/property/valuation",
+        "/loan/simulate",
+    }
     schema["paths"] = {p: v for p, v in schema["paths"].items() if p in allowed_paths}
 
     # Apply security: dashboard needs key, health doesn't

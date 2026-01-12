@@ -91,6 +91,36 @@ export type FeatureImportance = {
   }>;
 };
 
+export type ModelCompare = {
+  status?: string;
+  model?: string;
+  left?: {
+    version?: string;
+    created_at?: string;
+    metrics?: Record<string, number | null>;
+  };
+  right?: {
+    version?: string;
+    created_at?: string;
+    metrics?: Record<string, number | null>;
+  };
+  delta?: Record<string, number | null>;
+};
+
+export type SignalsLive = {
+  status?: string;
+  model?: string;
+  as_of?: string;
+  count?: number;
+  signals?: Array<{
+    symbol?: string;
+    rank?: number;
+    score?: number;
+    ml_prob?: number;
+    ml_expected_return?: number;
+  }>;
+};
+
 export async function getModelStatusSummary(model: string, options?: FetchOptions) {
   return request<ModelStatusSummary>(`/model/status/summary?model=${encodeURIComponent(model)}`, options);
 }
@@ -113,4 +143,21 @@ export async function getHealth(options?: FetchOptions) {
 export async function getFeatureImportance(model = "model_a_ml", limit = 10, options?: FetchOptions) {
   const params = new URLSearchParams({ model, limit: String(limit) });
   return request<FeatureImportance>(`/insights/feature-importance?${params.toString()}`, options);
+}
+
+export async function getModelCompare(
+  model = "model_a_ml",
+  leftVersion?: string,
+  rightVersion?: string,
+  options?: FetchOptions
+) {
+  const params = new URLSearchParams({ model });
+  if (leftVersion) params.set("left_version", leftVersion);
+  if (rightVersion) params.set("right_version", rightVersion);
+  return request<ModelCompare>(`/model/compare?${params.toString()}`, options);
+}
+
+export async function getSignalsLive(model = "model_a_ml", limit = 20, options?: FetchOptions) {
+  const params = new URLSearchParams({ model, limit: String(limit) });
+  return request<SignalsLive>(`/signals/live?${params.toString()}`, options);
 }
