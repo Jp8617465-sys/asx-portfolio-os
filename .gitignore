@@ -20,6 +20,10 @@ outputs/
 *.parquet
 *.pkl
 
+# Node/Next build artifacts
+**/node_modules/
+**/.next/
+
 # IDE and system files
 .DS_Store
 .vscode/
