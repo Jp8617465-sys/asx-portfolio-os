@@ -91,6 +91,24 @@ export type FeatureImportance = {
   }>;
 };
 
+export type AsxAnnouncementsSummary = {
+  status?: string;
+  limit?: number;
+  lookback_days?: number;
+  items?: Array<{
+    dt?: string;
+    code?: string;
+    headline?: string;
+    sentiment?: string;
+    event_type?: string;
+    confidence?: number;
+  }>;
+  summary?: {
+    sentiment_counts?: Record<string, number>;
+    event_counts?: Record<string, number>;
+  };
+};
+
 export type ModelCompare = {
   status?: string;
   model?: string;
@@ -143,6 +161,11 @@ export async function getHealth(options?: FetchOptions) {
 export async function getFeatureImportance(model = "model_a_ml", limit = 10, options?: FetchOptions) {
   const params = new URLSearchParams({ model, limit: String(limit) });
   return request<FeatureImportance>(`/insights/feature-importance?${params.toString()}`, options);
+}
+
+export async function getAsxAnnouncements(limit = 10, lookbackDays = 30, options?: FetchOptions) {
+  const params = new URLSearchParams({ limit: String(limit), lookback_days: String(lookbackDays) });
+  return request<AsxAnnouncementsSummary>(`/insights/announcements?${params.toString()}`, options);
 }
 
 export async function getModelCompare(

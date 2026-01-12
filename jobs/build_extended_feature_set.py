@@ -122,6 +122,39 @@ def load_sentiment():
         df = df.rename(columns={"dt": "date"})
     return df
 
+# --- ASX announcements NLP signals ---
+def load_asx_announcements():
+    q = """
+    select dt as date, code, sentiment, event_type, confidence
+    from nlp_announcements
+    """
+    df = _safe_read_sql(q)
+    if df.empty:
+        return df
+
+    df["symbol"] = df["code"].astype(str).str.strip() + ".AU"
+    df["sentiment"] = df["sentiment"].astype(str).str.lower()
+    df["confidence"] = pd.to_numeric(df["confidence"], errors="coerce").fillna(0)
+    sentiment_map = {"positive": 1, "negative": -1, "neutral": 0}
+    df["sentiment_score"] = df["sentiment"].map(sentiment_map).fillna(0) * df["confidence"]
+    df["announcement_count"] = 1
+    for event in ("guidance", "dividend", "acquisition", "earnings"):
+        df[f"event_{event}"] = (df["event_type"] == event).astype(int)
+
+    agg = (
+        df.groupby(["date", "symbol"], as_index=False)
+        .agg(
+            asx_sentiment_score=("sentiment_score", "mean"),
+            asx_sentiment_confidence=("confidence", "mean"),
+            asx_announcement_count=("announcement_count", "sum"),
+            asx_event_guidance=("event_guidance", "sum"),
+            asx_event_dividend=("event_dividend", "sum"),
+            asx_event_acquisition=("event_acquisition", "sum"),
+            asx_event_earnings=("event_earnings", "sum"),
+        )
+    )
+    return agg
+
 # --- ETF & sector data (from universe/ETF tables) ---
 def load_etf_features():
     q = """
@@ -138,6 +171,7 @@ def build_features(start_date, end_date):
     fund = load_fundamentals()
     macro = load_macro_features()
     sent = load_sentiment()
+    announcements = load_asx_announcements()
     etf = load_etf_features()
 
     df = tech
@@ -145,6 +179,8 @@ def build_features(start_date, end_date):
         df = df.merge(fund, on="symbol", how="left")
     if not sent.empty and {"symbol", "date"}.issubset(sent.columns):
         df = df.merge(sent, on=["symbol", "date"], how="left")
+    if not announcements.empty and {"symbol", "date"}.issubset(announcements.columns):
+        df = df.merge(announcements, on=["symbol", "date"], how="left")
     if not macro.empty and "date" in macro.columns:
         df = df.merge(macro, on="date", how="left")
     if not etf.empty and {"symbol", "sector"}.issubset(etf.columns):
@@ -168,9 +204,23 @@ def build_features(start_date, end_date):
         df["delta_rba_rate"] = df.groupby("symbol")["rba_cash_rate"].transform(lambda x: x.diff())
 
     # Sentiment composite
-    sentiment_cols = [c for c in ["finbert_mean", "news_polarity", "sentiment_score"] if c in df.columns]
+    sentiment_cols = [c for c in ["finbert_mean", "news_polarity", "sentiment_score", "asx_sentiment_score"] if c in df.columns]
     if sentiment_cols:
         df["sentiment_composite"] = df[sentiment_cols].mean(axis=1)
+
+    # Ensure NLP columns exist even if announcements are empty
+    nlp_cols = [
+        "asx_sentiment_score",
+        "asx_sentiment_confidence",
+        "asx_announcement_count",
+        "asx_event_guidance",
+        "asx_event_dividend",
+        "asx_event_acquisition",
+        "asx_event_earnings",
+    ]
+    for col in nlp_cols:
+        if col not in df.columns:
+            df[col] = np.nan
 
     # ETF sector spread (if benchmark provided)
     if "return_1m" in df.columns and "asx200_return_1m" in df.columns:

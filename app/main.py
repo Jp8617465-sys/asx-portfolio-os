@@ -1172,6 +1172,7 @@ def openapi_actions(request: Request):
         "/property/valuation",
         "/loan/simulate",
         "/ingest/asx_announcements",
+        "/insights/asx_announcements",
     }
     schema["paths"] = {p: v for p, v in schema["paths"].items() if p in allowed_paths}
 
@@ -1633,4 +1634,77 @@ def feature_importance_summary(
         "source": data["path"],
         "updated_at": data["updated_at"],
         "features": data["features"][:limit],
+    }
+
+
+@app.get("/insights/asx_announcements")
+def asx_announcements_summary(
+    limit: int = 10,
+    lookback_days: int = 30,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    require_key(x_api_key)
+    try:
+        with db() as con, con.cursor() as cur:
+            cur.execute(
+                """
+                select dt, code, headline, sentiment, event_type, confidence
+                from nlp_announcements
+                order by dt desc, created_at desc
+                limit %s
+                """,
+                (limit,),
+            )
+            rows = cur.fetchall()
+
+            cur.execute(
+                """
+                select sentiment, count(*)
+                from nlp_announcements
+                where dt >= current_date - (%s * interval '1 day')
+                group by sentiment
+                """,
+                (lookback_days,),
+            )
+            sentiment_rows = cur.fetchall()
+
+            cur.execute(
+                """
+                select event_type, count(*)
+                from nlp_announcements
+                where dt >= current_date - (%s * interval '1 day')
+                group by event_type
+                """,
+                (lookback_days,),
+            )
+            event_rows = cur.fetchall()
+    except psycopg2.errors.UndefinedTable:
+        raise HTTPException(status_code=404, detail="nlp_announcements table not found")
+    except Exception as exc:
+        logger.exception("ASX announcements summary failed: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    items = [
+        {
+            "dt": row[0].isoformat() if row[0] else None,
+            "code": row[1],
+            "headline": row[2],
+            "sentiment": row[3],
+            "event_type": row[4],
+            "confidence": float(row[5]) if row[5] is not None else None,
+        }
+        for row in rows
+    ]
+    sentiment_counts = {str(row[0] or "unknown").lower(): int(row[1]) for row in sentiment_rows}
+    event_counts = {str(row[0] or "unknown").lower(): int(row[1]) for row in event_rows}
+
+    return {
+        "status": "ok",
+        "limit": int(limit),
+        "lookback_days": int(lookback_days),
+        "items": items,
+        "summary": {
+            "sentiment_counts": sentiment_counts,
+            "event_counts": event_counts,
+        },
     }
