@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --chart-grid: #e5e7eb;
+  --chart-axis: #9ca3af;
+}
+
+body {
+  @apply bg-paper text-ink font-sans antialiased;
+}
+
+.dark body {
+  @apply bg-graphite text-mist;
+}
+
+.dark {
+  --chart-grid: #2a2f3a;
+  --chart-axis: #6b7280;
+}
+
+.gradient-shell {
+  background: radial-gradient(circle at 10% 20%, rgba(47, 111, 237, 0.12), transparent 45%),
+    radial-gradient(circle at 90% 0%, rgba(15, 23, 42, 0.05), transparent 45%);
+}

@@ -5,6 +5,7 @@ env/
 
 # Environment variables
 .env
+.env.local
 
 # Python cache
 __pycache__/
@@ -22,3 +23,6 @@ outputs/
 # IDE and system files
 .DS_Store
 .vscode/
+
+# Vercel
+.vercel/

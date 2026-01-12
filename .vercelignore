@@ -1,0 +1,17 @@
+/app
+/jobs
+/models
+/outputs
+/logs
+/data
+/schemas
+/scripts
+/tests
+/notebooks
+/.venv
+.env
+.env.local
+**/*.pkl
+**/*.csv
+**/*.parquet
+**/*.log
