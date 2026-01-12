@@ -1,0 +1,19 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "ASX Portfolio AI",
+  "name_for_model": "asx_portfolio_os",
+  "description_for_human": "Query live ASX Portfolio performance, drift, and ML signals.",
+  "description_for_model": "Connects to the ASX Portfolio OS backend to fetch portfolio data, model summaries, and drift analytics.",
+  "auth": {
+    "type": "service_http",
+    "authorization_type": "api_key",
+    "verification_tokens": {}
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://tackle-spectacular-trace-horn.trycloudflare.com/openapi-actions.json"
+  },
+  "logo_url": "https://your-domain.com/logo.png",
+  "contact_email": "admin@yourdomain.com",
+  "legal_info_url": "https://yourdomain.com/terms"
+}

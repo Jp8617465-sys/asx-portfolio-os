@@ -1,0 +1,100 @@
+openapi: 3.1.0
+info:
+  title: ASX Portfolio OS
+  version: 0.4.0
+  description: >
+    Provides portfolio intelligence, model performance summaries, drift analytics,
+    and ML signal insights for the ASX Portfolio Operating System.
+servers:
+  - url: https://tackle-spectacular-trace-horn.trycloudflare.com
+    description: Cloudflare public API gateway
+paths:
+  /model/status/summary:
+    get:
+      summary: Get model status and latest metrics
+      description: Returns latest model version, metrics, signal count, and drift summary.
+      parameters:
+        - name: model
+          in: query
+          required: true
+          schema:
+            type: string
+            example: model_a_ml
+      responses:
+        '200':
+          description: Model summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  last_run:
+                    type: string
+                  sharpe:
+                    type: number
+                  cagr:
+                    type: number
+                  drift_status:
+                    type: string
+                  signal_count:
+                    type: integer
+  /dashboard/model_a_v1_1:
+    get:
+      summary: Get detailed portfolio dashboard
+      description: Returns holdings, rankings, weights, and metrics for a given date.
+      parameters:
+        - name: as_of
+          in: query
+          required: true
+          schema:
+            type: string
+            example: 2026-01-12
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  as_of:
+                    type: string
+                  summary:
+                    type: object
+                  targets:
+                    type: array
+                    items:
+                      type: object
+  /drift/summary:
+    get:
+      summary: Get drift summary
+      description: Returns model drift metrics for the last run and comparison to baseline.
+      parameters:
+        - name: model
+          in: query
+          required: true
+          schema:
+            type: string
+            example: model_a_ml
+      responses:
+        '200':
+          description: Drift summary data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  drift_mean:
+                    type: number
+                  drift_std:
+                    type: number
+                  features_drifting:
+                    type: integer
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
