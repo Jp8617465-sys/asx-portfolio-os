@@ -214,6 +214,21 @@ def loan_simulate(req: LoanSimulateReq, x_api_key: Optional[str] = Header(defaul
     }
 
 
+@app.post("/ingest/asx_announcements")
+def ingest_asx_announcements(
+    limit: int = 20,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    require_key(x_api_key)
+    try:
+        from jobs.asx_announcements_scraper import run_scraper
+        df = run_scraper(limit=limit)
+        return {"status": "ok", "rows": int(len(df))}
+    except Exception as e:
+        logger.exception("ASX announcements ingestion failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # -------------------------
 # Refresh universe
 # -------------------------
@@ -1156,6 +1171,7 @@ def openapi_actions(request: Request):
         "/signals/live",
         "/property/valuation",
         "/loan/simulate",
+        "/ingest/asx_announcements",
     }
     schema["paths"] = {p: v for p, v in schema["paths"].items() if p in allowed_paths}
 

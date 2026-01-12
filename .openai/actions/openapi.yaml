@@ -219,6 +219,24 @@ paths:
             application/json:
               schema:
                 type: object
+  /ingest/asx_announcements:
+    post:
+      summary: Ingest ASX announcements
+      description: Scrape and classify ASX announcements, then persist results.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '200':
+          description: Ingestion status
+          content:
+            application/json:
+              schema:
+                type: object
 security:
   - ApiKeyAuth: []
 components:
