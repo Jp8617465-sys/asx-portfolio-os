@@ -1,4 +1,4 @@
-import os, io, time, json
+import os, io, time, json, glob
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 
@@ -68,6 +68,10 @@ logger.addHandler(console_handler)
 logger.info("🔧 Logging initialized with daily rotation + gzip at %s", LOG_PATH)
 
 app = FastAPI(title="ASX Portfolio OS", version="0.3.0")
+@app.get("/")
+def home():
+    return {"message": "ASX Portfolio OS API is running ✅"}
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger.info("➡️ %s %s", request.method, request.url.path)
@@ -1268,4 +1272,60 @@ def model_status_summary(
             "psi_max": (drift[0].get("psi_max") if drift and drift[0] else None),
             "created_at": drift[1].isoformat() if drift and drift[1] else None,
         },
+    }
+
+
+def _load_latest_feature_importance():
+    summary_paths = sorted(glob.glob(os.path.join("models", "model_a_training_summary_*.txt")))
+    if not summary_paths:
+        return None
+
+    latest_path = summary_paths[-1]
+    features = []
+    started = False
+
+    with open(latest_path, "r") as f:
+        for line in f:
+            if line.strip().startswith("Top Features"):
+                started = True
+                continue
+            if not started:
+                continue
+            if not line.strip():
+                continue
+            if "feature" in line and "importance" in line:
+                continue
+
+            parts = line.strip().split()
+            if len(parts) < 2:
+                continue
+            importance = parts[-1]
+            feature = " ".join(parts[:-1])
+            try:
+                features.append({"feature": feature, "importance": float(importance)})
+            except ValueError:
+                continue
+
+    updated_at = datetime.utcfromtimestamp(os.path.getmtime(latest_path)).isoformat()
+    return {"path": latest_path, "updated_at": updated_at, "features": features}
+
+
+@app.get("/insights/feature-importance")
+def feature_importance_summary(
+    model: str = "model_a_ml",
+    limit: int = 10,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    require_key(x_api_key)
+
+    data = _load_latest_feature_importance()
+    if not data:
+        raise HTTPException(status_code=404, detail="No training summaries found.")
+
+    return {
+        "status": "ok",
+        "model": model,
+        "source": data["path"],
+        "updated_at": data["updated_at"],
+        "features": data["features"][:limit],
     }
