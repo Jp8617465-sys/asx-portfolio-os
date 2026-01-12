@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ChartContainer } from "./ui/chart";
 import { Skeleton } from "./ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { getAsxAnnouncements, getDriftSummary, getFeatureImportance } from "../lib/api";
+import { getAsxAnnouncements, getDriftSummary, getModelExplainability } from "../lib/api";
 
 type DriftSummary = {
   rows?: Array<{
@@ -52,7 +52,7 @@ export default function InsightsClient() {
   );
   const { data: importance, isLoading: importanceLoading } = useSWR<FeatureImportance>(
     "feature-importance",
-    () => getFeatureImportance("model_a_ml", 8)
+    () => getModelExplainability("v1_2", 8)
   );
   const { data: announcements, isLoading: announcementsLoading } = useSWR<AsxAnnouncementsSummary>(
     "asx-announcements",

@@ -6,6 +6,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
+import { sendAssistantChat } from "../lib/api";
 
 type Message = {
   role: "user" | "assistant";
@@ -30,18 +31,31 @@ const seedMessages: Message[] = [
 export default function AssistantClient() {
   const [messages, setMessages] = useState<Message[]>(seedMessages);
   const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text: input.trim() },
-      {
-        role: "assistant",
-        text: "Live chat integration is next. Responses will appear here once the API is wired."
-      }
-    ]);
+    const nextQuery = input.trim();
+    setMessages((prev) => [...prev, { role: "user", text: nextQuery }]);
     setInput("");
+    setIsSending(true);
+    try {
+      const res = await sendAssistantChat(nextQuery);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: res.reply || "No reply returned." }
+      ]);
+    } catch (err: any) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "Unable to reach the assistant backend yet. Check OPENAI_API_KEY or API availability."
+        }
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -88,7 +102,9 @@ export default function AssistantClient() {
               placeholder="Ask about drift, signals, or explainability..."
               className="flex-1 rounded-xl border border-slate-200/70 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200"
             />
-            <Button onClick={handleSend}>Send</Button>
+            <Button onClick={handleSend} disabled={isSending}>
+              {isSending ? "Sending..." : "Send"}
+            </Button>
           </div>
         </CardContent>
       </Card>

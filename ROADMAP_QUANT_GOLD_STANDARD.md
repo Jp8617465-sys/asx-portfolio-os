@@ -99,6 +99,37 @@
 
 ---
 
+## Phase 6B – Conversational Intelligence (In Progress)
+
+**Goal:** Wire Assistant UI to backend chat + explainability APIs.
+
+### Components
+| Module | Path | Description | Status |
+|---------|------|--------------|---------|
+| Assistant API | `app/main.py` | `/assistant/chat` endpoint | ⚙️ In Progress |
+| Chat Engine | `services/chat_engine.py` | OpenAI-backed responder | ⚙️ In Progress |
+| Assistant UI | `frontend/components/AssistantClient.tsx` | Chat UI + API hook | ⚙️ In Progress |
+| Explainability API | `app/main.py` | `/model/explainability` endpoint | ⚙️ In Progress |
+
+### Next Actions
+1. Add `OPENAI_API_KEY` to Render + Vercel env.
+2. Publish feature importance JSON (`feature_importance_v1_2.json`).
+3. Confirm Assistant responses in UI.
+
+---
+
+## Phase 7A – Model B/C Live Activation (In Progress)
+
+**Goal:** Populate fundamental + NLP tables with live data.
+
+### Next Actions
+1. Set `NEWS_API_KEY`, `MODEL_C_TICKERS`, `MODEL_C_NEWS_LIMIT` in Render.
+2. Run `/ingest/asx_announcements` and verify `/insights/asx_announcements`.
+3. Run `jobs/load_fundamentals_pipeline.py` + `jobs/derive_fundamentals_features.py`.
+4. Rebuild extended feature set for Model A ML.
+
+---
+
 ## Phase C – ASX Announcements NLP (Model C Foundation)
 
 **Goal:** Scrape ASX announcements, classify sentiment/event type, and persist to DB + CSV.
