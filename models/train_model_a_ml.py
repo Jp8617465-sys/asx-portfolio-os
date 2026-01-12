@@ -80,9 +80,6 @@ if "return_1m_fwd" not in df.columns and "close" in df.columns:
 if "return_1m_fwd_sign" not in df.columns and "return_1m_fwd" in df.columns:
     df["return_1m_fwd_sign"] = (df["return_1m_fwd"] > 0).astype(int)
 
-# Clean
-df = df.replace([np.inf, -np.inf], np.nan).dropna()
-
 # ---------------------------------------------------------------------
 # 3️⃣ Feature set + target
 # ---------------------------------------------------------------------
@@ -108,6 +105,14 @@ if not FEATURES:
 TARGET_CLASS = "return_1m_fwd_sign"
 TARGET_REG = "return_1m_fwd"
 
+# Clean + drop columns with low coverage
+df = df.replace([np.inf, -np.inf], np.nan)
+feature_coverage = {f: df[f].notna().mean() for f in FEATURES}
+FEATURES = [f for f in FEATURES if feature_coverage.get(f, 0) >= 0.6]
+if not FEATURES:
+    raise ValueError("No features remaining after coverage filter; check data sources.")
+
+df = df.dropna(subset=FEATURES + [TARGET_CLASS, TARGET_REG])
 X = df[FEATURES]
 y_class = df[TARGET_CLASS]
 y_reg = df[TARGET_REG]

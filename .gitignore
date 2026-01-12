@@ -19,6 +19,7 @@ outputs/
 *.csv
 *.parquet
 *.pkl
+models/model_a_training_summary_*.txt
 
 # Node/Next build artifacts
 **/node_modules/

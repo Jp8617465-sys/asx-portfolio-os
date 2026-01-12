@@ -90,6 +90,135 @@ paths:
                     type: number
                   features_drifting:
                     type: integer
+  /model/compare:
+    get:
+      summary: Compare two model runs
+      description: Returns metric deltas between two model registry entries.
+      parameters:
+        - name: model
+          in: query
+          required: false
+          schema:
+            type: string
+            example: model_a_ml
+        - name: left_version
+          in: query
+          required: false
+          schema:
+            type: string
+            example: v1_1
+        - name: right_version
+          in: query
+          required: false
+          schema:
+            type: string
+            example: v1_2
+      responses:
+        '200':
+          description: Model compare payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  left:
+                    type: object
+                  right:
+                    type: object
+                  delta:
+                    type: object
+  /signals/live:
+    get:
+      summary: Get latest ML signals
+      description: Returns top ranked ML signals for the latest or specified date.
+      parameters:
+        - name: model
+          in: query
+          required: false
+          schema:
+            type: string
+            example: model_a_ml
+        - name: as_of
+          in: query
+          required: false
+          schema:
+            type: string
+            example: 2026-01-12
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '200':
+          description: Signals payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  as_of:
+                    type: string
+                  count:
+                    type: integer
+                  signals:
+                    type: array
+                    items:
+                      type: object
+  /property/valuation:
+    post:
+      summary: Run property valuation
+      description: Computes property valuation summary for a region.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                region:
+                  type: string
+                horizon_months:
+                  type: integer
+                persist:
+                  type: boolean
+      responses:
+        '200':
+          description: Property valuation summary
+          content:
+            application/json:
+              schema:
+                type: object
+  /loan/simulate:
+    post:
+      summary: Simulate loan amortization
+      description: Returns amortization summary for a loan.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [principal, annual_rate, years]
+              properties:
+                principal:
+                  type: number
+                annual_rate:
+                  type: number
+                years:
+                  type: integer
+                extra_payment:
+                  type: number
+                persist:
+                  type: boolean
+      responses:
+        '200':
+          description: Loan simulation response
+          content:
+            application/json:
+              schema:
+                type: object
 security:
   - ApiKeyAuth: []
 components:

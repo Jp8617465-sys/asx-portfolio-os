@@ -70,10 +70,10 @@
 | Loan Simulator | `jobs/loan_simulator.py` | Amortization, refinancing, payoff optimization | ✅ Complete |
 
 ### Next Actions
-1. Link both modules to Supabase via new tables:
+1. Link both modules to Supabase via new tables ✅
    - `property_assets`
    - `loan_accounts`
-2. Expose endpoints:
+2. Expose endpoints ✅
    - `/property/valuation`
    - `/loan/simulate`
 3. Add ML retraining job `train_property_model.py`.
@@ -107,8 +107,8 @@
 | Module | Path | Description | Status |
 |---------|------|--------------|---------|
 | Portfolio Fusion API | `app/main.py` | Unified portfolio endpoints | ⏳ |
-| Property Assets Table | `schemas/property_assets.sql` | Property holdings + valuations | ⏳ |
-| Loan Accounts Table | `schemas/loan_accounts.sql` | Loan balances + terms | ⏳ |
+| Property Assets Table | `schemas/property_assets.sql` | Property holdings + valuations | ✅ |
+| Loan Accounts Table | `schemas/loan_accounts.sql` | Loan balances + terms | ✅ |
 | Fusion Job | `jobs/portfolio_fusion_job.py` | Aggregation + analytics | ⏳ |
 
 ### Next Actions

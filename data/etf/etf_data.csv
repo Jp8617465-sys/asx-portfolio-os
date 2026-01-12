@@ -1,1 +1,6 @@
-symbol,etf_name,sector,nav,flow_1w,flow_1m,updated_at
+symbol,etf_name,sector,nav,return_1w,return_1m,sector_flow_1w,sector_flow_1m,flow_1w,flow_1m,updated_at
+VAS.AU,Vanguard ASX 300,Market,90.5,0.012,0.035,12000000,45000000,8000000,32000000,2026-01-12
+A200.AU,BetaShares Australia 200,Market,130.2,0.01,0.03,10000000,38000000,6500000,25000000,2026-01-12
+IOZ.AU,iShares Core ASX 200,Market,32.4,0.011,0.031,9000000,36000000,6000000,23000000,2026-01-12
+QFN.AU,BetaShares Financials,Financials,12.7,0.008,0.022,5000000,18000000,3200000,12000000,2026-01-12
+QRE.AU,BetaShares Resources,Resources,13.3,0.015,0.045,7000000,24000000,4200000,15000000,2026-01-12

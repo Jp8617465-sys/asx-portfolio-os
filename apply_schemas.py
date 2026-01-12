@@ -144,6 +144,28 @@ create table if not exists model_a_predictions (
     unique (as_of, model, symbol)
 );
 """,
+    "property_assets": """
+create table if not exists property_assets (
+    id bigserial primary key,
+    region text not null,
+    avg_price numeric,
+    avg_yield numeric,
+    sample_count integer,
+    created_at timestamptz not null default now()
+);
+""",
+    "loan_accounts": """
+create table if not exists loan_accounts (
+    id bigserial primary key,
+    principal numeric not null,
+    annual_rate numeric not null,
+    years integer not null,
+    extra_payment numeric,
+    monthly_payment numeric,
+    total_interest numeric,
+    created_at timestamptz not null default now()
+);
+""",
 }
 
 
