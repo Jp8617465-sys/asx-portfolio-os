@@ -98,6 +98,8 @@ OPTIONAL_FEATURES = [
     "sentiment_score", "sentiment_composite",
     "asx_sentiment_score", "asx_sentiment_confidence", "asx_announcement_count",
     "asx_event_guidance", "asx_event_dividend", "asx_event_acquisition", "asx_event_earnings",
+    "asx_stance_bullish", "asx_stance_bearish", "asx_stance_neutral", "asx_relevance_score",
+    "roe_z", "pe_inverse", "valuation_score", "quality_score",
     "sector", "sector_spread_1m",
 ]
 FEATURES = [f for f in BASE_FEATURES if f in df.columns] + [f for f in OPTIONAL_FEATURES if f in df.columns]

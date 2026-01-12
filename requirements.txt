@@ -26,6 +26,7 @@ packaging==25.0
 pandas==2.3.3
 pillow==11.3.0
 pdfplumber==0.11.6
+prefect==2.19.0
 psycopg2-binary==2.9.11
 pyarrow==21.0.0
 pydantic==2.12.5

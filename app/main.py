@@ -1648,7 +1648,7 @@ def asx_announcements_summary(
         with db() as con, con.cursor() as cur:
             cur.execute(
                 """
-                select dt, code, headline, sentiment, event_type, confidence
+                select dt, code, headline, sentiment, event_type, confidence, stance, relevance_score, source
                 from nlp_announcements
                 order by dt desc, created_at desc
                 limit %s
@@ -1692,6 +1692,9 @@ def asx_announcements_summary(
             "sentiment": row[3],
             "event_type": row[4],
             "confidence": float(row[5]) if row[5] is not None else None,
+            "stance": row[6],
+            "relevance_score": float(row[7]) if row[7] is not None else None,
+            "source": row[8],
         }
         for row in rows
     ]
