@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, LayoutGrid, ListChecks, Settings, Sparkles } from "lucide-react";
+import { Activity, LayoutGrid, ListChecks, MessageCircle, Settings, Sparkles } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { href: "/models", label: "Models", icon: Sparkles },
   { href: "/jobs", label: "Jobs", icon: ListChecks },
   { href: "/insights", label: "Insights", icon: Activity },
+  { href: "/assistant", label: "Assistant", icon: MessageCircle },
   { href: "/settings", label: "Settings", icon: Settings }
 ];
 
