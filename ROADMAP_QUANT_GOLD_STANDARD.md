@@ -99,6 +99,25 @@
 
 ---
 
+## Phase C – ASX Announcements NLP (Model C Foundation)
+
+**Goal:** Scrape ASX announcements, classify sentiment/event type, and persist to DB + CSV.
+
+### Components
+| Module | Path | Description | Status |
+|---------|------|--------------|---------|
+| ASX Scraper | `jobs/asx_announcements_scraper.py` | Scrape feed + parse PDFs | ✅ |
+| NLP Storage | `schemas/nlp_announcements.sql` | Persist announcements | ✅ |
+| Manual Trigger | `POST /ingest/asx_announcements` | API trigger | ✅ |
+| Cron Job | `scripts/cron_asx_scrape.sh` | Daily scrape | ✅ |
+
+### Next Actions
+1. Add ASX NLP signals into `featureset_extended_latest.parquet`.
+2. Add explainability layer for event types (guidance/dividend/etc).
+3. Fine-tune FinBERT on ASX announcement corpus.
+
+---
+
 ## 🧩 Phase 8 – Portfolio Fusion (Scaffold)
 
 **Goal:** Unify equity, property, and loan intelligence into a single portfolio view.

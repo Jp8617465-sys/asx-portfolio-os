@@ -9,3 +9,6 @@ PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin
 
 # Monthly training (1st of month 02:00)
 0 2 1 * * /Users/jpcino/Documents/asx-portfolio-os/scripts/cron_monthly_training.sh
+
+# Daily ASX announcements scrape (06:30)
+30 6 * * * /Users/jpcino/Documents/asx-portfolio-os/scripts/cron_asx_scrape.sh
