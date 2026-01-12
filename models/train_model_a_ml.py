@@ -6,9 +6,11 @@ and saves the results. Drop-in ready for Codex in VS Code.
 """
 
 import os
+import json
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 import requests
 import psycopg2
@@ -27,6 +29,9 @@ load_dotenv(dotenv_path=".env", override=True)
 MODEL_A_API = os.environ.get("MODEL_A_API", "http://127.0.0.1:8790")
 OS_API_KEY = os.environ.get("OS_API_KEY", "")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+LOOKBACK_MONTHS = int(os.environ.get("LOOKBACK_MONTHS", "36"))
+CV_FOLDS = int(os.environ.get("CV_FOLDS", "12"))
+MODEL_VERSION = os.environ.get("MODEL_VERSION", "v1_2")
 
 EXTENDED_PATH = os.environ.get("EXTENDED_FEATURES_PATH", "outputs/featureset_extended_latest.parquet")
 DATA_PATH = os.environ.get("TRAINING_DATA_PATH")
@@ -49,6 +54,8 @@ if "dt" not in df.columns and "date" in df.columns:
     df = df.rename(columns={"date": "dt"})
 df["dt"] = pd.to_datetime(df["dt"])
 df = df.sort_values(["symbol", "dt"])
+cutoff = df["dt"].max() - relativedelta(months=LOOKBACK_MONTHS)
+df = df[df["dt"] >= cutoff]
 print(f"✅ Loaded {len(df):,} rows across {df['symbol'].nunique()} symbols.")
 
 # ---------------------------------------------------------------------
@@ -86,10 +93,16 @@ BASE_FEATURES = [
     "trend_200", "sma200_slope_pos", "trend_strength"
 ]
 OPTIONAL_FEATURES = [
-    "pe_ratio", "eps", "roe", "debt_to_equity", "market_cap",
-    "10y_yield", "cpi", "unemployment", "sentiment_score", "sector",
+    "pe_ratio", "pb_ratio", "eps", "roe", "debt_to_equity", "market_cap",
+    "pe_ratio_zscore", "pb_ratio_zscore", "roe_ratio", "debt_to_equity_ratio",
+    "atr_pct", "adv_zscore", "volume_skew_60",
+    "rba_cash_rate", "cpi", "unemployment", "yield_curve_slope", "yield_10y", "yield_2y",
+    "delta_cpi", "delta_yield_curve_slope", "delta_rba_rate",
+    "sentiment_score", "sentiment_composite",
+    "sector", "sector_spread_1m",
 ]
 FEATURES = [f for f in BASE_FEATURES if f in df.columns] + [f for f in OPTIONAL_FEATURES if f in df.columns]
+FEATURES = [f for f in FEATURES if pd.api.types.is_numeric_dtype(df[f])]
 if not FEATURES:
     raise ValueError("No features available after filtering; check input dataset columns.")
 TARGET_CLASS = "return_1m_fwd_sign"
@@ -102,7 +115,7 @@ y_reg = df[TARGET_REG]
 # ---------------------------------------------------------------------
 # 4️⃣ TimeSeries split & training
 # ---------------------------------------------------------------------
-tscv = TimeSeriesSplit(n_splits=5)
+tscv = TimeSeriesSplit(n_splits=CV_FOLDS)
 auc_scores, rmse_scores = [], []
 
 print("⚙️ Starting LightGBM training across time splits...")
@@ -173,12 +186,17 @@ plt.show()
 # ---------------------------------------------------------------------
 os.makedirs("models", exist_ok=True)
 timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-clf_path = f"models/model_a_classifier_{timestamp}.pkl"
-reg_path = f"models/model_a_regressor_{timestamp}.pkl"
-meta_path = f"models/model_a_training_summary_{timestamp}.txt"
+clf_path = f"models/model_a_classifier_{MODEL_VERSION}.pkl"
+reg_path = f"models/model_a_regressor_{MODEL_VERSION}.pkl"
+meta_path = f"models/model_a_training_summary_{MODEL_VERSION}.txt"
+clf_path_ts = f"models/model_a_classifier_{timestamp}.pkl"
+reg_path_ts = f"models/model_a_regressor_{timestamp}.pkl"
+meta_path_ts = f"models/model_a_training_summary_{timestamp}.txt"
 
 joblib.dump(clf_final, clf_path)
 joblib.dump(reg_final, reg_path)
+joblib.dump(clf_final, clf_path_ts)
+joblib.dump(reg_final, reg_path_ts)
 
 with open(meta_path, "w") as f:
     f.write(f"ROC-AUC Mean: {np.mean(auc_scores):.4f}\n")
@@ -186,7 +204,35 @@ with open(meta_path, "w") as f:
     f.write("Top Features:\n")
     f.write(imp_df.head(10).to_string(index=False))
 
+with open(meta_path_ts, "w") as f:
+    f.write(f"ROC-AUC Mean: {np.mean(auc_scores):.4f}\n")
+    f.write(f"RMSE Mean: {np.mean(rmse_scores):.4f}\n")
+    f.write("Top Features:\n")
+    f.write(imp_df.head(10).to_string(index=False))
+
+feature_json_path = f"outputs/feature_importance_{MODEL_VERSION}.json"
+os.makedirs("outputs", exist_ok=True)
+with open(feature_json_path, "w") as f:
+    json.dump(imp_df.to_dict(orient="records"), f, indent=2)
+
+metrics_path = f"outputs/model_a_training_metrics_{MODEL_VERSION}.json"
+with open(metrics_path, "w") as f:
+    json.dump(
+        {
+            "roc_auc_mean": float(np.mean(auc_scores)),
+            "roc_auc_std": float(np.std(auc_scores)),
+            "rmse_mean": float(np.mean(rmse_scores)),
+            "rmse_std": float(np.std(rmse_scores)),
+            "n_rows": int(len(df)),
+            "n_features": int(len(FEATURES)),
+            "lookback_months": LOOKBACK_MONTHS,
+        },
+        f,
+        indent=2,
+    )
+
 print(f"\n💾 Saved models →\n  {clf_path}\n  {reg_path}\n📘 Summary → {meta_path}")
+print(f"📈 Feature importance → {feature_json_path}")
 print("\nTop features:")
 print(imp_df.head(10).to_string(index=False))
 
@@ -225,16 +271,25 @@ def _post_json(path: str, payload: dict):
 # Persist model registry entry
 registry_payload = {
     "model_name": "model_a_ml",
-    "version": timestamp,
+    "version": MODEL_VERSION,
     "run_id": timestamp,
     "metrics": {
         "roc_auc_mean": float(np.mean(auc_scores)),
         "roc_auc_std": float(np.std(auc_scores)),
         "rmse_mean": float(np.mean(rmse_scores)),
         "rmse_std": float(np.std(rmse_scores)),
+        "drift_kl_divergence": None,
+        "population_stability_index": None,
+        "mean_confidence_gap": float(abs(df_latest["ml_prob"] - 0.5).mean()),
     },
     "features": FEATURES,
-    "artifacts": {"classifier": clf_path, "regressor": reg_path},
+    "artifacts": {
+        "classifier": clf_path,
+        "regressor": reg_path,
+        "summary": meta_path,
+        "feature_importance": feature_json_path,
+        "metrics": metrics_path,
+    },
 }
 _post_json("/registry/model_run", registry_payload)
 
@@ -296,7 +351,7 @@ try:
     shap_sample = X.sample(n=min(2000, len(X)), random_state=42)
     explainer = shap.TreeExplainer(clf_final)
     shap_values = explainer.shap_values(shap_sample)
-    shap_path = f"outputs/model_a_shap_summary_{timestamp}.png"
+    shap_path = f"outputs/model_a_shap_summary_{MODEL_VERSION}.png"
     shap.summary_plot(shap_values, shap_sample, show=False)
     plt.tight_layout()
     plt.savefig(shap_path, dpi=150)
