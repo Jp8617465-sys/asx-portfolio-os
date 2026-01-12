@@ -1,0 +1,14 @@
+ROC-AUC Mean: 0.5675
+RMSE Mean: 3.1022
+Top Features:
+        feature  importance
+ trend_strength        6542
+         vol_90        6270
+  adv_20_median        6182
+         vol_30        4898
+       mom_12_1        4878
+vol_ratio_30_90        4555
+adv_ratio_20_60        4366
+          mom_9        4265
+          mom_6        4142
+          mom_3        4036

@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: asx-portfolio-api
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_DB_URL
+        sync: false
+      - key: EODHD_API_KEY
+        sync: false
+      - key: OS_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: MODEL_A_API
+        value: https://asx-portfolio-api.onrender.com
+
+  - type: worker
+    name: asx-portfolio-worker
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/cron_weekly_drift.py
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_DB_URL
+        sync: false
+      - key: EODHD_API_KEY
+        sync: false
+      - key: OS_API_KEY
+        sync: false

@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin
+
+# Weekly drift audit, Sunday 02:30
+30 2 * * 0 /Users/jpcino/Documents/asx-portfolio-os/.venv/bin/python /Users/jpcino/Documents/asx-portfolio-os/scripts/cron_weekly_drift.py >> /Users/jpcino/Documents/asx-portfolio-os/logs/cron_drift.log 2>&1
