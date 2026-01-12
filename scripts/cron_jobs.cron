@@ -1,0 +1,11 @@
+SHELL=/bin/bash
+PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin
+
+# Daily price sync (9 PM AEST)
+0 21 * * * /Users/jpcino/Documents/asx-portfolio-os/scripts/cron_daily_prices.sh
+
+# Weekly feature build (Sunday 02:00)
+0 2 * * 0 /Users/jpcino/Documents/asx-portfolio-os/scripts/cron_weekly_features.sh
+
+# Monthly training (1st of month 02:00)
+0 2 1 * * /Users/jpcino/Documents/asx-portfolio-os/scripts/cron_monthly_training.sh

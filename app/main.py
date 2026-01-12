@@ -98,6 +98,26 @@ def health():
     return {"ok": True, "ts": datetime.utcnow().isoformat()}
 
 
+@app.get("/debug/db_check")
+def debug_db_check(x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    try:
+        with db() as con, con.cursor() as cur:
+            cur.execute("select current_database(), current_user")
+            info = cur.fetchone()
+            cur.execute("select now()")
+            now = cur.fetchone()[0]
+        return {
+            "status": "ok",
+            "database": info[0],
+            "user": info[1],
+            "now": now.isoformat() if now else None,
+        }
+    except Exception as e:
+        logger.exception("DB check failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # -------------------------
 # Refresh universe
 # -------------------------
@@ -221,6 +241,47 @@ def refresh_prices_last_day(x_api_key: Optional[str] = Header(default=None)):
         n = cur.fetchone()[0]
 
     return {"status":"ok", "date": str(day), "rows": int(n)}
+
+
+@app.post("/refresh/prices/live")
+def refresh_prices_live(x_api_key: Optional[str] = Header(default=None)):
+    """
+    Alias to refresh last-day prices (used by daily sync jobs).
+    """
+    return refresh_prices_last_day(x_api_key=x_api_key)
+
+
+@app.post("/refresh/macro/latest")
+def refresh_macro_latest(x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    try:
+        from jobs.load_macro import main as load_macro_main
+        load_macro_main()
+        return {"status": "ok"}
+    except SystemExit as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/refresh/sentiment")
+def refresh_sentiment(x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    try:
+        from jobs.load_sentiment import main as load_sentiment_main
+        load_sentiment_main()
+        return {"status": "ok"}
+    except SystemExit as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/refresh/etfdata")
+def refresh_etfdata(x_api_key: Optional[str] = Header(default=None)):
+    require_key(x_api_key)
+    try:
+        from jobs.load_etf_data import main as load_etf_main
+        load_etf_main()
+        return {"status": "ok"}
+    except SystemExit as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 # -------------------------
