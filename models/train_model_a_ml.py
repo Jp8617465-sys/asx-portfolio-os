@@ -96,6 +96,8 @@ OPTIONAL_FEATURES = [
     "rba_cash_rate", "cpi", "unemployment", "yield_curve_slope", "yield_10y", "yield_2y",
     "delta_cpi", "delta_yield_curve_slope", "delta_rba_rate",
     "sentiment_score", "sentiment_composite",
+    "asx_sentiment_score", "asx_sentiment_confidence", "asx_announcement_count",
+    "asx_event_guidance", "asx_event_dividend", "asx_event_acquisition", "asx_event_earnings",
     "sector", "sector_spread_1m",
 ]
 FEATURES = [f for f in BASE_FEATURES if f in df.columns] + [f for f in OPTIONAL_FEATURES if f in df.columns]

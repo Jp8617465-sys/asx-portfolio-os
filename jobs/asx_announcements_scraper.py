@@ -24,6 +24,10 @@ ASX_FEED_URL = os.getenv("ASX_FEED_URL", "https://www.asx.com.au/asx/v2/statisti
 SAVE_PATH = os.getenv("ASX_ANNOUNCEMENTS_CSV", "data/nlp/asx_announcements.csv")
 ANNOUNCEMENT_LIMIT = int(os.getenv("ASX_ANNOUNCEMENTS_LIMIT", "20"))
 REQUEST_SLEEP = float(os.getenv("ASX_ANNOUNCEMENTS_SLEEP", "2"))
+USER_AGENT = os.getenv(
+    "ASX_USER_AGENT",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+)
 
 if not DATABASE_URL:
     raise EnvironmentError("DATABASE_URL not set")
@@ -40,7 +44,7 @@ def _get_nlp():
 
 
 def fetch_announcements() -> pd.DataFrame:
-    resp = requests.get(ASX_FEED_URL, timeout=15)
+    resp = requests.get(ASX_FEED_URL, timeout=15, headers={"User-Agent": USER_AGENT})
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
     rows = soup.find_all("tr")
@@ -75,7 +79,7 @@ def parse_pdf_text(url: Optional[str]) -> str:
     if not url:
         return ""
     try:
-        resp = requests.get(url, timeout=20)
+        resp = requests.get(url, timeout=20, headers={"User-Agent": USER_AGENT})
         resp.raise_for_status()
         path = "/tmp/asx_announcement.pdf"
         with open(path, "wb") as f:
@@ -113,6 +117,7 @@ def classify_text(text: str):
 def run_scraper(limit: int = ANNOUNCEMENT_LIMIT) -> pd.DataFrame:
     df = fetch_announcements().head(limit)
     if df.empty:
+        print("Warning: No announcements returned from feed.")
         return df
 
     results = []
