@@ -69,6 +69,17 @@ def load_fundamentals():
     """
     return _safe_read_sql(q)
 
+def load_fundamental_features():
+    q = """
+    select symbol, as_of, roe_z, pe_inverse, valuation_score, quality_score
+    from features_fundamental
+    """
+    df = _safe_read_sql(q)
+    if df.empty:
+        return df
+    df["date"] = pd.to_datetime(df["as_of"]).dt.date
+    return df.drop(columns=["as_of"])
+
 # --- Macro data (FRED or RBA API) ---
 def load_macro_features():
     q = """
@@ -125,7 +136,7 @@ def load_sentiment():
 # --- ASX announcements NLP signals ---
 def load_asx_announcements():
     q = """
-    select dt as date, code, sentiment, event_type, confidence
+    select dt as date, code, sentiment, event_type, confidence, stance, relevance_score
     from nlp_announcements
     """
     df = _safe_read_sql(q)
@@ -134,12 +145,16 @@ def load_asx_announcements():
 
     df["symbol"] = df["code"].astype(str).str.strip() + ".AU"
     df["sentiment"] = df["sentiment"].astype(str).str.lower()
+    df["stance"] = df["stance"].astype(str).str.lower()
     df["confidence"] = pd.to_numeric(df["confidence"], errors="coerce").fillna(0)
+    df["relevance_score"] = pd.to_numeric(df["relevance_score"], errors="coerce").fillna(0)
     sentiment_map = {"positive": 1, "negative": -1, "neutral": 0}
     df["sentiment_score"] = df["sentiment"].map(sentiment_map).fillna(0) * df["confidence"]
     df["announcement_count"] = 1
     for event in ("guidance", "dividend", "acquisition", "earnings"):
         df[f"event_{event}"] = (df["event_type"] == event).astype(int)
+    for stance in ("bullish", "bearish", "neutral"):
+        df[f"stance_{stance}"] = (df["stance"] == stance).astype(int)
 
     agg = (
         df.groupby(["date", "symbol"], as_index=False)
@@ -151,6 +166,10 @@ def load_asx_announcements():
             asx_event_dividend=("event_dividend", "sum"),
             asx_event_acquisition=("event_acquisition", "sum"),
             asx_event_earnings=("event_earnings", "sum"),
+            asx_stance_bullish=("stance_bullish", "sum"),
+            asx_stance_bearish=("stance_bearish", "sum"),
+            asx_stance_neutral=("stance_neutral", "sum"),
+            asx_relevance_score=("relevance_score", "mean"),
         )
     )
     return agg
@@ -169,6 +188,7 @@ def build_features(start_date, end_date):
     if tech.empty:
         raise ValueError("No technical data loaded; check prices table.")
     fund = load_fundamentals()
+    fund_features = load_fundamental_features()
     macro = load_macro_features()
     sent = load_sentiment()
     announcements = load_asx_announcements()
@@ -177,6 +197,8 @@ def build_features(start_date, end_date):
     df = tech
     if not fund.empty and "symbol" in fund.columns:
         df = df.merge(fund, on="symbol", how="left")
+    if not fund_features.empty and {"symbol", "date"}.issubset(fund_features.columns):
+        df = df.merge(fund_features, on=["symbol", "date"], how="left")
     if not sent.empty and {"symbol", "date"}.issubset(sent.columns):
         df = df.merge(sent, on=["symbol", "date"], how="left")
     if not announcements.empty and {"symbol", "date"}.issubset(announcements.columns):
@@ -217,6 +239,10 @@ def build_features(start_date, end_date):
         "asx_event_dividend",
         "asx_event_acquisition",
         "asx_event_earnings",
+        "asx_stance_bullish",
+        "asx_stance_bearish",
+        "asx_stance_neutral",
+        "asx_relevance_score",
     ]
     for col in nlp_cols:
         if col not in df.columns:

@@ -28,6 +28,13 @@ USER_AGENT = os.getenv(
     "ASX_USER_AGENT",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
 )
+EODHD_API_KEY = os.getenv("EODHD_API_KEY", "")
+NEWS_API_KEY = os.getenv("NEWS_API_KEY", "")
+NEWS_TICKERS = os.getenv("MODEL_C_TICKERS", "BHP,CBA,CSL,WES,FMG,WBC")
+NEWS_LIMIT_PER_TICKER = int(os.getenv("MODEL_C_NEWS_LIMIT", "4"))
+NEWS_QUERY = os.getenv("MODEL_C_NEWS_QUERY", "ASX OR Australia stock")
+NEWS_THROTTLE = float(os.getenv("MODEL_C_NEWS_SLEEP", "1.2"))
+EODHD_NEWS_PREFIX = os.getenv("EODHD_NEWS_PREFIX", "ASX")
 
 if not DATABASE_URL:
     raise EnvironmentError("DATABASE_URL not set")
@@ -114,25 +121,134 @@ def classify_text(text: str):
     return label, event, score
 
 
+def _stance_from_sentiment(label: Optional[str]) -> str:
+    if not label:
+        return "neutral"
+    label = label.lower()
+    if label == "positive":
+        return "bullish"
+    if label == "negative":
+        return "bearish"
+    return "neutral"
+
+
+def _relevance_score(text: str, ticker: Optional[str]) -> float:
+    if not text:
+        return 0.0
+    if not ticker:
+        return 0.2
+    hits = text.lower().count(ticker.lower())
+    return min(1.0, 0.2 + 0.2 * hits)
+
+
+def fetch_eodhd_news(ticker: str) -> list:
+    if not EODHD_API_KEY:
+        return []
+    url = "https://eodhd.com/api/news"
+    params = {
+        "api_token": EODHD_API_KEY,
+        "s": f"{EODHD_NEWS_PREFIX}.{ticker}",
+        "limit": NEWS_LIMIT_PER_TICKER,
+        "fmt": "json",
+    }
+    resp = requests.get(url, params=params, timeout=30, headers={"User-Agent": USER_AGENT})
+    if resp.status_code != 200:
+        return []
+    payload = resp.json()
+    if not isinstance(payload, list):
+        return []
+    rows = []
+    for item in payload:
+        headline = item.get("title") or ""
+        summary = item.get("content") or ""
+        url_link = item.get("url")
+        published = item.get("date")
+        rows.append({
+            "dt": published,
+            "code": ticker,
+            "headline": headline,
+            "pdf_link": url_link,
+            "text": f"{headline} {summary}".strip(),
+            "source": item.get("source") or "eodhd",
+        })
+    return rows
+
+
+def fetch_newsapi_articles(query: str) -> list:
+    if not NEWS_API_KEY:
+        return []
+    url = "https://newsapi.org/v2/everything"
+    params = {
+        "q": query,
+        "language": "en",
+        "pageSize": 20,
+        "sortBy": "publishedAt",
+        "apiKey": NEWS_API_KEY,
+    }
+    resp = requests.get(url, params=params, timeout=30, headers={"User-Agent": USER_AGENT})
+    if resp.status_code != 200:
+        return []
+    payload = resp.json()
+    rows = []
+    for item in payload.get("articles", [])[:ANNOUNCEMENT_LIMIT]:
+        headline = item.get("title") or ""
+        summary = item.get("description") or ""
+        published = item.get("publishedAt")
+        rows.append({
+            "dt": published,
+            "code": None,
+            "headline": headline,
+            "pdf_link": item.get("url"),
+            "text": f"{headline} {summary}".strip(),
+            "source": (item.get("source") or {}).get("name") or "newsapi",
+        })
+    return rows
+
+
+def fetch_fallback_news(limit: int) -> pd.DataFrame:
+    records = []
+    tickers = [t.strip() for t in NEWS_TICKERS.split(",") if t.strip()]
+    for ticker in tickers:
+        records.extend(fetch_eodhd_news(ticker))
+        time.sleep(NEWS_THROTTLE)
+
+    if not records and NEWS_API_KEY:
+        records.extend(fetch_newsapi_articles(NEWS_QUERY))
+
+    if not records:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(records).head(limit)
+    return df
+
+
 def run_scraper(limit: int = ANNOUNCEMENT_LIMIT) -> pd.DataFrame:
     df = fetch_announcements().head(limit)
     if df.empty:
-        print("Warning: No announcements returned from feed.")
-        return df
+        print("Warning: No announcements returned from feed. Falling back to news feeds.")
+        df = fetch_fallback_news(limit)
+        if df.empty:
+            print("Warning: No fallback news returned.")
+            return df
 
     results = []
     for _, row in df.iterrows():
-        text = parse_pdf_text(row.get("pdf_link"))
+        text = row.get("text") or parse_pdf_text(row.get("pdf_link"))
         sentiment, event_type, confidence = classify_text(text)
+        stance = _stance_from_sentiment(sentiment)
+        relevance = _relevance_score(text, row.get("code"))
         results.append(
             {
-                "dt": row.get("date"),
+                "dt": row.get("date") or row.get("dt"),
                 "code": row.get("code"),
                 "headline": row.get("headline"),
                 "pdf_link": row.get("pdf_link"),
                 "sentiment": sentiment,
                 "event_type": event_type,
                 "confidence": confidence,
+                "stance": stance,
+                "relevance_score": relevance,
+                "source": row.get("source") or "asx",
                 "parsed_text": text[:1000],
                 "created_at": datetime.utcnow(),
             }
@@ -140,6 +256,8 @@ def run_scraper(limit: int = ANNOUNCEMENT_LIMIT) -> pd.DataFrame:
         time.sleep(REQUEST_SLEEP)
 
     out = pd.DataFrame(results)
+    if "dt" in out.columns:
+        out["dt"] = pd.to_datetime(out["dt"], errors="coerce").dt.date
     os.makedirs(os.path.dirname(SAVE_PATH), exist_ok=True)
     out.to_csv(SAVE_PATH, index=False)
     out.to_sql("nlp_announcements", con=engine, if_exists="append", index=False)

@@ -106,7 +106,7 @@
 ### Components
 | Module | Path | Description | Status |
 |---------|------|--------------|---------|
-| ASX Scraper | `jobs/asx_announcements_scraper.py` | Scrape feed + parse PDFs | ✅ |
+| ASX Scraper | `jobs/asx_announcements_scraper.py` | Scrape feed + parse PDFs | ⚙️ In Progress |
 | NLP Storage | `schemas/nlp_announcements.sql` | Persist announcements | ✅ |
 | Manual Trigger | `POST /ingest/asx_announcements` | API trigger | ✅ |
 | Cron Job | `scripts/cron_asx_scrape.sh` | Daily scrape | ✅ |
@@ -115,6 +115,25 @@
 1. Add ASX NLP signals into `featureset_extended_latest.parquet`.
 2. Add explainability layer for event types (guidance/dividend/etc).
 3. Fine-tune FinBERT on ASX announcement corpus.
+4. Enable fallback feeds (EODHD/NewsAPI) while ASX feed is gated.
+
+---
+
+## Phase B – Fundamentals Ingestion (Model B Foundation)
+
+**Goal:** Pull fundamentals from EODHD and generate derived scoring features.
+
+### Components
+| Module | Path | Description | Status |
+|---------|------|--------------|---------|
+| Fundamentals Pipeline | `jobs/load_fundamentals_pipeline.py` | EODHD fundamentals ingestion | ⚙️ In Progress |
+| Derived Features | `jobs/derive_fundamentals_features.py` | Fundamental scoring table | ⚙️ In Progress |
+| Schema | `schemas/features_fundamental.sql` | Feature storage table | ✅ |
+
+### Next Actions
+1. Run fundamentals pipeline on the upgraded EODHD plan.
+2. Run feature derivation job to populate `features_fundamental`.
+3. Merge derived features into the extended feature set.
 
 ---
 

@@ -102,6 +102,9 @@ export type AsxAnnouncementsSummary = {
     sentiment?: string;
     event_type?: string;
     confidence?: number;
+    stance?: string;
+    relevance_score?: number;
+    source?: string;
   }>;
   summary?: {
     sentiment_counts?: Record<string, number>;

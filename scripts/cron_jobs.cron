@@ -12,3 +12,6 @@ PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin
 
 # Daily ASX announcements scrape (06:30)
 30 6 * * * /Users/jpcino/Documents/asx-portfolio-os/scripts/cron_asx_scrape.sh
+
+# Weekly fundamentals refresh (Monday 03:00)
+0 3 * * 1 /Users/jpcino/Documents/asx-portfolio-os/scripts/cron_weekly_fundamentals.sh
