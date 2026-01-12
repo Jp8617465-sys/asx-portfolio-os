@@ -1336,6 +1336,130 @@ def model_status_summary(
     }
 
 
+@app.get("/model/compare")
+def model_compare(
+    model: str = "model_a_ml",
+    left_version: Optional[str] = None,
+    right_version: Optional[str] = None,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    require_key(x_api_key)
+
+    with db() as con, con.cursor() as cur:
+        if left_version and right_version:
+            cur.execute(
+                """
+                select version, metrics, created_at
+                from model_registry
+                where model_name = %s and version in (%s, %s)
+                order by created_at desc
+                """,
+                (model, left_version, right_version),
+            )
+        else:
+            cur.execute(
+                """
+                select version, metrics, created_at
+                from model_registry
+                where model_name = %s
+                order by created_at desc
+                limit 2
+                """,
+                (model,),
+            )
+        rows = cur.fetchall()
+
+    if len(rows) < 2:
+        raise HTTPException(status_code=404, detail="Not enough model runs to compare.")
+
+    right = rows[0]
+    left = rows[1]
+    left_metrics = left[1] or {}
+    right_metrics = right[1] or {}
+
+    def delta(key: str):
+        if key in left_metrics and key in right_metrics:
+            try:
+                return float(right_metrics[key]) - float(left_metrics[key])
+            except (TypeError, ValueError):
+                return None
+        return None
+
+    return {
+        "status": "ok",
+        "model": model,
+        "left": {
+            "version": left[0],
+            "created_at": left[2].isoformat() if left[2] else None,
+            "metrics": left_metrics,
+        },
+        "right": {
+            "version": right[0],
+            "created_at": right[2].isoformat() if right[2] else None,
+            "metrics": right_metrics,
+        },
+        "delta": {
+            "roc_auc_mean": delta("roc_auc_mean"),
+            "rmse_mean": delta("rmse_mean"),
+            "mean_confidence_gap": delta("mean_confidence_gap"),
+            "population_stability_index": delta("population_stability_index"),
+        },
+    }
+
+
+@app.get("/signals/live")
+def signals_live(
+    model: str = "model_a_ml",
+    as_of: Optional[str] = None,
+    limit: int = 20,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    require_key(x_api_key)
+    if limit < 1 or limit > 200:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 200")
+
+    with db() as con, con.cursor() as cur:
+        if as_of:
+            as_of_d = datetime.strptime(as_of, "%Y-%m-%d").date()
+        else:
+            cur.execute(
+                """
+                select max(as_of)
+                from model_a_ml_signals
+                where model = %s
+                """,
+                (model,),
+            )
+            row = cur.fetchone()
+            if not row or not row[0]:
+                raise HTTPException(status_code=404, detail="No signals available.")
+            as_of_d = row[0]
+
+        cur.execute(
+            """
+            select symbol, rank, score, ml_prob, ml_expected_return
+            from model_a_ml_signals
+            where model = %s and as_of = %s
+            order by rank asc
+            limit %s
+            """,
+            (model, as_of_d, limit),
+        )
+        rows = cur.fetchall()
+
+    signals = [
+        {
+            "symbol": r[0],
+            "rank": int(r[1]) if r[1] is not None else None,
+            "score": float(r[2]) if r[2] is not None else None,
+            "ml_prob": float(r[3]) if r[3] is not None else None,
+            "ml_expected_return": float(r[4]) if r[4] is not None else None,
+        }
+        for r in rows
+    ]
+
+    return {"status": "ok", "model": model, "as_of": as_of_d.isoformat(), "count": len(signals), "signals": signals}
+
 def _load_latest_feature_importance():
     summary_paths = sorted(glob.glob(os.path.join("models", "model_a_training_summary_*.txt")))
     if not summary_paths:
