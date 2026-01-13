@@ -176,9 +176,94 @@ create table if not exists nlp_announcements (
     sentiment text,
     event_type text,
     confidence numeric,
+    stance text,
+    relevance_score numeric,
+    source text,
     parsed_text text,
     created_at timestamptz not null default now()
 );
+""",
+    "fundamentals_history": """
+create table if not exists fundamentals_history (
+    id bigserial primary key,
+    symbol text not null,
+    as_of date not null,
+    metric text not null,
+    value numeric,
+    source text default 'eodhd',
+    created_at timestamptz not null default now()
+);
+create unique index if not exists fundamentals_history_symbol_asof_metric_uidx
+    on fundamentals_history (symbol, as_of, metric);
+""",
+    "features_fundamental_trends": """
+create table if not exists features_fundamental_trends (
+    id bigserial primary key,
+    symbol text not null,
+    metric text not null,
+    window_size integer not null,
+    mean_value numeric,
+    pct_change numeric,
+    slope numeric,
+    volatility numeric,
+    as_of date not null,
+    created_at timestamptz not null default now()
+);
+create unique index if not exists features_fundamental_trends_uidx
+    on features_fundamental_trends (symbol, metric, window_size, as_of);
+""",
+    "risk_exposure_snapshot": """
+create table if not exists risk_exposure_snapshot (
+    id bigserial primary key,
+    symbol text not null,
+    as_of date not null,
+    sector text,
+    factor_vol numeric,
+    beta_market numeric,
+    factor_corr jsonb,
+    created_at timestamptz not null default now()
+);
+create unique index if not exists risk_exposure_snapshot_uidx
+    on risk_exposure_snapshot (symbol, as_of);
+""",
+    "portfolio_attribution": """
+create table if not exists portfolio_attribution (
+    id bigserial primary key,
+    model text not null,
+    as_of date not null,
+    symbol text not null,
+    weight numeric,
+    return_1d numeric,
+    contribution numeric,
+    created_at timestamptz not null default now()
+);
+create index if not exists portfolio_attribution_model_asof_idx
+    on portfolio_attribution (model, as_of);
+""",
+    "portfolio_performance": """
+create table if not exists portfolio_performance (
+    id bigserial primary key,
+    model text not null,
+    as_of date not null,
+    portfolio_return numeric,
+    volatility numeric,
+    sharpe numeric,
+    created_at timestamptz not null default now()
+);
+create unique index if not exists portfolio_performance_model_asof_uidx
+    on portfolio_performance (model, as_of);
+""",
+    "model_feature_importance": """
+create table if not exists model_feature_importance (
+    id bigserial primary key,
+    model_name text not null,
+    model_version text not null,
+    feature text not null,
+    importance numeric,
+    created_at timestamptz not null default now()
+);
+create unique index if not exists model_feature_importance_uidx
+    on model_feature_importance (model_name, model_version, feature);
 """,
 }
 
@@ -208,6 +293,7 @@ def apply_schemas():
                 cur.execute(sql)
                 print(f"✅ Applied schema: {os.path.basename(sql_file)}")
             except Exception as e:
+                conn.rollback()
                 print(f"⚠️ Skipped {os.path.basename(sql_file)} (likely exists): {e}")
 
     print("🎯 All schema files processed successfully.")
@@ -242,8 +328,12 @@ def _apply_fallbacks(expected_tables: set):
                 print(f"⚠️ Missing table '{table}' with no fallback schema.")
                 continue
             with conn.cursor() as cur:
-                cur.execute(fallback_sql)
-            print(f"✅ Created missing table '{table}' via fallback schema.")
+                try:
+                    cur.execute(fallback_sql)
+                    print(f"✅ Created missing table '{table}' via fallback schema.")
+                except Exception as e:
+                    conn.rollback()
+                    print(f"⚠️ Failed to create fallback table '{table}': {e}")
 
 
 # === 3️⃣ Validate backend DB connectivity ===

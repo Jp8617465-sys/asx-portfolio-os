@@ -37,7 +37,7 @@ def _compute_trend(group: pd.DataFrame) -> dict:
     return {
         "symbol": group["symbol"].iloc[-1],
         "metric": group["metric"].iloc[-1],
-        "window": len(group),
+        "window_size": len(group),
         "mean_value": float(np.mean(values)),
         "pct_change": pct_change,
         "slope": slope,
@@ -73,7 +73,7 @@ def main() -> None:
             (
                 r["symbol"],
                 r["metric"],
-                int(r["window"]),
+                int(r["window_size"]),
                 r["mean_value"],
                 r["pct_change"],
                 r["slope"],
@@ -84,9 +84,9 @@ def main() -> None:
 
     sql = """
     insert into features_fundamental_trends
-        (symbol, metric, window, mean_value, pct_change, slope, volatility, as_of)
+        (symbol, metric, window_size, mean_value, pct_change, slope, volatility, as_of)
     values %s
-    on conflict (symbol, metric, window, as_of) do update set
+    on conflict (symbol, metric, window_size, as_of) do update set
         mean_value = excluded.mean_value,
         pct_change = excluded.pct_change,
         slope = excluded.slope,

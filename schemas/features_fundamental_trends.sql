@@ -2,7 +2,7 @@ create table if not exists features_fundamental_trends (
     id bigserial primary key,
     symbol text not null,
     metric text not null,
-    window integer not null,
+    window_size integer not null,
     mean_value numeric,
     pct_change numeric,
     slope numeric,
@@ -12,4 +12,4 @@ create table if not exists features_fundamental_trends (
 );
 
 create unique index if not exists features_fundamental_trends_uidx
-    on features_fundamental_trends (symbol, metric, window, as_of);
+    on features_fundamental_trends (symbol, metric, window_size, as_of);
