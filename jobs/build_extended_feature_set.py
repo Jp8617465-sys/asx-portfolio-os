@@ -80,6 +80,38 @@ def load_fundamental_features():
     df["date"] = pd.to_datetime(df["as_of"]).dt.date
     return df.drop(columns=["as_of"])
 
+def load_fundamental_trends():
+    q = """
+    select symbol, metric, window, mean_value, pct_change, slope, volatility, as_of
+    from features_fundamental_trends
+    """
+    df = _safe_read_sql(q)
+    if df.empty:
+        return df
+    df["date"] = pd.to_datetime(df["as_of"]).dt.date
+    window = int(os.getenv("FUNDAMENTALS_TREND_WINDOW", "0") or 0)
+    if window:
+        df = df[df["window"] == window]
+    return df
+
+def _pivot_trends(df: pd.DataFrame, value_col: str, suffix: str) -> pd.DataFrame:
+    wide = df.pivot_table(index=["symbol", "date"], columns="metric", values=value_col)
+    wide.columns = [f"fund_trend_{suffix}_{c}" for c in wide.columns]
+    wide = wide.reset_index()
+    return wide
+
+def load_risk_snapshot():
+    q = """
+    select symbol, as_of, sector, factor_vol, beta_market
+    from risk_exposure_snapshot
+    where as_of = (select max(as_of) from risk_exposure_snapshot)
+    """
+    df = _safe_read_sql(q)
+    if df.empty:
+        return df
+    df["date"] = pd.to_datetime(df["as_of"]).dt.date
+    return df.drop(columns=["as_of"])
+
 # --- Macro data (FRED or RBA API) ---
 def load_macro_features():
     q = """
@@ -189,16 +221,27 @@ def build_features(start_date, end_date):
         raise ValueError("No technical data loaded; check prices table.")
     fund = load_fundamentals()
     fund_features = load_fundamental_features()
+    fund_trends = load_fundamental_trends()
     macro = load_macro_features()
     sent = load_sentiment()
     announcements = load_asx_announcements()
     etf = load_etf_features()
+    risk_snapshot = load_risk_snapshot()
 
     df = tech
     if not fund.empty and "symbol" in fund.columns:
         df = df.merge(fund, on="symbol", how="left")
     if not fund_features.empty and {"symbol", "date"}.issubset(fund_features.columns):
         df = df.merge(fund_features, on=["symbol", "date"], how="left")
+    if not fund_trends.empty and {"symbol", "date", "metric"}.issubset(fund_trends.columns):
+        mean_wide = _pivot_trends(fund_trends, "mean_value", "mean")
+        pct_wide = _pivot_trends(fund_trends, "pct_change", "pct")
+        slope_wide = _pivot_trends(fund_trends, "slope", "slope")
+        vol_wide = _pivot_trends(fund_trends, "volatility", "vol")
+        df = df.merge(mean_wide, on=["symbol", "date"], how="left")
+        df = df.merge(pct_wide, on=["symbol", "date"], how="left")
+        df = df.merge(slope_wide, on=["symbol", "date"], how="left")
+        df = df.merge(vol_wide, on=["symbol", "date"], how="left")
     if not sent.empty and {"symbol", "date"}.issubset(sent.columns):
         df = df.merge(sent, on=["symbol", "date"], how="left")
     if not announcements.empty and {"symbol", "date"}.issubset(announcements.columns):
@@ -207,6 +250,12 @@ def build_features(start_date, end_date):
         df = df.merge(macro, on="date", how="left")
     if not etf.empty and {"symbol", "sector"}.issubset(etf.columns):
         df = df.merge(etf[["symbol", "sector"]], on="symbol", how="left")
+    if not risk_snapshot.empty and "symbol" in risk_snapshot.columns:
+        df = df.merge(
+            risk_snapshot[["symbol", "factor_vol", "beta_market"]],
+            on="symbol",
+            how="left",
+        )
 
     # Valuation z-scores (cross-sectional)
     if "pe_ratio" in df.columns:
