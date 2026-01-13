@@ -4,11 +4,6 @@
     { "src": "frontend/package.json", "use": "@vercel/next" }
   ],
   "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "https://asx-portfolio-os.onrender.com",
-    "OS_API_KEY": "@os_api_key",
-    "OPENAI_API_KEY": "@openai_api_key"
-  },
   "ignoreCommand": "git diff --quiet HEAD^ HEAD frontend/",
   "outputDirectory": "frontend/.next"
 }
