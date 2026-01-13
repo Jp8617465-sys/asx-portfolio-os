@@ -18,6 +18,7 @@ load_dotenv()
 DATABASE_URL = os.environ["DATABASE_URL"]
 EODHD_API_KEY = os.environ["EODHD_API_KEY"]
 OS_API_KEY = os.environ["OS_API_KEY"]
+ENABLE_ASSISTANT = os.getenv("ENABLE_ASSISTANT", "true").lower() in ("1", "true", "yes", "on")
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "outputs")
@@ -1484,6 +1485,8 @@ def persist_drift_audit(req: DriftAuditReq, x_api_key: Optional[str] = Header(de
 @app.post("/assistant/chat")
 def assistant_chat(req: AssistantChatReq, x_api_key: Optional[str] = Header(default=None)):
     require_key(x_api_key)
+    if not ENABLE_ASSISTANT:
+        raise HTTPException(status_code=503, detail="Assistant paused (ENABLE_ASSISTANT=false).")
     try:
         from services.chat_engine import generate_response
     except Exception as exc:

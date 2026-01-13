@@ -75,6 +75,7 @@ NEWS_API_KEY=<set_in_render>
 MODEL_C_TICKERS=BHP,CBA,CSL,WES,FMG,WBC
 MODEL_C_NEWS_LIMIT=50
 OPENAI_API_KEY=<your_openai_key>
+ENABLE_ASSISTANT=true
 EODHD_API_KEY=<fundamentals_feed_key>
 DATABASE_URL=<render_postgres_url>
 OS_API_KEY=<internal_service_key>
@@ -84,7 +85,7 @@ OS_API_KEY=<internal_service_key>
 ### ⚠️ Outstanding Tasks
 | Area | Action |
 | --- | --- |
-| Render Env Vars | Add `NEWS_API_KEY`, `MODEL_C_*`, `OPENAI_API_KEY` |
+| Render Env Vars | Add `NEWS_API_KEY`, `MODEL_C_*`, `OPENAI_API_KEY`, `ENABLE_ASSISTANT` |
 | Explainability Artifacts | Upload `feature_importance_v1_2.json` |
 | Cron Jobs | Schedule weekly fundamentals + NLP refresh |
 | Frontend | Redeploy Vercel after env setup |

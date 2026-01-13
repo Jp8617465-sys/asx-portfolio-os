@@ -21,6 +21,7 @@ EODHD_API_KEY=your_eodhd_key
 NEWS_API_KEY=your_newsapi_key
 OS_API_KEY=your_os_api_key
 OPENAI_API_KEY=your_openai_key
+ENABLE_ASSISTANT=true
 ```
 
 Run the API:
@@ -46,3 +47,5 @@ uvicorn app.main:app --reload --port 8788
 ## Deployment Notes
 - Render uses `Dockerfile` with `requirements.txt`.
 - Vercel deploys the `frontend/` app.
+- Vercel settings: Root Directory `frontend`, Production Branch `main`, and ensure `.vercelignore` keeps `frontend/app` via `!/frontend/app/**`.
+- If Vercel logs show an old commit, redeploy with “Use current branch” + “Clear cache”; if it persists, reconnect the GitHub integration.
