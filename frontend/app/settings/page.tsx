@@ -27,11 +27,16 @@ export default function SettingsPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between">
+                <span>Data Mode</span>
+                <Badge variant="secondary">Sample (&lt;=50 tickers)</Badge>
+              </div>
+              <div className="flex items-center justify-between">
                 <span>Supabase (Phase 3)</span>
                 <Badge variant="secondary">Planned</Badge>
               </div>
               <p className="text-xs text-slate-500">
-                Add API keys and Supabase auth once Phase 3 is activated.
+                Fundamentals ingestion is capped while EODHD stabilizes. Add API keys and Supabase auth once Phase 3 is
+                activated.
               </p>
             </CardContent>
           </Card>
