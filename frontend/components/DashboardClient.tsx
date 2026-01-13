@@ -7,7 +7,8 @@ import StatCard from "./StatCard";
 import DriftChart from "./DriftChart";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { getDashboard, getDriftSummary, getModelStatusSummary } from "../lib/api";
+import { getDashboard, getDriftSummary, getLoanSummary, getModelStatusSummary } from "../lib/api";
+import type { LoanSummary } from "../lib/api";
 
 type ModelStatusSummary = {
   last_run?: {
@@ -63,6 +64,10 @@ export default function DashboardClient() {
     "drift-summary",
     () => getDriftSummary("model_a_ml")
   );
+  const { data: loanSummary, isLoading: loanLoading } = useSWR<LoanSummary>(
+    "loan-summary",
+    () => getLoanSummary(10)
+  );
 
   const asOf = summary?.signals?.as_of;
   const { data: dashboard } = useSWR<DashboardSummary>(
@@ -74,6 +79,8 @@ export default function DashboardClient() {
     label: row.created_at?.slice(5, 10) || `Run ${index + 1}`,
     psi: row.metrics?.psi_mean ?? 0
   })).reverse();
+
+  const loanTotals = loanSummary?.totals;
 
   return (
     <div className="flex flex-col gap-10">
@@ -156,6 +163,54 @@ export default function DashboardClient() {
                   {summary?.drift?.psi_max ? summary.drift.psi_max.toFixed(3) : "n/a"}
                 </span>
               </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.section>
+
+      <motion.section className="grid gap-6 lg:grid-cols-2" variants={container} initial="hidden" animate="show">
+        <motion.div variants={item}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Loan Health Score</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+              {loanTotals ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span>Health Score (heuristic)</span>
+                    <span className="font-semibold text-ink dark:text-mist">
+                      {loanTotals.health_score !== null && loanTotals.health_score !== undefined
+                        ? `${loanTotals.health_score.toFixed(0)}/100`
+                        : "n/a"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Total Principal</span>
+                    <span className="font-semibold text-ink dark:text-mist">
+                      {loanTotals.total_principal
+                        ? `$${loanTotals.total_principal.toLocaleString()}`
+                        : "n/a"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Average Rate</span>
+                    <span className="font-semibold text-ink dark:text-mist">
+                      {loanTotals.avg_rate ? `${(loanTotals.avg_rate * 100).toFixed(2)}%` : "n/a"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Interest Load</span>
+                    <span className="font-semibold text-ink dark:text-mist">
+                      {loanTotals.interest_ratio ? `${(loanTotals.interest_ratio * 100).toFixed(1)}%` : "n/a"}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  {loanLoading ? "Loading loan data..." : "No loan records available."}
+                </p>
+              )}
             </CardContent>
           </Card>
         </motion.div>
