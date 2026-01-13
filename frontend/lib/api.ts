@@ -112,6 +112,29 @@ export type AsxAnnouncementsSummary = {
   };
 };
 
+export type LoanSummary = {
+  status?: string;
+  totals?: {
+    count?: number;
+    total_principal?: number | null;
+    avg_rate?: number | null;
+    avg_years?: number | null;
+    total_interest?: number | null;
+    avg_monthly_payment?: number | null;
+    interest_ratio?: number | null;
+    health_score?: number | null;
+  };
+  latest?: Array<{
+    principal?: number | null;
+    annual_rate?: number | null;
+    years?: number | null;
+    extra_payment?: number | null;
+    monthly_payment?: number | null;
+    total_interest?: number | null;
+    created_at?: string | null;
+  }>;
+};
+
 export type ExplainabilityFeature = {
   feature?: string;
   importance?: number;
@@ -194,6 +217,11 @@ export async function sendAssistantChat(query: string, options?: FetchOptions) {
     body: JSON.stringify({ query }),
     ...options
   });
+}
+
+export async function getLoanSummary(limit = 10, options?: FetchOptions) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return request<LoanSummary>(`/loan/summary?${params.toString()}`, options);
 }
 
 export async function getModelCompare(

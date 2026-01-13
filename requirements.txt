@@ -28,7 +28,7 @@ pillow==11.3.0
 pdfplumber==0.11.6
 prefect==2.19.0
 psycopg2-binary==2.9.11
-openai==1.59.0
+openai==1.59.9
 pyarrow==21.0.0
 pydantic==2.12.5
 pydantic_core==2.41.5

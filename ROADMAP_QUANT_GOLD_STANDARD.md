@@ -12,6 +12,94 @@
 
 ---
 
+## 📌 Milestone Update — 2026-01-15 (Phase 6B → 7A)
+
+This milestone completes end-to-end integration for Models A (Quant), B (Fundamentals), and C (NLP),
+with populated datasets flowing through to the extended feature layer. Assistant and explainability
+services are implemented locally; Render activation requires env variables.
+
+### ✅ What’s Completed
+
+#### Assistant Intelligence Layer
+- Implemented `/assistant/chat` backend using GPT-4o-mini.
+- Frontend hook wired via `AssistantClient.tsx`; allowlist updated in OpenAPI actions.
+- Awaiting `OPENAI_API_KEY` on Render + Vercel for cloud-side activation.
+
+#### Explainability & Transparency
+- Added `/model/explainability` endpoint with fallback to training summaries.
+- Frontend wired via `InsightsClient.tsx`.
+
+#### Model C — NLP / Announcements Feed
+- `jobs/asx_announcements_scraper.py` uses NewsAPI + EODHD fallback feeds.
+- Adds sentiment, stance, and relevance scoring.
+- Inserts into `nlp_announcements` via psycopg2.
+- Local ingestion validated; `/insights/asx_announcements` returns data.
+
+#### Model B — Fundamentals Pipeline
+- `.AU` ticker mapping fixed for EODHD fundamentals.
+- Switched to psycopg2 inserts for transaction safety.
+- Derived features persisted to `features_fundamental`.
+
+#### Unified Feature Set & Artifacts
+- `jobs/build_extended_feature_set.py` merges fundamentals + NLP fields.
+- `jobs/export_feature_importance.py` produces explainability artifacts.
+- Local integration validated end-to-end.
+
+#### Loan Intelligence (Property deferred)
+- Added `/loan/summary` endpoint for aggregates + health score.
+- Added `jobs/ingest_loan_job.py` to load loan inputs from CSV or env sample.
+- Dashboard now includes Loan Health Score panel.
+
+### 🧪 Commands Executed (Local)
+```bash
+python jobs/asx_announcements_scraper.py
+python jobs/load_fundamentals_pipeline.py
+python jobs/derive_fundamentals_features.py
+python jobs/build_extended_feature_set.py
+python jobs/export_feature_importance.py
+python jobs/ingest_loan_job.py
+```
+
+### 🧩 Live Checks
+| Endpoint | Status | Notes |
+| --- | --- | --- |
+| `/health` | ✅ OK | Service responsive |
+| `/insights/asx_announcements` | ✅ Populated | Data from NewsAPI/EODHD fallback |
+| `/assistant/chat` | ✅ Local | Requires `OPENAI_API_KEY` for Render |
+| `/model/explainability` | ⚠️ Render pending | Requires feature importance artifact |
+| `/ingest/asx_announcements` | ✅ Inserts | Requires `NEWS_API_KEY` remotely |
+
+### ⚙️ Environment Configuration (Required)
+```ini
+NEWS_API_KEY=<set_in_render>
+MODEL_C_TICKERS=BHP,CBA,CSL,WES,FMG,WBC
+MODEL_C_NEWS_LIMIT=50
+OPENAI_API_KEY=<your_openai_key>
+EODHD_API_KEY=<fundamentals_feed_key>
+DATABASE_URL=<render_postgres_url>
+OS_API_KEY=<internal_service_key>
+```
+**Note:** `MODEL_C_TICKERS` is a throttle. If omitted, ingestion iterates all ASX tickers in the database.
+
+### ⚠️ Outstanding Tasks
+| Area | Action |
+| --- | --- |
+| Render Env Vars | Add `NEWS_API_KEY`, `MODEL_C_*`, `OPENAI_API_KEY` |
+| Explainability Artifacts | Upload `feature_importance_v1_2.json` |
+| Cron Jobs | Schedule weekly fundamentals + NLP refresh |
+| Frontend | Redeploy Vercel after env setup |
+| Property Data | Deferred until a data feed is available |
+
+### 🧭 Next Steps (Phase 7B Prep)
+1. Apply env variables and redeploy Render + Vercel.
+2. Validate live ingestion:
+   - `POST /ingest/asx_announcements`
+   - `GET /model/explainability`
+3. Rebuild extended feature set after refresh.
+4. Add job history API + UI for operational tracking.
+
+---
+
 ## ✅ Completed (Pipeline)
 **Module:** Extended Feature Pipeline  
 **Files:** `jobs/build_extended_feature_set.py`  
@@ -59,14 +147,14 @@
 
 ---
 
-## 🏗️ Phase 7 – Property & Loan Intelligence
+## 🏗️ Phase 7 – Property & Loan Intelligence (Partial)
 
 **Goal:** Integrate property valuation, rental analytics, and loan optimization into the AI Wealth Operating System.
 
 ### Components
 | Module | Path | Description | Status |
 |---------|------|--------------|---------|
-| Property Intelligence | `jobs/property_module_template.py` | Valuation, yield, growth forecast | ✅ Complete |
+| Property Intelligence | `jobs/property_module_template.py` | Valuation, yield, growth forecast | ⏸️ Deferred (no data feed) |
 | Loan Simulator | `jobs/loan_simulator.py` | Amortization, refinancing, payoff optimization | ✅ Complete |
 
 ### Next Actions
@@ -76,13 +164,14 @@
 2. Expose endpoints ✅
    - `/property/valuation`
    - `/loan/simulate`
-3. Add ML retraining job `train_property_model.py`.
-4. Extend dashboard to show:
-   - Property value trends
-   - Loan health scores
-5. Integrate ChatGPT Actions:
+3. Add loan summary + ingestion ✅
+   - `/loan/summary`
+   - `jobs/ingest_loan_job.py`
+4. Extend dashboard ✅
+   - Loan health score summary
+5. Integrate ChatGPT Actions ✅
    - “Simulate 3% rate rise impact on my loans.”
-   - “Forecast property yield in Melbourne for 12 months.”
+6. Revisit property once a data feed is available.
 
 ### Future Enhancements
 - Add CoreLogic / PropTrack data connector.
@@ -99,7 +188,7 @@
 
 ---
 
-## Phase 6B – Conversational Intelligence (In Progress)
+## Phase 6B – Conversational Intelligence (Completed)
 
 **Goal:** Wire Assistant UI to backend chat + explainability APIs.
 
@@ -111,10 +200,9 @@
 | Assistant UI | `frontend/components/AssistantClient.tsx` | Chat UI + API hook | ✅ Complete |
 | Explainability API | `app/main.py` | `/model/explainability` endpoint | ✅ Complete |
 
-### Next Actions
+### Notes
 1. Add `OPENAI_API_KEY` to Render + Vercel env (required for live responses).
 2. Publish feature importance JSON (`feature_importance_v1_2.json`) if you want JSON-backed explainability; otherwise the endpoint falls back to training summaries.
-3. Confirm Assistant responses in UI.
 
 ---
 
