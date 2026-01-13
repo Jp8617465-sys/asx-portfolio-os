@@ -106,14 +106,14 @@
 ### Components
 | Module | Path | Description | Status |
 |---------|------|--------------|---------|
-| Assistant API | `app/main.py` | `/assistant/chat` endpoint | ⚙️ In Progress |
-| Chat Engine | `services/chat_engine.py` | OpenAI-backed responder | ⚙️ In Progress |
-| Assistant UI | `frontend/components/AssistantClient.tsx` | Chat UI + API hook | ⚙️ In Progress |
-| Explainability API | `app/main.py` | `/model/explainability` endpoint | ⚙️ In Progress |
+| Assistant API | `app/main.py` | `/assistant/chat` endpoint | ✅ Complete |
+| Chat Engine | `services/chat_engine.py` | OpenAI-backed responder | ✅ Complete |
+| Assistant UI | `frontend/components/AssistantClient.tsx` | Chat UI + API hook | ✅ Complete |
+| Explainability API | `app/main.py` | `/model/explainability` endpoint | ✅ Complete |
 
 ### Next Actions
-1. Add `OPENAI_API_KEY` to Render + Vercel env.
-2. Publish feature importance JSON (`feature_importance_v1_2.json`).
+1. Add `OPENAI_API_KEY` to Render + Vercel env (required for live responses).
+2. Publish feature importance JSON (`feature_importance_v1_2.json`) if you want JSON-backed explainability; otherwise the endpoint falls back to training summaries.
 3. Confirm Assistant responses in UI.
 
 ---
@@ -123,10 +123,9 @@
 **Goal:** Populate fundamental + NLP tables with live data.
 
 ### Next Actions
-1. Set `NEWS_API_KEY`, `MODEL_C_TICKERS`, `MODEL_C_NEWS_LIMIT` in Render.
+1. Set `NEWS_API_KEY`, `MODEL_C_TICKERS`, `MODEL_C_NEWS_LIMIT` in Render (news fallback still needed on Render).
 2. Run `/ingest/asx_announcements` and verify `/insights/asx_announcements`.
-3. Run `jobs/load_fundamentals_pipeline.py` + `jobs/derive_fundamentals_features.py`.
-4. Rebuild extended feature set for Model A ML.
+3. Rebuild extended feature set for Model A ML after new data.
 
 ---
 
