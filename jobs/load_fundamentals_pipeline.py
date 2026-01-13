@@ -5,7 +5,7 @@ Fetch fundamentals from EODHD and persist to Postgres.
 
 import os
 import time
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import requests
@@ -18,7 +18,12 @@ load_dotenv(dotenv_path=".env", override=True)
 API_KEY = os.getenv("EODHD_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 TICKERS = os.getenv("FUNDAMENTALS_TICKERS", "BHP,CBA,CSL,WES,FMG,WBC")
-THROTTLE_S = float(os.getenv("EODHD_FUNDAMENTALS_SLEEP", "1"))
+MODE = os.getenv("FUNDAMENTALS_MODE", "sample").lower()
+SOURCE = os.getenv("FUNDAMENTALS_SOURCE", "universe" if MODE == "full" else "env").lower()
+MAX_TICKERS = int(os.getenv("FUNDAMENTALS_MAX_TICKERS", "0") or 0)
+THROTTLE_S = float(os.getenv("EODHD_FUNDAMENTALS_SLEEP", "1.2"))
+BATCH_SIZE = int(os.getenv("FUNDAMENTALS_BATCH_SIZE", "100"))
+BATCH_SLEEP_S = float(os.getenv("FUNDAMENTALS_BATCH_SLEEP", "0.0"))
 EODHD_SUFFIX = os.getenv("EODHD_FUNDAMENTALS_SUFFIX", "AU")
 USE_PREFECT = os.getenv("USE_PREFECT", "0") == "1"
 
@@ -59,6 +64,19 @@ def _parse_fundamentals(ticker: str, payload: dict) -> pd.DataFrame:
         "div_yield": highlights.get("DividendYield"),
         "updated_at": pd.Timestamp.utcnow(),
     }])
+
+def _normalize_ticker(raw: str) -> str:
+    ticker = raw.strip().upper()
+    if ticker.endswith(".AU"):
+        ticker = ticker[:-3]
+    return ticker
+
+def _load_universe_tickers() -> List[str]:
+    with psycopg2.connect(DATABASE_URL) as con, con.cursor() as cur:
+        cur.execute("select symbol from universe where exchange = 'AU'")
+        rows = cur.fetchall()
+    tickers = [_normalize_ticker(r[0]) for r in rows if r and r[0]]
+    return sorted(set(tickers))
 
 
 @task(retries=3, retry_delay_seconds=10)
@@ -118,20 +136,59 @@ def persist_to_db(df: pd.DataFrame) -> None:
     print(f"✅ Persisted fundamentals rows: {len(rows)}")
 
 
+def get_ticker_list(
+    mode: Optional[str] = None,
+    source: Optional[str] = None,
+    max_tickers: Optional[int] = None,
+) -> List[str]:
+    resolved_mode = (mode or MODE).lower()
+    resolved_source = (source or SOURCE).lower()
+    resolved_max = MAX_TICKERS if max_tickers is None else max_tickers
+
+    if resolved_source == "universe":
+        tickers = _load_universe_tickers()
+    else:
+        tickers = [_normalize_ticker(t) for t in TICKERS.split(",") if t.strip()]
+
+    if resolved_max and resolved_max > 0:
+        tickers = tickers[:resolved_max]
+
+    if resolved_mode == "full":
+        print("ℹ️ FUNDAMENTALS_MODE=full enabled.")
+    else:
+        print("ℹ️ FUNDAMENTALS_MODE=sample (set FUNDAMENTALS_MODE=full for universe ingestion).")
+
+    return tickers
+
+
 @flow
 def fundamentals_pipeline(tickers: List[str]) -> None:
-    collected = []
-    for ticker in tickers:
-        try:
-            collected.append(fetch_fundamentals(ticker))
-            time.sleep(THROTTLE_S)
-        except Exception as exc:
-            print(f"Error for {ticker}: {exc}")
+    total = len(tickers)
+    if total == 0:
+        print("⚠️ No tickers provided.")
+        return
 
-    if collected:
-        persist_to_db(pd.concat(collected, ignore_index=True))
+    print(f"🚀 Fundamentals run: {total} tickers | batch={BATCH_SIZE} | throttle={THROTTLE_S}s")
+
+    for start in range(0, total, BATCH_SIZE):
+        batch = tickers[start:start + BATCH_SIZE]
+        collected = []
+
+        for ticker in batch:
+            try:
+                collected.append(fetch_fundamentals(ticker))
+                time.sleep(THROTTLE_S)
+            except Exception as exc:
+                print(f"Error for {ticker}: {exc}")
+
+        if collected:
+            persist_to_db(pd.concat(collected, ignore_index=True))
+
+        done = min(start + BATCH_SIZE, total)
+        print(f"✅ Batch complete: {done}/{total}")
+        if BATCH_SLEEP_S:
+            time.sleep(BATCH_SLEEP_S)
 
 
 if __name__ == "__main__":
-    ticker_list = [t.strip() for t in TICKERS.split(",") if t.strip()]
-    fundamentals_pipeline(ticker_list)
+    fundamentals_pipeline(get_ticker_list())
