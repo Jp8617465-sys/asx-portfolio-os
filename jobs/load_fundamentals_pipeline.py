@@ -25,6 +25,7 @@ THROTTLE_S = float(os.getenv("EODHD_FUNDAMENTALS_SLEEP", "1.2"))
 BATCH_SIZE = int(os.getenv("FUNDAMENTALS_BATCH_SIZE", "100"))
 BATCH_SLEEP_S = float(os.getenv("FUNDAMENTALS_BATCH_SLEEP", "0.0"))
 EODHD_SUFFIX = os.getenv("EODHD_FUNDAMENTALS_SUFFIX", "AU")
+HISTORY_MODE = os.getenv("FUNDAMENTALS_HISTORY_MODE", "0") == "1"
 USE_PREFECT = os.getenv("USE_PREFECT", "0") == "1"
 
 if USE_PREFECT:
@@ -45,6 +46,22 @@ if not API_KEY:
 if not DATABASE_URL:
     raise EnvironmentError("DATABASE_URL not set")
 
+def _parse_as_of(payload: dict) -> pd.Timestamp:
+    meta = payload.get("General", {})
+    raw = (
+        meta.get("MostRecentQuarter")
+        or meta.get("LastUpdated")
+        or meta.get("UpdatedAt")
+        or meta.get("Date")
+    )
+    if raw:
+        try:
+            return pd.to_datetime(raw).normalize()
+        except Exception:
+            pass
+    return pd.Timestamp.utcnow().normalize()
+
+
 def _parse_fundamentals(ticker: str, payload: dict) -> pd.DataFrame:
     highlights = payload.get("Highlights", {})
     valuation = payload.get("Valuation", {})
@@ -63,6 +80,7 @@ def _parse_fundamentals(ticker: str, payload: dict) -> pd.DataFrame:
         "debt_to_equity": ratios.get("TotalDebtEquityTTM"),
         "div_yield": highlights.get("DividendYield"),
         "updated_at": pd.Timestamp.utcnow(),
+        "as_of": _parse_as_of(payload),
     }])
 
 def _normalize_ticker(raw: str) -> str:
@@ -132,8 +150,50 @@ def persist_to_db(df: pd.DataFrame) -> None:
 
     with psycopg2.connect(DATABASE_URL) as con, con.cursor() as cur:
         execute_values(cur, sql, rows)
+        if HISTORY_MODE:
+            history_rows = _build_history_rows(df)
+            if history_rows:
+                _persist_history(cur, history_rows)
         con.commit()
     print(f"✅ Persisted fundamentals rows: {len(rows)}")
+
+
+def _build_history_rows(df: pd.DataFrame) -> List[tuple]:
+    history_rows: List[tuple] = []
+    metrics = [
+        "pe_ratio",
+        "pb_ratio",
+        "eps",
+        "roe",
+        "debt_to_equity",
+        "market_cap",
+        "div_yield",
+    ]
+    for r in df.itertuples(index=False):
+        d = r._asdict()
+        symbol = d.get("symbol")
+        as_of = d.get("as_of")
+        if not symbol or as_of is None:
+            continue
+        as_of_date = pd.to_datetime(as_of).date()
+        for metric in metrics:
+            value = d.get(metric)
+            if value is None:
+                continue
+            history_rows.append((symbol, as_of_date, metric, value, "eodhd"))
+    return history_rows
+
+
+def _persist_history(cur, rows: List[tuple]) -> None:
+    sql = """
+    insert into fundamentals_history (symbol, as_of, metric, value, source)
+    values %s
+    on conflict (symbol, as_of, metric) do update set
+      value = excluded.value,
+      source = excluded.source
+    """
+    execute_values(cur, sql, rows)
+    print(f"✅ Persisted fundamentals_history rows: {len(rows)}")
 
 
 def get_ticker_list(
