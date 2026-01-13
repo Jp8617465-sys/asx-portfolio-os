@@ -1868,6 +1868,7 @@ def feature_importance_summary(
 @app.get("/model/explainability")
 def model_explainability(
     model_version: str = "v1_2",
+    model_name: str = "model_a_ml",
     limit: int = 20,
     x_api_key: Optional[str] = Header(default=None),
 ):
@@ -1881,20 +1882,37 @@ def model_explainability(
     ]
     path = next((p for p in candidates if os.path.exists(p)), None)
     if not path:
+        db_fallback = _load_feature_importance_from_db(model_name, model_version, limit)
+        if db_fallback:
+            return {
+                "status": "ok",
+                "model_version": model_version,
+                "source": db_fallback["source"],
+                "features": db_fallback["features"],
+            }
         fallback = _load_latest_feature_importance()
-        if not fallback:
-            raise HTTPException(status_code=404, detail="No feature importance file found.")
-        return {
-            "status": "ok",
-            "model_version": model_version,
-            "path": fallback["path"],
-            "features": fallback["features"][:limit],
-        }
+        if fallback:
+            return {
+                "status": "ok",
+                "model_version": model_version,
+                "path": fallback["path"],
+                "features": fallback["features"][:limit],
+            }
+        raise HTTPException(status_code=404, detail="No feature importance data found.")
 
     try:
         with open(path, "r") as f:
             payload = json.load(f)
     except Exception as exc:
+        logger.exception("Failed to read feature importance file: %s", exc)
+        db_fallback = _load_feature_importance_from_db(model_name, model_version, limit)
+        if db_fallback:
+            return {
+                "status": "ok",
+                "model_version": model_version,
+                "source": db_fallback["source"],
+                "features": db_fallback["features"],
+            }
         raise HTTPException(status_code=500, detail=f"Failed to read feature importance: {exc}")
 
     if isinstance(payload, dict):
@@ -1907,6 +1925,40 @@ def model_explainability(
 
     trimmed = rows[:limit]
     return {"status": "ok", "model_version": model_version, "path": path, "features": trimmed}
+
+
+def _load_feature_importance_from_db(model_name: str, model_version: str, limit: int):
+    try:
+        with db() as con, con.cursor() as cur:
+            cur.execute(
+                """
+                select feature, importance
+                from model_feature_importance
+                where model_name = %s and model_version = %s
+                order by importance desc nulls last, created_at desc
+                limit %s
+                """,
+                (model_name, model_version, limit),
+            )
+            rows = cur.fetchall()
+    except psycopg2.errors.UndefinedTable:
+        return None
+    except Exception as exc:
+        logger.exception("Feature importance DB fallback failed: %s", exc)
+        return None
+
+    if not rows:
+        return None
+
+    features = []
+    for row in rows:
+        features.append(
+            {
+                "feature": row[0],
+                "importance": float(row[1]) if row[1] is not None else None,
+            }
+        )
+    return {"source": "db", "features": features}
 
 
 @app.get("/insights/asx_announcements")

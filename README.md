@@ -1,47 +1,48 @@
 # ASX Portfolio OS
 
-[![Vercel Deployment](https://vercel.com/jp8617465-sys-projects/frontend/badge)](https://frontend-drab-five-65.vercel.app)
+AI-driven portfolio and model management platform for ASX equities.
 
-AI-driven portfolio and model management platform. The FastAPI backend runs on Render, while the Next.js frontend is deployed on Vercel.
+## Stack
+- Backend: FastAPI + Python (Render)
+- Frontend: Next.js (Vercel)
+- Database: Postgres (Supabase)
 
-## Live URLs
-
-- Frontend (Vercel): https://frontend-drab-five-65.vercel.app
-- Backend (Render): https://asx-portfolio-os.onrender.com
-
-## Architecture
-
-- `frontend/`: Next.js App Router UI (Vercel deploy target)
-- `app/`, `jobs/`, `models/`: FastAPI + ML pipeline (Render deploy target)
-
-## Frontend setup
-
+## Quickstart
 ```bash
-cd frontend
-npm install
-npm run dev
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Environment variables (frontend):
-
-```bash
-NEXT_PUBLIC_API_URL=https://asx-portfolio-os.onrender.com
-OS_API_KEY=your_api_key_here
+Create a `.env` with the required variables:
+```
+DATABASE_URL=REDACTED_DATABASE_URLREDACTEDser:pass@host:5432/db
+EODHD_API_KEY=your_eodhd_key
+NEWS_API_KEY=your_newsapi_key
+OS_API_KEY=your_os_api_key
+OPENAI_API_KEY=your_openai_key
 ```
 
-## Backend testing
-
-Smoke test the running API:
-
+Run the API:
 ```bash
-pip install pytest requests
-OS_API_KEY="YOUR_KEY" AS_OF="2025-12-31" BASE_URL="http://127.0.0.1:8790" pytest -q
+uvicorn app.main:app --reload --port 8788
 ```
 
-## Deploy (Vercel)
+## Core Endpoints
+- `GET /health`
+- `GET /model/status/summary`
+- `GET /drift/summary`
+- `GET /model/explainability`
+- `GET /dashboard/model_a_v1_1`
+- `POST /assistant/chat`
 
-From repo root:
+## Key Jobs
+- `jobs/ingest_fundamentals_job.py`
+- `jobs/ingest_asx_announcements_job.py`
+- `jobs/build_extended_feature_set.py`
+- `jobs/export_feature_importance.py`
+- `jobs/audit_drift_job.py`
 
-```bash
-npx vercel --prod --cwd frontend --yes
-```
+## Deployment Notes
+- Render uses `Dockerfile` with `requirements.txt`.
+- Vercel deploys the `frontend/` app.
