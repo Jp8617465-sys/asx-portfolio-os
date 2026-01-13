@@ -1,0 +1,52 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "jobs/**"
+      - "schemas/**"
+      - "services/**"
+      - "requirements.txt"
+      - "tests/**"
+  push:
+    branches: ["main"]
+    paths:
+      - "app/**"
+      - "jobs/**"
+      - "schemas/**"
+      - "services/**"
+      - "requirements.txt"
+      - "tests/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      OS_API_KEY: "ci-placeholder"
+      DATABASE_URL: "REDACTED_DATABASE_URLREDACTEDser:pass@localhost:5432/db"
+      EODHD_API_KEY: "ci-placeholder"
+      OPENAI_API_KEY: "ci-placeholder"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install black==24.8.0 isort==5.13.2 mypy==1.11.2 pytest==8.3.3 pytest-cov==5.0.0 pip-audit==2.7.3
+      - name: Dependency resolution check
+        run: pip check
+      - name: Security scan (high severity)
+        run: pip-audit -r requirements.txt --severity high
+      - name: Lint (black)
+        run: black --check app jobs services tests
+      - name: Lint (isort)
+        run: isort --check-only app jobs services tests
+      - name: Type check (mypy)
+        run: mypy app jobs services --ignore-missing-imports
+      - name: Run tests
+        run: pytest -q --cov=app --cov=jobs --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under=0
