@@ -1176,6 +1176,8 @@ def openapi_actions(request: Request):
         "/loan/simulate",
         "/ingest/asx_announcements",
         "/insights/asx_announcements",
+        "/assistant/chat",
+        "/model/explainability",
     }
     schema["paths"] = {p: v for p, v in schema["paths"].items() if p in allowed_paths}
 
@@ -1673,7 +1675,15 @@ def model_explainability(
     ]
     path = next((p for p in candidates if os.path.exists(p)), None)
     if not path:
-        raise HTTPException(status_code=404, detail="No feature importance file found.")
+        fallback = _load_latest_feature_importance()
+        if not fallback:
+            raise HTTPException(status_code=404, detail="No feature importance file found.")
+        return {
+            "status": "ok",
+            "model_version": model_version,
+            "path": fallback["path"],
+            "features": fallback["features"][:limit],
+        }
 
     try:
         with open(path, "r") as f:
