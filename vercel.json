@@ -1,9 +1,0 @@
-{
-  "version": 2,
-  "builds": [
-    { "src": "frontend/package.json", "use": "@vercel/next" }
-  ],
-  "framework": "nextjs",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD frontend/",
-  "outputDirectory": "frontend/.next"
-}
