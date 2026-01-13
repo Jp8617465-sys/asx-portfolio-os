@@ -9,48 +9,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ChartContainer } from "./ui/chart";
 import { Skeleton } from "./ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { getAsxAnnouncements, getDriftSummary, getModelExplainability } from "../lib/api";
-
-type DriftSummary = {
-  rows?: Array<{
-    baseline_label?: string;
-    current_label?: string;
-    created_at?: string;
-    metrics?: {
-      psi_mean?: number;
-      psi_max?: number;
-    };
-  }>;
-};
-
-type FeatureImportance = {
-  features?: Array<{
-    feature: string;
-    importance: number;
-  }>;
-};
-
-type AsxAnnouncementsSummary = {
-  items?: Array<{
-    dt?: string;
-    code?: string;
-    headline?: string;
-    sentiment?: string;
-    event_type?: string;
-    confidence?: number;
-  }>;
-  summary?: {
-    sentiment_counts?: Record<string, number>;
-    event_counts?: Record<string, number>;
-  };
-};
+import {
+  getAsxAnnouncements,
+  getDriftSummary,
+  getModelExplainability,
+  type AsxAnnouncementsSummary,
+  type DriftSummary,
+  type ModelExplainability
+} from "../lib/api";
 
 export default function InsightsClient() {
   const { data: drift, isLoading: driftLoading } = useSWR<DriftSummary>(
     "drift-summary",
     () => getDriftSummary("model_a_ml")
   );
-  const { data: importance, isLoading: importanceLoading } = useSWR<FeatureImportance>(
+  const { data: importance, isLoading: importanceLoading } = useSWR<ModelExplainability>(
     "feature-importance",
     () => getModelExplainability("v1_2", 8)
   );
