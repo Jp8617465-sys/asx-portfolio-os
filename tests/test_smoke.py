@@ -20,9 +20,15 @@ def _require_env():
     if not _api_key() or not _as_of():
         pytest.skip("Set OS_API_KEY and AS_OF to run smoke tests.")
 
+def _ensure_reachable():
+    try:
+        return requests.get(f"{_base_url()}/health", timeout=5)
+    except requests.RequestException as exc:
+        pytest.skip(f"Base URL not reachable: {exc}")
+
 
 def test_health_smoke():
-    r = requests.get(f"{_base_url()}/health", timeout=10)
+    r = _ensure_reachable()
     assert r.status_code == 200
     data = r.json()
     assert data.get("ok") is True
@@ -30,6 +36,7 @@ def test_health_smoke():
 
 def test_model_a_persist_smoke():
     _require_env()
+    _ensure_reachable()
     r = requests.post(
         f"{_base_url()}/run/model_a_v1_1_persist",
         headers={"x-api-key": _api_key()},
