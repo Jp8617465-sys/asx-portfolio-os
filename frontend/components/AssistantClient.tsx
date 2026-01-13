@@ -32,6 +32,20 @@ export default function AssistantClient() {
   const [messages, setMessages] = useState<Message[]>(seedMessages);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [assistantPaused, setAssistantPaused] = useState(false);
+  const [assistantNotice, setAssistantNotice] = useState<string | null>(null);
+
+  const parseErrorDetail = (raw: string) => {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && "detail" in parsed) {
+        return String((parsed as { detail?: string }).detail || "");
+      }
+    } catch {
+      return raw;
+    }
+    return raw;
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -46,13 +60,23 @@ export default function AssistantClient() {
         { role: "assistant", text: res.reply || "No reply returned." }
       ]);
     } catch (err: any) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "Unable to reach the assistant backend yet. Check OPENAI_API_KEY or API availability."
-        }
-      ]);
+      const status = err?.status;
+      const raw = err?.body ?? err?.message ?? "";
+      const detail = parseErrorDetail(raw);
+      if (status === 503 || /assistant paused/i.test(detail)) {
+        const note = detail || "Assistant paused. Set ENABLE_ASSISTANT=true to re-enable.";
+        setAssistantPaused(true);
+        setAssistantNotice(note);
+        setMessages((prev) => [...prev, { role: "assistant", text: note }]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: "Unable to reach the assistant backend yet. Check OPENAI_API_KEY or API availability."
+          }
+        ]);
+      }
     } finally {
       setIsSending(false);
     }
@@ -66,6 +90,12 @@ export default function AssistantClient() {
         eyebrow="Assistant"
         actions={<Badge variant="secondary">Preview</Badge>}
       />
+
+      {assistantNotice ? (
+        <div className="rounded-2xl border border-amber-200/70 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {assistantNotice}
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -99,10 +129,15 @@ export default function AssistantClient() {
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask about drift, signals, or explainability..."
+              placeholder={
+                assistantPaused
+                  ? "Assistant paused. Set ENABLE_ASSISTANT=true to re-enable."
+                  : "Ask about drift, signals, or explainability..."
+              }
+              disabled={assistantPaused}
               className="flex-1 rounded-xl border border-slate-200/70 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200"
             />
-            <Button onClick={handleSend} disabled={isSending}>
+            <Button onClick={handleSend} disabled={isSending || assistantPaused}>
               {isSending ? "Sending..." : "Send"}
             </Button>
           </div>

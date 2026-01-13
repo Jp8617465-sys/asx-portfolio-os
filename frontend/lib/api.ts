@@ -23,7 +23,10 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Request failed: ${res.status}`);
+    const error = new Error(text || `Request failed: ${res.status}`);
+    (error as any).status = res.status;
+    (error as any).body = text;
+    throw error;
   }
 
   return res.json() as Promise<T>;
