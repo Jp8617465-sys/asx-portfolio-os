@@ -135,6 +135,35 @@ export type LoanSummary = {
   }>;
 };
 
+export type PortfolioAttribution = {
+  status?: string;
+  model?: string;
+  as_of?: string;
+  items?: Array<{
+    symbol?: string;
+    weight?: number | null;
+    return_1d?: number | null;
+    contribution?: number | null;
+  }>;
+  summary?: {
+    portfolio_return?: number | null;
+    volatility?: number | null;
+    sharpe?: number | null;
+  };
+};
+
+export type PortfolioPerformance = {
+  status?: string;
+  model?: string;
+  series?: Array<{
+    as_of?: string | null;
+    portfolio_return?: number | null;
+    volatility?: number | null;
+    sharpe?: number | null;
+    created_at?: string | null;
+  }>;
+};
+
 export type ExplainabilityFeature = {
   feature?: string;
   importance?: number;
@@ -222,6 +251,22 @@ export async function sendAssistantChat(query: string, options?: FetchOptions) {
 export async function getLoanSummary(limit = 10, options?: FetchOptions) {
   const params = new URLSearchParams({ limit: String(limit) });
   return request<LoanSummary>(`/loan/summary?${params.toString()}`, options);
+}
+
+export async function getPortfolioAttribution(
+  model = "model_a_v1_1",
+  asOf?: string,
+  limit = 50,
+  options?: FetchOptions
+) {
+  const params = new URLSearchParams({ model, limit: String(limit) });
+  if (asOf) params.set("as_of", asOf);
+  return request<PortfolioAttribution>(`/portfolio/attribution?${params.toString()}`, options);
+}
+
+export async function getPortfolioPerformance(model = "model_a_v1_1", limit = 30, options?: FetchOptions) {
+  const params = new URLSearchParams({ model, limit: String(limit) });
+  return request<PortfolioPerformance>(`/portfolio/performance?${params.toString()}`, options);
 }
 
 export async function getModelCompare(

@@ -82,7 +82,7 @@ def load_fundamental_features():
 
 def load_fundamental_trends():
     q = """
-    select symbol, metric, window, mean_value, pct_change, slope, volatility, as_of
+    select symbol, metric, window_size, mean_value, pct_change, slope, volatility, as_of
     from features_fundamental_trends
     """
     df = _safe_read_sql(q)
@@ -91,7 +91,7 @@ def load_fundamental_trends():
     df["date"] = pd.to_datetime(df["as_of"]).dt.date
     window = int(os.getenv("FUNDAMENTALS_TREND_WINDOW", "0") or 0)
     if window:
-        df = df[df["window"] == window]
+        df = df[df["window_size"] == window]
     return df
 
 def _pivot_trends(df: pd.DataFrame, value_col: str, suffix: str) -> pd.DataFrame:

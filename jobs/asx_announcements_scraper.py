@@ -151,10 +151,14 @@ def fetch_eodhd_news(ticker: str) -> list:
         "limit": NEWS_LIMIT_PER_TICKER,
         "fmt": "json",
     }
-    resp = requests.get(url, params=params, timeout=30, headers={"User-Agent": USER_AGENT})
-    if resp.status_code != 200:
+    try:
+        resp = requests.get(url, params=params, timeout=30, headers={"User-Agent": USER_AGENT})
+        if resp.status_code != 200:
+            return []
+        payload = resp.json()
+    except requests.RequestException as exc:
+        print(f"⚠️ EODHD news fetch failed for {ticker}: {exc}")
         return []
-    payload = resp.json()
     if not isinstance(payload, list):
         return []
     rows = []

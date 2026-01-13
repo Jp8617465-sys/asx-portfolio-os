@@ -15,7 +15,15 @@ import {
 } from "./ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Skeleton } from "./ui/skeleton";
-import { getDriftSummary, getFeatureImportance, getModelCompare, getModelStatusSummary, getSignalsLive } from "../lib/api";
+import {
+  getDriftSummary,
+  getFeatureImportance,
+  getModelCompare,
+  getModelStatusSummary,
+  getPortfolioAttribution,
+  getPortfolioPerformance,
+  getSignalsLive
+} from "../lib/api";
 
 type ModelStatusSummary = {
   last_run?: {
@@ -74,6 +82,28 @@ type SignalsLive = {
   }>;
 };
 
+type PortfolioAttribution = {
+  as_of?: string;
+  items?: Array<{
+    symbol?: string;
+    weight?: number | null;
+    return_1d?: number | null;
+    contribution?: number | null;
+  }>;
+  summary?: {
+    portfolio_return?: number | null;
+    volatility?: number | null;
+    sharpe?: number | null;
+  };
+};
+
+type PortfolioPerformance = {
+  series?: Array<{
+    as_of?: string | null;
+    portfolio_return?: number | null;
+  }>;
+};
+
 export default function ModelsClient() {
   const { data: summary, isLoading: summaryLoading } = useSWR<ModelStatusSummary>(
     "model-status-summary",
@@ -95,6 +125,14 @@ export default function ModelsClient() {
     "signals-live",
     () => getSignalsLive("model_a_ml", 20)
   );
+  const { data: attribution, isLoading: attributionLoading } = useSWR<PortfolioAttribution>(
+    "portfolio-attribution",
+    () => getPortfolioAttribution("model_a_v1_1", undefined, 10)
+  );
+  const { data: performance, isLoading: performanceLoading } = useSWR<PortfolioPerformance>(
+    "portfolio-performance",
+    () => getPortfolioPerformance("model_a_v1_1", 20)
+  );
 
   const featureImportance = (importance?.features || []).map((row: any) => ({
     name: row.feature,
@@ -108,6 +146,8 @@ export default function ModelsClient() {
 
   const compareDelta = compare?.delta || {};
   const liveRows = (liveSignals?.signals || []).slice(0, 12);
+  const attributionRows = (attribution?.items || []).slice(0, 8);
+  const perfSeries = performance?.series || [];
 
   return (
     <div className="flex flex-col gap-10">
@@ -295,6 +335,105 @@ export default function ModelsClient() {
           </Table>
         </CardContent>
       </Card>
+
+      <section className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Portfolio Attribution (Latest)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Symbol</TableHead>
+                  <TableHead>Weight</TableHead>
+                  <TableHead>Return</TableHead>
+                  <TableHead>Contribution</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {attributionLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <div className="grid gap-3 md:grid-cols-4">
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : attributionRows.length ? (
+                  attributionRows.map((row: any) => (
+                    <TableRow key={row.symbol}>
+                      <TableCell className="font-semibold">{row.symbol ?? "n/a"}</TableCell>
+                      <TableCell>{row.weight !== null && row.weight !== undefined ? row.weight.toFixed(4) : "n/a"}</TableCell>
+                      <TableCell>{row.return_1d !== null && row.return_1d !== undefined ? row.return_1d.toFixed(4) : "n/a"}</TableCell>
+                      <TableCell>
+                        {row.contribution !== null && row.contribution !== undefined ? row.contribution.toFixed(4) : "n/a"}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-slate-500">
+                      No attribution data yet.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Portfolio Performance</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+            {performanceLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span>Latest Return</span>
+                  <span className="font-semibold text-ink dark:text-mist">
+                    {attribution?.summary?.portfolio_return !== null && attribution?.summary?.portfolio_return !== undefined
+                      ? attribution.summary.portfolio_return.toFixed(4)
+                      : "n/a"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Volatility</span>
+                  <span className="font-semibold text-ink dark:text-mist">
+                    {attribution?.summary?.volatility !== null && attribution?.summary?.volatility !== undefined
+                      ? attribution.summary.volatility.toFixed(4)
+                      : "n/a"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Sharpe</span>
+                  <span className="font-semibold text-ink dark:text-mist">
+                    {attribution?.summary?.sharpe !== null && attribution?.summary?.sharpe !== undefined
+                      ? attribution.summary.sharpe.toFixed(3)
+                      : "n/a"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Observations</span>
+                  <span className="font-semibold text-ink dark:text-mist">
+                    {perfSeries.length}
+                  </span>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
       <Card>
         <CardHeader>

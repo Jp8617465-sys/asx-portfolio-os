@@ -1,0 +1,35 @@
+{
+  "model_version": "v1_2",
+  "generated_at": "2026-01-13T04:51:11.196926",
+  "source": "/Users/jpcino/Documents/asx-portfolio-os/models/model_a_training_summary_v1_2.txt",
+  "features": [
+    {
+      "feature": "vol_90",
+      "importance": 11837.0
+    },
+    {
+      "feature": "volume_skew_60",
+      "importance": 11178.0
+    },
+    {
+      "feature": "mom_9",
+      "importance": 9260.0
+    },
+    {
+      "feature": "atr_pct",
+      "importance": 7917.0
+    },
+    {
+      "feature": "mom_3",
+      "importance": 7572.0
+    },
+    {
+      "feature": "vol_30",
+      "importance": 1425.0
+    },
+    {
+      "feature": "vol_ratio_30_90",
+      "importance": 1211.0
+    }
+  ]
+}
