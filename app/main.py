@@ -1103,7 +1103,7 @@ def run_model_a_v1_1_persist(
             cur.execute(
                 """
                 insert into model_a_ranked (
-                    run_id, rank, symbol, mom_12_1, mom_6, adv_20_median, vol_90, target_weight, as_of
+                    run_id, rank, symbol, momentum_12_1, momentum_6, adv_20d, vol_90d, weight, as_of
                 ) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """,
                 (
