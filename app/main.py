@@ -1,6 +1,6 @@
 import os, io, time, json, glob
 from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 import numpy as np
 import pandas as pd
@@ -92,6 +92,13 @@ def require_key(x_api_key: Optional[str]):
 
 def db():
     return psycopg2.connect(DATABASE_URL)
+
+
+def parse_as_of(value: str, field_name: str = "as_of") -> date:
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid {field_name} format; expected YYYY-MM-DD")
 
 
 @app.get("/health")
@@ -452,7 +459,15 @@ def refresh_universe(x_api_key: Optional[str] = Header(default=None)):
         snippet = (r.text or "")[:300].replace("\n", " ")
         raise HTTPException(status_code=502, detail=f"EODHD universe error {r.status_code}: {snippet}")
 
-    df = pd.read_csv(io.StringIO(r.text))
+    if not r.text or not r.text.strip():
+        logger.warning("EODHD universe returned empty payload; skipping delete.")
+        raise HTTPException(status_code=502, detail="EODHD universe empty; existing data preserved.")
+
+    try:
+        df = pd.read_csv(io.StringIO(r.text))
+    except pd.errors.EmptyDataError:
+        logger.warning("EODHD universe returned empty CSV; skipping delete.")
+        raise HTTPException(status_code=502, detail="EODHD universe empty; existing data preserved.")
     cols = {c.lower(): c for c in df.columns}
     code_col = cols.get("code") or cols.get("symbol") or list(df.columns)[0]
     name_col = cols.get("name")
@@ -467,6 +482,10 @@ def refresh_universe(x_api_key: Optional[str] = Header(default=None)):
         "currency": df[ccy_col] if ccy_col else "AUD",
         "updated_at": datetime.utcnow(),
     }).dropna(subset=["symbol"])
+
+    if out.empty:
+        logger.warning("EODHD universe returned no usable rows; skipping delete.")
+        raise HTTPException(status_code=502, detail="EODHD universe empty; existing data preserved.")
 
     rows = [tuple(x) for x in out[["symbol","name","exchange","type","currency","updated_at"]].itertuples(index=False, name=None)]
 
@@ -507,7 +526,15 @@ def refresh_prices_last_day(x_api_key: Optional[str] = Header(default=None)):
         snippet = (r.text or "")[:300].replace("\n", " ")
         raise HTTPException(status_code=502, detail=f"EODHD bulk error {r.status_code}: {snippet}")
 
-    df = pd.read_csv(io.StringIO(r.text))
+    if not r.text or not r.text.strip():
+        logger.warning("EODHD bulk endpoint returned empty payload; skipping delete.")
+        raise HTTPException(status_code=502, detail="EODHD bulk data empty; existing prices preserved.")
+
+    try:
+        df = pd.read_csv(io.StringIO(r.text))
+    except pd.errors.EmptyDataError:
+        logger.warning("EODHD bulk endpoint returned empty CSV; skipping delete.")
+        raise HTTPException(status_code=502, detail="EODHD bulk data empty; existing prices preserved.")
     cols = {c.lower(): c for c in df.columns}
     dt_col = cols.get("date")
     code_col = cols.get("code") or cols.get("symbol")
@@ -526,15 +553,25 @@ def refresh_prices_last_day(x_api_key: Optional[str] = Header(default=None)):
         "close":df[get("close")]if get("close")else None,
         "volume":df[get("volume")]if get("volume")else None,
     }).dropna(subset=["dt","symbol","close"])
-
-    day = out["dt"].iloc[0]
+    if out.empty:
+        logger.warning("EODHD bulk payload had no usable rows; skipping delete.")
+        raise HTTPException(status_code=502, detail="EODHD bulk data empty; existing prices preserved.")
 
     # Filter to universe symbols (avoids FK issues)
     with db() as con, con.cursor() as cur:
         cur.execute("select symbol from universe where exchange='AU'")
         allowed = set(r[0] for r in cur.fetchall())
 
+    if not allowed:
+        logger.warning("Universe is empty; skipping price refresh.")
+        raise HTTPException(status_code=409, detail="Universe empty; run /refresh/universe first.")
+
     out = out[out["symbol"].isin(allowed)]
+    if out.empty:
+        logger.warning("No bulk rows matched universe; skipping delete.")
+        raise HTTPException(status_code=409, detail="No prices matched universe; existing prices preserved.")
+
+    day = out["dt"].iloc[0]
     rows = [tuple(x) for x in out[["dt","symbol","open","high","low","close","volume"]].itertuples(index=False, name=None)]
 
     with db() as con, con.cursor() as cur:
@@ -623,6 +660,7 @@ def backfill_prices(req: BackfillReq, x_api_key: Optional[str] = Header(default=
     total_days = 0
     total_rows = 0
     skipped_days = 0
+    skipped_dates = []
 
     d = start
     while d <= end:
@@ -632,6 +670,7 @@ def backfill_prices(req: BackfillReq, x_api_key: Optional[str] = Header(default=
 
         if r.status_code != 200:
             skipped_days += 1
+            skipped_dates.append(d.isoformat())
             d += timedelta(days=1)
             time.sleep(req.sleep_seconds)
             continue
@@ -640,6 +679,7 @@ def backfill_prices(req: BackfillReq, x_api_key: Optional[str] = Header(default=
             df = pd.read_csv(io.StringIO(r.text))
         except Exception:
             skipped_days += 1
+            skipped_dates.append(d.isoformat())
             d += timedelta(days=1)
             time.sleep(req.sleep_seconds)
             continue
@@ -649,6 +689,7 @@ def backfill_prices(req: BackfillReq, x_api_key: Optional[str] = Header(default=
         code_col = cols.get("code") or cols.get("symbol")
         if not dt_col or not code_col:
             skipped_days += 1
+            skipped_dates.append(d.isoformat())
             d += timedelta(days=1)
             time.sleep(req.sleep_seconds)
             continue
@@ -669,6 +710,7 @@ def backfill_prices(req: BackfillReq, x_api_key: Optional[str] = Header(default=
         out = out[out["symbol"].isin(allowed)]
         if out.empty:
             skipped_days += 1
+            skipped_dates.append(d.isoformat())
             d += timedelta(days=1)
             time.sleep(req.sleep_seconds)
             continue
@@ -694,6 +736,9 @@ def backfill_prices(req: BackfillReq, x_api_key: Optional[str] = Header(default=
         total_rows += len(rows)
         d += timedelta(days=1)
         time.sleep(req.sleep_seconds)
+
+    if skipped_dates:
+        logger.info("Backfill skipped %d days: %s", len(skipped_dates), skipped_dates)
 
     return {
         "status":"ok",
@@ -789,7 +834,7 @@ def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(defaul
     """
     require_key(x_api_key)
     started = datetime.utcnow()
-    as_of = datetime.strptime(req.as_of, "%Y-%m-%d").date()
+    as_of = parse_as_of(req.as_of)
     start = as_of - timedelta(days=520)  # enough history for 12–1 + SMA200
 
     logger.info("🟢 Starting Model A v1.1 run for %s", as_of)
@@ -877,11 +922,16 @@ def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(defaul
     rets = rets.loc[:, valid].dropna()
     target = target[target["symbol"].isin(rets.columns)].copy()
 
+    if rets.empty:
+        raise HTTPException(status_code=400, detail="Not enough valid history for vol targeting.")
+
     if target.empty:
         raise HTTPException(status_code=400, detail="Not enough valid history for vol targeting.")
 
     w_vec = target.set_index("symbol")["weight_raw"].reindex(rets.columns).fillna(0.0).values
     cov = np.cov(rets.values, rowvar=False)
+    if not np.isfinite(cov).all():
+        raise HTTPException(status_code=400, detail="Covariance matrix contains NaNs; check input returns frame.")
     port_vol_daily = float(np.sqrt(w_vec.T @ cov @ w_vec))
     port_vol_annual = port_vol_daily * np.sqrt(252.0)
 
@@ -907,6 +957,23 @@ def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(defaul
     if len(target) < req.n_holdings:
         summary["warnings"].append(f"Only {len(target)} names passed filters.")
 
+    target_payload = target[
+        [
+            "symbol",
+            "target_weight",
+            "score",
+            "rank",
+            "mom_12_1",
+            "mom_6",
+            "trend_200",
+            "sma200_slope_pos",
+            "adv_20_median",
+            "vol_90",
+            "close",
+        ]
+    ].copy()
+    target_payload.rename(columns={"close": "price"}, inplace=True)
+
     logger.info("✅ Model A v1.1 finished with %d holdings", len(target))
 
     # --- Final JSON return ---
@@ -920,6 +987,7 @@ def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(defaul
         "drawdown": None,
         "risk_regime": "neutral",
         "ranked": ranked.head(200).to_dict(orient="records"),
+        "targets": target_payload.to_dict(orient="records"),
         "summary": summary,
     }
 
@@ -933,7 +1001,8 @@ def run_model_a_v1_1_persist(
     """
     require_key(x_api_key)
     started = datetime.utcnow()
-    logger.info("🚀 Starting Model A persist run for %s", req.as_of)
+    as_of_date = parse_as_of(req.as_of)
+    logger.info("🚀 Starting Model A persist run for %s", as_of_date)
 
     # Run the model locally to avoid HTTP/port coupling
     try:
@@ -945,9 +1014,23 @@ def run_model_a_v1_1_persist(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Model A run failed: {e}")
 
+    ranked = pd.DataFrame(data.get("ranked") or [])
+    targets = pd.DataFrame(data.get("targets") or [])
+    if ranked.empty:
+        raise HTTPException(status_code=500, detail="Model A base call returned empty ranked data.")
+    if targets.empty:
+        raise HTTPException(status_code=500, detail="Model A base call returned empty target data.")
 
-    # Parse model outputs
-    as_of = req.as_of
+    if "symbol" not in ranked.columns:
+        raise HTTPException(status_code=500, detail="Model A ranked data missing symbol column.")
+    if "target_weight" not in ranked.columns:
+        if "target_weight" in targets.columns:
+            ranked = ranked.copy()
+            ranked["target_weight"] = ranked["symbol"].map(targets.set_index("symbol")["target_weight"])
+        else:
+            raise HTTPException(status_code=500, detail="Model A targets missing target_weight column.")
+
+    summary = data.get("summary") or {}
     n_holdings = int(data.get("n_holdings", 0) or 0)
     n_replacements = int(data.get("n_replacements", 0) or 0)
     turnover = data.get("turnover_pct", None)
@@ -960,12 +1043,42 @@ def run_model_a_v1_1_persist(
     drawdown = float(drawdown) if drawdown is not None else None
     turnover = float(turnover) if turnover is not None else None
 
-    ranked = pd.DataFrame(data.get("ranked", []))
+    targets = targets.copy()
+    if "price" not in targets.columns and "close" in targets.columns:
+        targets.rename(columns={"close": "price"}, inplace=True)
+
+    required_target_cols = {
+        "symbol",
+        "score",
+        "rank",
+        "target_weight",
+        "mom_12_1",
+        "mom_6",
+        "trend_200",
+        "sma200_slope_pos",
+        "adv_20_median",
+        "vol_90",
+        "price",
+    }
+    missing_target_cols = required_target_cols - set(targets.columns)
+    if missing_target_cols:
+        raise HTTPException(status_code=500, detail=f"Model A targets missing columns: {sorted(missing_target_cols)}")
+
+    required_ranked_cols = {"rank", "symbol", "mom_12_1", "mom_6", "adv_20_median", "vol_90", "target_weight"}
+    missing_ranked_cols = required_ranked_cols - set(ranked.columns)
+    if missing_ranked_cols:
+        raise HTTPException(status_code=500, detail=f"Model A ranked missing columns: {sorted(missing_ranked_cols)}")
+
+    def _to_float(value):
+        if value is None or pd.isna(value):
+            return None
+        return float(value)
 
     # Store to Supabase
     with db() as con, con.cursor() as cur:
         # Insert summary row
-        cur.execute("""
+        cur.execute(
+            """
             insert into model_a_runs (
                 as_of, n_holdings, n_replacements, turnover_pct, portfolio_vol, drawdown, risk_regime
             ) values (%s,%s,%s,%s,%s,%s,%s)
@@ -977,7 +1090,9 @@ def run_model_a_v1_1_persist(
                 drawdown = excluded.drawdown,
                 risk_regime = excluded.risk_regime
             returning run_id;
-        """, (as_of, n_holdings, n_replacements, turnover, port_vol, drawdown, regime))
+            """,
+            (as_of_date, n_holdings, n_replacements, turnover, port_vol, drawdown, regime),
+        )
         run_id = cur.fetchone()[0]
 
         # Delete previous ranked results for this run (if any)
@@ -985,121 +1100,46 @@ def run_model_a_v1_1_persist(
 
         # Insert ranked rows
         for _, r in ranked.iterrows():
-            cur.execute("""
+            cur.execute(
+                """
                 insert into model_a_ranked (
-                    run_id, rank, symbol, momentum_12_1, momentum_6, adv_20d, vol_90d, 
-                    weight, sector, justification, as_of
-                ) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (
-                run_id,
-                int(r.get("rank", 0)),
-                r.get("symbol"),
-                r.get("momentum_12_1"),
-                r.get("momentum_6"),
-                r.get("adv_20d"),
-                r.get("vol_90d"),
-                r.get("weight"),
-                r.get("sector"),
-                r.get("justification"),
-                as_of
-            ))
-    finished = datetime.utcnow()
-    runtime = (finished - started).total_seconds()
-    logger.info("✅ Model A persist run completed in %.2f seconds", runtime)
-    return {"status": "ok", "as_of": as_of, "n_rows": len(ranked)}
+                    run_id, rank, symbol, mom_12_1, mom_6, adv_20_median, vol_90, target_weight, as_of
+                ) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (
+                    run_id,
+                    int(r.get("rank")) if r.get("rank") is not None else None,
+                    r.get("symbol"),
+                    _to_float(r.get("mom_12_1")),
+                    _to_float(r.get("mom_6")),
+                    _to_float(r.get("adv_20_median")),
+                    _to_float(r.get("vol_90")),
+                    _to_float(r.get("target_weight")),
+                    as_of_date,
+                ),
+            )
 
-    if px.empty:
-        raise HTTPException(status_code=400, detail="No prices found. Run backfill first.")
-
-    px["dt"] = pd.to_datetime(px["dt"])
-    px = px.sort_values(["symbol", "dt"])
-    px["ret1"] = px.groupby("symbol")["close"].pct_change()
-
-    # ADV$ (20D rolling median)
-    dollar_vol = px["close"] * px["volume"]
-    px["adv_20_median"] = dollar_vol.groupby(px["symbol"]).rolling(req.adv_lookback).median().reset_index(level=0, drop=True)
-
-    # Vol 90D
-    px["vol_90"] = px.groupby("symbol")["ret1"].rolling(req.vol_lookback).std().reset_index(level=0, drop=True)
-
-    # SMA200 and slope
-    sma200 = px.groupby("symbol")["close"].rolling(req.sma_lookback).mean().reset_index(level=0, drop=True)
-    sma200_lag = sma200.groupby(px["symbol"]).shift(req.sma_slope_lag)
-
-    px["trend_200"] = px["close"] > sma200
-    px["sma200_slope_pos"] = sma200 > sma200_lag
-    px["trend_quality"] = px["trend_200"] & px["sma200_slope_pos"]
-
-    # Momentum
-    px["mom_6"] = px.groupby("symbol")["close"].pct_change(126)
-    close_lag_21 = px.groupby("symbol")["close"].shift(21)
-    close_lag_252 = px.groupby("symbol")["close"].shift(252)
-    px["mom_12_1"] = (close_lag_21 / close_lag_252) - 1.0
-
-    # Latest per symbol, and require it matches as_of
-    latest = px.groupby("symbol").tail(1).copy()
-    latest = latest[latest["dt"].dt.date == as_of]
-
-    # Gates
-    latest = latest.dropna(subset=["mom_6","mom_12_1","vol_90","adv_20_median","close","trend_quality"])
-    latest = latest[latest["adv_20_median"] >= req.adv_floor]
-    latest = latest[latest["close"] >= req.min_price]
-    latest = latest[latest["trend_quality"] == True]
-
-    if latest.empty:
-        raise HTTPException(status_code=400, detail="No symbols passed gates. Lower adv_floor/min_price or confirm coverage on as_of date.")
-
-    # Score
-    latest["score"] = req.w_mom_12_1 * _zscore(latest["mom_12_1"]) + req.w_mom_6 * _zscore(latest["mom_6"])
-    ranked = latest.sort_values("score", ascending=False).copy()
-    ranked["rank"] = range(1, len(ranked) + 1)
-
-    # Targets
-    target = ranked.head(req.n_holdings).copy()
-
-    # Weights: inverse vol + cap
-    inv = 1.0 / (target["vol_90"] + 1e-12)
-    w = inv / inv.sum()
-    w = _cap_weights(w, req.max_weight)
-    target["weight_raw"] = w
-
-    # Vol targeting using covariance from last vol_lookback returns
-    sel = px[px["symbol"].isin(target["symbol"])].copy()
-    rets = sel.pivot(index="dt", columns="symbol", values="ret1").tail(req.vol_lookback)
-
-    # keep symbols with >=80% data
-    valid = rets.notna().sum() >= int(0.8 * req.vol_lookback)
-    rets = rets.loc[:, valid].dropna()
-
-    target = target[target["symbol"].isin(rets.columns)].copy()
-    if target.empty or rets.shape[1] < 5:
-        raise HTTPException(status_code=400, detail="Not enough return history for vol targeting. Try a nearby as_of or verify backfill depth.")
-
-    w_vec = target.set_index("symbol")["weight_raw"].reindex(rets.columns).fillna(0.0).values
-    cov = np.cov(rets.values, rowvar=False)
-    port_vol_daily = float(np.sqrt(w_vec.T @ cov @ w_vec))
-    port_vol_annual = port_vol_daily * np.sqrt(252.0)
-
-    scale = 1.0
-    if port_vol_annual > 0:
-        scale = min(1.0, req.target_vol_annual / port_vol_annual)
-
-    target["target_weight"] = target["weight_raw"] * scale
-    cash_weight = 1.0 - float(target["target_weight"].sum())
-
-    # Persist signals (idempotent)
-    # Join universe name for nicer dashboard
-    with db() as con, con.cursor() as cur:
-        cur.execute("delete from signals where as_of=%s and model=%s", (as_of, req.model))
-        rows = []
-        for r in target.itertuples(index=False):
-            rows.append((
-                as_of, r.symbol, req.model,
-                float(r.score), int(r.rank), float(r.target_weight),
-                float(r.mom_12_1), float(r.mom_6),
-                bool(r.trend_200), bool(r.sma200_slope_pos),
-                float(r.adv_20_median), float(r.vol_90), float(r.close)
-            ))
+        # Persist signals (idempotent)
+        cur.execute("delete from signals where as_of=%s and model=%s", (as_of_date, req.model))
+        signal_rows = []
+        for r in targets.itertuples(index=False):
+            signal_rows.append(
+                (
+                    as_of_date,
+                    r.symbol,
+                    req.model,
+                    _to_float(r.score),
+                    int(r.rank) if r.rank is not None else None,
+                    _to_float(r.target_weight),
+                    _to_float(r.mom_12_1),
+                    _to_float(r.mom_6),
+                    bool(r.trend_200) if r.trend_200 is not None else None,
+                    bool(r.sma200_slope_pos) if r.sma200_slope_pos is not None else None,
+                    _to_float(r.adv_20_median),
+                    _to_float(r.vol_90),
+                    _to_float(r.price),
+                )
+            )
         execute_values(
             cur,
             """
@@ -1111,49 +1151,52 @@ def run_model_a_v1_1_persist(
               adv_20_median, vol_90, price
             ) values %s
             """,
-            rows
+            signal_rows,
         )
         con.commit()
 
     # Write outputs
-    ranked_path = os.path.join(OUTPUT_DIR, f"ranked_{req.model}_{as_of.isoformat()}.csv")
-    targets_path = os.path.join(OUTPUT_DIR, f"targets_{req.model}_{as_of.isoformat()}.csv")
-    paper_path = os.path.join(OUTPUT_DIR, f"paper_rebalance_{req.model}_{as_of.isoformat()}.csv")
-    meta_path = os.path.join(OUTPUT_DIR, f"dashboard_meta_{req.model}_{as_of.isoformat()}.json")
+    ranked_path = os.path.join(OUTPUT_DIR, f"ranked_{req.model}_{as_of_date.isoformat()}.csv")
+    targets_path = os.path.join(OUTPUT_DIR, f"targets_{req.model}_{as_of_date.isoformat()}.csv")
+    paper_path = os.path.join(OUTPUT_DIR, f"paper_rebalance_{req.model}_{as_of_date.isoformat()}.csv")
+    meta_path = os.path.join(OUTPUT_DIR, f"dashboard_meta_{req.model}_{as_of_date.isoformat()}.json")
 
     ranked.to_csv(ranked_path, index=False)
 
-    out_targets = target[[
-        "symbol","target_weight","score","rank",
-        "mom_12_1","mom_6","trend_200","sma200_slope_pos",
-        "adv_20_median","vol_90","close"
-    ]].copy()
-    out_targets.rename(columns={"close":"price"}, inplace=True)
+    out_targets = targets[
+        [
+            "symbol",
+            "target_weight",
+            "score",
+            "rank",
+            "mom_12_1",
+            "mom_6",
+            "trend_200",
+            "sma200_slope_pos",
+            "adv_20_median",
+            "vol_90",
+            "price",
+        ]
+    ].copy()
     out_targets.to_csv(targets_path, index=False)
 
-    paper = out_targets[["symbol","target_weight"]].copy()
+    paper = out_targets[["symbol", "target_weight"]].copy()
     paper["current_weight"] = 0.0
     paper["delta_weight"] = paper["target_weight"] - paper["current_weight"]
     paper.to_csv(paper_path, index=False)
 
-    warnings = []
-    if cash_weight > 0.25:
-        warnings.append(f"High cash weight ({cash_weight*100:.1f}%) due to vol targeting.")
-    if len(out_targets) < req.n_holdings:
-        warnings.append(f"Only {len(out_targets)} targets produced (filters may be tight).")
-
     meta = {
-        "as_of": as_of.isoformat(),
+        "as_of": as_of_date.isoformat(),
         "model": req.model,
         "generated_at_utc": datetime.utcnow().isoformat(),
         "params": req.dict(),
         "eligible_ranked": int(len(ranked)),
         "n_holdings": int(len(out_targets)),
-        "port_vol_annual_est": port_vol_annual,
-        "scale": scale,
-        "cash_weight": cash_weight,
+        "port_vol_annual_est": port_vol,
+        "scale": summary.get("scale"),
+        "cash_weight": summary.get("cash_weight"),
         "files": {"ranked": ranked_path, "targets": targets_path, "paper": paper_path},
-        "warnings": warnings,
+        "warnings": summary.get("warnings", []),
         "started_at_utc": started.isoformat(),
         "finished_at_utc": datetime.utcnow().isoformat(),
     }
@@ -1165,13 +1208,16 @@ def run_model_a_v1_1_persist(
         with db() as con, con.cursor() as cur:
             cur.execute(
                 "insert into runs (run_type, model, as_of, finished_at, status, details) values (%s,%s,%s,now(),%s,%s::jsonb)",
-                ("run_model_a_v1_1", req.model, as_of, "ok", json.dumps(meta))
+                ("run_model_a_v1_1", req.model, as_of_date, "ok", json.dumps(meta)),
             )
             con.commit()
     except Exception:
         pass
 
-    return meta
+    finished = datetime.utcnow()
+    runtime = (finished - started).total_seconds()
+    logger.info("✅ Model A persist run completed in %.2f seconds", runtime)
+    return {"status": "ok", "as_of": as_of_date.isoformat(), "n_rows": len(ranked)}
 
 
 # -------------------------
@@ -1187,7 +1233,7 @@ def dashboard_model_a_v1_1(
     x_api_key: Optional[str] = Header(default=None),
 ):
     require_key(x_api_key)
-    as_of_d = datetime.strptime(as_of, "%Y-%m-%d").date()
+    as_of_d = parse_as_of(as_of)
     meta_path = os.path.join(OUTPUT_DIR, f"dashboard_meta_{model}_{as_of}.json")
     meta = None
     if os.path.exists(meta_path):
@@ -1772,7 +1818,7 @@ def signals_live(
 
     with db() as con, con.cursor() as cur:
         if as_of:
-            as_of_d = datetime.strptime(as_of, "%Y-%m-%d").date()
+            as_of_d = parse_as_of(as_of)
         else:
             cur.execute(
                 """

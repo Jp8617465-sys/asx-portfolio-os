@@ -20,5 +20,7 @@ requirements.txt
 *.log
 *.sql
 *.sh
+!/frontend/
+!/frontend/app/
 !/frontend/app/**
 !/frontend/public/**
