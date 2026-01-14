@@ -119,7 +119,7 @@ def test_model_a_persist_maps_ranked_fields(monkeypatch, tmp_path):
     )
     assert ranked_insert is not None
     sql, params = ranked_insert
-    assert "mom_12_1" in sql
+    assert "momentum_12_1" in sql
     assert params[3] == 0.1
     assert params[4] == 0.2
     assert params[5] == 100.0
