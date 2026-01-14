@@ -1189,7 +1189,7 @@ def run_model_a_v1_1_persist(
         "as_of": as_of_date.isoformat(),
         "model": req.model,
         "generated_at_utc": datetime.utcnow().isoformat(),
-        "params": req.dict(),
+        "params": req.model_dump(),
         "eligible_ranked": int(len(ranked)),
         "n_holdings": int(len(out_targets)),
         "port_vol_annual_est": port_vol,
