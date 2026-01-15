@@ -32,7 +32,7 @@ openai==1.59.9
 pyarrow==21.0.0
 pydantic==2.12.5
 pydantic_core==2.41.5
-pyparsing==3.3.1
+pyparsing==3.3.3
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
 pytz==2024.2
@@ -48,6 +48,16 @@ starlette==0.49.3
 threadpoolctl==3.6.0
 torch==2.2.2
 tqdm==4.67.1
+typing_extensions==4.13.0
+urllib3==2.2.6
+uvicorn==0.35.2
+zipp==3.22.0
+
+# Optional: RL dependencies (Phase 2)
+# Uncomment when ready to use RL features
+# gymnasium==0.29.1
+# stable-baselines3==2.2.1
+# tensorboard==2.15.1
 transformers==4.48.2
 griffe==0.49.0
 typing-inspection==0.4.2

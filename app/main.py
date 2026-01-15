@@ -12,10 +12,10 @@ from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
 
 from app.core import logger
-from app.routes import health, refresh, model, portfolio, loan, signals, insights
+from app.routes import health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift
 
 # Initialize FastAPI app
-app = FastAPI(title="ASX Portfolio OS", version="0.3.0")
+app = FastAPI(title="ASX Portfolio OS", version="0.4.0")
 
 
 @app.get("/")
@@ -45,6 +45,9 @@ app.include_router(portfolio.router)
 app.include_router(loan.router)
 app.include_router(signals.router)
 app.include_router(insights.router)
+app.include_router(fusion.router)
+app.include_router(jobs.router)
+app.include_router(drift.router)
 
 
 @app.get("/openapi-actions.json", include_in_schema=False)
@@ -79,7 +82,17 @@ def openapi_actions(request: Request):
         "/loan/simulate",
         "/loan/summary",
         "/portfolio/attribution",
+        "/portfolio/overview",
+        "/portfolio/risk",
+        "/portfolio/allocation",
+        "/portfolio/refresh",
         "/portfolio/performance",
+        "/jobs/history",
+        "/jobs/summary",
+        "/drift/summary",
+        "/drift/features",
+        "/drift/history",
+        "/jobs/health",
         "/ingest/asx_announcements",
         "/insights/asx_announcements",
         "/assistant/chat",
