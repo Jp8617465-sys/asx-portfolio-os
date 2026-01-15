@@ -1,0 +1,88 @@
+"""
+app/core.py
+Shared utilities, configuration, and database access.
+"""
+
+import os
+import logging
+import gzip
+import shutil
+from logging.handlers import TimedRotatingFileHandler
+from datetime import datetime, date
+from typing import Optional
+
+import psycopg2
+from fastapi import HTTPException
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Configuration
+DATABASE_URL = os.environ["DATABASE_URL"]
+EODHD_API_KEY = os.environ["EODHD_API_KEY"]
+OS_API_KEY = os.environ["OS_API_KEY"]
+ENABLE_ASSISTANT = os.getenv("ENABLE_ASSISTANT", "true").lower() in ("1", "true", "yes", "on")
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "outputs")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Logging setup
+LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_PATH = os.path.join(LOG_DIR, "model_a.log")
+
+
+class GZipRotator:
+    """Custom compressor: gzip old logs."""
+    def __call__(self, source, dest):
+        with open(source, "rb") as sf, gzip.open(dest + ".gz", "wb") as df:
+            shutil.copyfileobj(sf, df)
+        os.remove(source)
+
+
+logger = logging.getLogger("asx_portfolio_os")
+logger.setLevel(logging.INFO)
+
+# Daily rotation (keeps 14 days)
+file_handler = TimedRotatingFileHandler(
+    LOG_PATH,
+    when="midnight",
+    interval=1,
+    backupCount=14,
+    encoding="utf-8",
+)
+file_handler.suffix = "%Y-%m-%d"
+file_handler.rotator = GZipRotator()
+
+file_formatter = logging.Formatter(
+    "%(asctime)s [%(levelname)s] %(message)s", "%Y-%m-%d %H:%M:%S"
+)
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
+
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(file_formatter)
+logger.addHandler(console_handler)
+
+logger.info("🔧 Logging initialized with daily rotation + gzip at %s", LOG_PATH)
+
+
+def db():
+    """Create a database connection."""
+    return psycopg2.connect(DATABASE_URL)
+
+
+def require_key(x_api_key: Optional[str]):
+    """Validate API key."""
+    if x_api_key != OS_API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+def parse_as_of(value: str, field_name: str = "as_of") -> date:
+    """Parse a date string in YYYY-MM-DD format."""
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid {field_name} format; expected YYYY-MM-DD")

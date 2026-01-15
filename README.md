@@ -35,7 +35,10 @@ uvicorn app.main:app --reload --port 8788
 - `GET /drift/summary`
 - `GET /model/explainability`
 - `GET /dashboard/model_a_v1_1`
-- `POST /assistant/chat`
+- `POST /assistant/chat` *(paused - see note below)*
+
+## Feature Status
+**OpenAI Assistant (PAUSED):** The conversational AI assistant feature (`/assistant/chat`) is currently on pause. The `OPENAI_API_KEY` and `ENABLE_ASSISTANT` environment variables are not required until this feature is reactivated.
 
 ## Key Jobs
 - `jobs/ingest_fundamentals_job.py`
