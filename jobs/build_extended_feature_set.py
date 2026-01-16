@@ -38,12 +38,32 @@ def load_technical_features(start_date: str, end_date: str):
     px = _safe_read_sql(q, params=(start_date, end_date))
     if px.empty:
         return px
+
+    # Daily returns
     px["ret1"] = px.groupby("symbol")["close"].pct_change()
+    px["ret_1d"] = px["ret1"]  # Alias for consistency
+
+    # Multiple timeframe momentum (NEW!)
+    px["mom_1"] = px.groupby("symbol")["close"].transform(lambda x: x.pct_change(21))
+    px["mom_3"] = px.groupby("symbol")["close"].transform(lambda x: x.pct_change(63))
+    px["mom_6"] = px.groupby("symbol")["close"].transform(lambda x: x.pct_change(126))
+    px["mom_12_1"] = px.groupby("symbol")["close"].transform(lambda x: x.pct_change(252))
+
+    # SMAs
     px["sma_50"] = px.groupby("symbol")["close"].transform(lambda x: x.rolling(50).mean())
     px["sma_200"] = px.groupby("symbol")["close"].transform(lambda x: x.rolling(200).mean())
     px["sma_ratio"] = px["sma_50"] / px["sma_200"]
+    px["trend_200"] = (px["close"] > px["sma_200"]).astype(int)
+
+    # Multiple timeframe volatility (NEW!)
+    px["vol_30"] = px.groupby("symbol")["ret1"].transform(lambda x: x.rolling(30).std())
+    px["vol_60"] = px.groupby("symbol")["ret1"].transform(lambda x: x.rolling(60).std())
     px["vol_90"] = px.groupby("symbol")["ret1"].transform(lambda x: x.rolling(90).std())
+    px["vol_ratio_30_90"] = px["vol_30"] / px["vol_90"]  # NEW!
+
+    # Volume features
     px["adv_20"] = px.groupby("symbol")["volume"].transform(lambda x: x.rolling(20).median()) * px["close"]
+    px["adv_20_median"] = px["adv_20"]  # Alias for consistency
     px["adv_zscore"] = px.groupby("symbol")["adv_20"].transform(lambda x: (x - x.rolling(252).mean()) / x.rolling(252).std())
 
     prev_close = px.groupby("symbol")["close"].shift(1)
@@ -275,6 +295,28 @@ def build_features(start_date, end_date):
             df[f"delta_{col}"] = df.groupby("symbol")[col].transform(lambda x: x.diff())
     if "rba_cash_rate" in df.columns:
         df["delta_rba_rate"] = df.groupby("symbol")["rba_cash_rate"].transform(lambda x: x.diff())
+
+    # SMA200 slope (NEW!)
+    if "sma_200" in df.columns:
+        def slope(series):
+            if series.isna().sum() > 0 or len(series) < 2:
+                return np.nan
+            y = series.values
+            x = np.arange(len(y))
+            try:
+                a, b = np.polyfit(x, y, 1)
+                return a
+            except:
+                return np.nan
+
+        df["sma200_slope"] = df.groupby("symbol")["sma_200"].transform(
+            lambda x: x.rolling(20).apply(slope, raw=False)
+        )
+        df["sma200_slope_pos"] = (df["sma200_slope"] > 0).astype(int)
+
+    # Forward returns (TARGET) (NEW!)
+    df["return_1m_fwd"] = df.groupby("symbol")["close"].shift(-21) / df["close"] - 1
+    df["return_1m_fwd_sign"] = (df["return_1m_fwd"] > 0).astype(int)
 
     # Sentiment composite
     sentiment_cols = [c for c in ["finbert_mean", "news_polarity", "sentiment_score", "asx_sentiment_score"] if c in df.columns]
