@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, TrendingUp, LayoutDashboard, Bookmark, User } from 'lucide-react';
+import { Menu, X, TrendingUp, LayoutDashboard, Bookmark, User, Bell } from 'lucide-react';
 import { designTokens } from '@/lib/design-tokens';
+import NotificationBell from './notification-bell';
 
 interface NavItem {
   label: string;
@@ -16,6 +17,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
   { label: 'Watchlist', href: '/app/watchlist', icon: Bookmark },
   { label: 'Portfolio', href: '/app/portfolio', icon: TrendingUp },
+  { label: 'Alerts', href: '/app/alerts', icon: Bell },
 ];
 
 export default function Header() {
@@ -64,6 +66,9 @@ export default function Header() {
               );
             })}
 
+            {/* Notification Bell */}
+            <NotificationBell />
+
             {/* User menu */}
             <button
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
@@ -76,7 +81,8 @@ export default function Header() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
+            <NotificationBell />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-lg text-gray-400
