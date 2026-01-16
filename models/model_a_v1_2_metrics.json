@@ -1,0 +1,21 @@
+{
+  "model_version": "v1_2",
+  "roc_auc_mean": 0.6030323776330342,
+  "roc_auc_std": 0.023483370636372992,
+  "rmse_mean": 44.88289509665616,
+  "rmse_std": 54.175012442015,
+  "cv_folds": 12,
+  "trained_at": "2026-01-16T03:23:18.663965",
+  "n_samples": 561299,
+  "n_symbols": 2251,
+  "n_features": 7,
+  "features": [
+    "ret_1d",
+    "mom_6",
+    "mom_12_1",
+    "vol_90",
+    "adv_20_median",
+    "trend_200",
+    "sma200_slope_pos"
+  ]
+}
