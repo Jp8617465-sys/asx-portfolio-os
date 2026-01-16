@@ -5,7 +5,9 @@ import { Portfolio, PortfolioHolding } from '@/lib/types';
 import { api } from '@/lib/api-client';
 import PortfolioUpload from '@/components/portfolio-upload';
 import HoldingsTable from '@/components/holdings-table';
-import { exportHoldingsToCSV } from '@/lib/utils/export';
+import RebalancingSuggestions from '@/components/rebalancing-suggestions';
+import RiskMetricsDashboard from '@/components/risk-metrics-dashboard';
+import { exportHoldingsToCSV, exportPortfolioToPDF } from '@/lib/utils/export';
 import {
   TrendingUp,
   TrendingDown,
@@ -13,6 +15,7 @@ import {
   Briefcase,
   AlertCircle,
   RefreshCw,
+  FileDown,
 } from 'lucide-react';
 
 interface PortfolioStats {
@@ -62,6 +65,12 @@ export default function PortfolioPage() {
   const handleExport = () => {
     if (portfolio?.holdings) {
       exportHoldingsToCSV(portfolio.holdings);
+    }
+  };
+
+  const handleExportPDF = () => {
+    if (portfolio) {
+      exportPortfolioToPDF(portfolio, portfolio.riskMetrics);
     }
   };
 
@@ -148,12 +157,21 @@ export default function PortfolioPage() {
             </p>
           </div>
           {portfolio && (
-            <button
-              onClick={() => setShowUpload(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Upload New Portfolio
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                <FileDown className="w-4 h-4" />
+                Export PDF
+              </button>
+              <button
+                onClick={() => setShowUpload(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Upload New Portfolio
+              </button>
+            </div>
           )}
         </div>
 
@@ -280,6 +298,16 @@ export default function PortfolioPage() {
                 isLoading={false}
               />
             </div>
+
+            {/* Rebalancing Suggestions */}
+            <RebalancingSuggestions portfolio={portfolio} />
+
+            {/* Risk Metrics Dashboard */}
+            {portfolio.riskMetrics && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <RiskMetricsDashboard metrics={portfolio.riskMetrics} />
+              </div>
+            )}
           </>
         )}
       </div>
