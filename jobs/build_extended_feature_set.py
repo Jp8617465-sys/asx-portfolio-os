@@ -63,9 +63,11 @@ def load_technical_features(start_date: str, end_date: str):
 # --- Load fundamentals (from your DB or external API) ---
 def load_fundamentals():
     q = """
-    select symbol, pe_ratio, pb_ratio, eps, roe, debt_to_equity, market_cap, period_end, updated_at
-    from fundamentals
-    where updated_at = (select max(updated_at) from fundamentals)
+    SELECT DISTINCT ON (symbol)
+        symbol, pe_ratio, pb_ratio, eps, roe, debt_to_equity, market_cap, div_yield, sector, industry, period_end
+    FROM fundamentals
+    WHERE pe_ratio IS NOT NULL OR market_cap IS NOT NULL
+    ORDER BY symbol, updated_at DESC
     """
     return _safe_read_sql(q)
 
