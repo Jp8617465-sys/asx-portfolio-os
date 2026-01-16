@@ -133,4 +133,17 @@ export const api = {
 
   updateUserSettings: (settings: Record<string, any>) =>
     apiClient.patch(`/users/me/settings`, settings),
+
+  // Alerts & Notifications (Phase 3)
+  getAlertPreferences: () =>
+    apiClient.get(`/alerts/preferences`),
+
+  updateAlertPreferences: (preferences: Record<string, any>) =>
+    apiClient.put(`/alerts/preferences`, preferences),
+
+  getNotifications: () =>
+    apiClient.get(`/notifications`),
+
+  markNotificationAsRead: (id: string) =>
+    apiClient.put(`/notifications/${id}/read`),
 };

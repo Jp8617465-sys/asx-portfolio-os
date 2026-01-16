@@ -74,7 +74,7 @@ export default function AlertsPage() {
     setError(null);
 
     try {
-      const response = await api.get('/alerts/preferences');
+      const response = await api.getAlertPreferences();
       setPreferences(response.data.data);
     } catch (err: any) {
       // If preferences don't exist, use defaults
@@ -91,7 +91,7 @@ export default function AlertsPage() {
     setError(null);
 
     try {
-      await api.put('/alerts/preferences', preferences);
+      await api.updateAlertPreferences(preferences);
       notify.success('Preferences saved', 'Your alert preferences have been updated successfully');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save preferences');
