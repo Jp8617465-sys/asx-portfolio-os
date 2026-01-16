@@ -23,11 +23,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 def load_models():
     """Load trained Model A classifier and regressor."""
-    model_dir = Path(__file__).parent.parent / "outputs"
+    model_dir = Path(__file__).parent.parent / "models"
 
-    classifier_path = model_dir / "model_a_v1_2_classifier.pkl"
-    regressor_path = model_dir / "model_a_v1_2_regressor.pkl"
-    features_path = model_dir / "model_a_v1_2_features.json"
+    classifier_path = model_dir / "model_a_v1_4_classifier.pkl"
+    regressor_path = model_dir / "model_a_v1_4_regressor.pkl"
+    features_path = model_dir / "model_a_v1_4_features.json"
 
     if not classifier_path.exists():
         raise FileNotFoundError(f"Classifier not found: {classifier_path}")
