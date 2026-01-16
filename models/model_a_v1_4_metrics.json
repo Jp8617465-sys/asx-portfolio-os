@@ -1,0 +1,91 @@
+{
+  "model_version": "v1_4",
+  "improvements": [
+    "Used pre-built extended feature dataset (1.12M samples)",
+    "Added short-term momentum (mom_1, mom_3)",
+    "Added multi-timeframe volatility (vol_30, vol_60, vol_ratio)",
+    "Added SMA200 slope",
+    "Class weighting for balanced predictions"
+  ],
+  "roc_auc_mean": 0.7006440607601879,
+  "roc_auc_std": 0.03902662718035983,
+  "rmse_mean": 14.737977073100671,
+  "rmse_std": 17.998010352666135,
+  "improvement_vs_v1_2": 9.764406076018794,
+  "improvement_vs_v1_3": 9.544406076018797,
+  "cv_folds": 12,
+  "trained_at": "2026-01-16T11:46:48.368780",
+  "n_samples": 246264,
+  "n_symbols": 1102,
+  "n_features": 22,
+  "features": [
+    "ret_1d",
+    "mom_1",
+    "mom_3",
+    "mom_6",
+    "mom_12_1",
+    "vol_30",
+    "vol_60",
+    "vol_90",
+    "vol_ratio_30_90",
+    "adv_20_median",
+    "adv_zscore",
+    "trend_200",
+    "sma200_slope",
+    "sma200_slope_pos",
+    "atr_pct",
+    "volume_skew_60",
+    "pe_ratio",
+    "pb_ratio",
+    "eps",
+    "market_cap",
+    "pe_ratio_zscore",
+    "pb_ratio_zscore"
+  ],
+  "feature_types": {
+    "technical": 16,
+    "fundamental": 6
+  },
+  "top_10_features": [
+    {
+      "feature": "market_cap",
+      "importance": 3841
+    },
+    {
+      "feature": "sma200_slope",
+      "importance": 3376
+    },
+    {
+      "feature": "volume_skew_60",
+      "importance": 3222
+    },
+    {
+      "feature": "vol_90",
+      "importance": 3187
+    },
+    {
+      "feature": "pb_ratio",
+      "importance": 3047
+    },
+    {
+      "feature": "mom_6",
+      "importance": 3035
+    },
+    {
+      "feature": "vol_60",
+      "importance": 2902
+    },
+    {
+      "feature": "mom_12_1",
+      "importance": 2901
+    },
+    {
+      "feature": "adv_zscore",
+      "importance": 2809
+    },
+    {
+      "feature": "adv_20_median",
+      "importance": 2773
+    }
+  ]
+}

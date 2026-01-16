@@ -1,0 +1,26 @@
+{
+  "features": [
+    "ret_1d",
+    "mom_1",
+    "mom_3",
+    "mom_6",
+    "mom_12_1",
+    "vol_30",
+    "vol_60",
+    "vol_90",
+    "vol_ratio_30_90",
+    "adv_20_median",
+    "adv_zscore",
+    "trend_200",
+    "sma200_slope",
+    "sma200_slope_pos",
+    "atr_pct",
+    "volume_skew_60",
+    "pe_ratio",
+    "pb_ratio",
+    "eps",
+    "market_cap",
+    "pe_ratio_zscore",
+    "pb_ratio_zscore"
+  ]
+}
