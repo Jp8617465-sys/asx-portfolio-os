@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 interface JobHistoryItem {
   id: number;
@@ -30,7 +30,7 @@ export default function JobHistoryClient() {
   const [summary, setSummary] = useState<JobSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<string>("all");
+  const [filter, setFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchData();
@@ -39,22 +39,22 @@ export default function JobHistoryClient() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const apiKey = process.env.NEXT_PUBLIC_OS_API_KEY || "";
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8788";
+      const apiKey = process.env.NEXT_PUBLIC_OS_API_KEY || '';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8788';
 
       // Fetch history
-      const historyParams = filter !== "all" ? `?status=${filter}` : "";
+      const historyParams = filter !== 'all' ? `?status=${filter}` : '';
       const historyResponse = await fetch(`${apiUrl}/jobs/history${historyParams}`, {
-        headers: { "x-api-key": apiKey },
+        headers: { 'x-api-key': apiKey },
       });
 
       // Fetch summary
       const summaryResponse = await fetch(`${apiUrl}/jobs/summary`, {
-        headers: { "x-api-key": apiKey },
+        headers: { 'x-api-key': apiKey },
       });
 
       if (!historyResponse.ok || !summaryResponse.ok) {
-        throw new Error("API error");
+        throw new Error('API error');
       }
 
       const historyData = await historyResponse.json();
@@ -64,7 +64,7 @@ export default function JobHistoryClient() {
       setSummary(summaryData);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch data");
+      setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);
     }
@@ -72,15 +72,15 @@ export default function JobHistoryClient() {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      success: "bg-green-100 text-green-800",
-      failed: "bg-red-100 text-red-800",
-      running: "bg-blue-100 text-blue-800",
+      success: 'bg-green-100 text-green-800',
+      failed: 'bg-red-100 text-red-800',
+      running: 'bg-blue-100 text-blue-800',
     };
-    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const formatDuration = (seconds: number | null) => {
-    if (!seconds) return "—";
+    if (!seconds) return '—';
     if (seconds < 60) return `${seconds.toFixed(1)}s`;
     if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`;
     return `${(seconds / 3600).toFixed(1)}h`;
@@ -119,9 +119,7 @@ export default function JobHistoryClient() {
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-sm font-medium text-gray-500">Failed</h3>
-            <p className="mt-2 text-2xl font-bold text-red-600">
-              {summary.overall.failed}
-            </p>
+            <p className="mt-2 text-2xl font-bold text-red-600">{summary.overall.failed}</p>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-sm font-medium text-gray-500">Avg Duration</h3>
@@ -134,14 +132,14 @@ export default function JobHistoryClient() {
 
       {/* Filters */}
       <div className="flex space-x-2">
-        {["all", "success", "failed", "running"].map((f) => (
+        {['all', 'success', 'failed', 'running'].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded ${
               filter === f
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -199,7 +197,7 @@ export default function JobHistoryClient() {
                   {formatDuration(job.duration_seconds)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {job.records_processed?.toLocaleString() || "—"}
+                  {job.records_processed?.toLocaleString() || '—'}
                 </td>
               </tr>
             ))}

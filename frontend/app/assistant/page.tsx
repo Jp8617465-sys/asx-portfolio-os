@@ -1,5 +1,5 @@
-import PageTransition from "../../components/PageTransition";
-import AssistantClient from "../../components/AssistantClient";
+import PageTransition from '../../components/PageTransition';
+import AssistantClient from '../../components/AssistantClient';
 
 export default function AssistantPage() {
   return (

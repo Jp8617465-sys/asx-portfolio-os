@@ -1,23 +1,25 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { Activity, LayoutGrid, ListChecks, MessageCircle, Settings, Sparkles } from "lucide-react";
-import ThemeToggle from "./ThemeToggle";
+import Link from 'next/link';
+import { Activity, LayoutGrid, ListChecks, MessageCircle, Settings, Sparkles } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutGrid },
-  { href: "/models", label: "Models", icon: Sparkles },
-  { href: "/jobs", label: "Jobs", icon: ListChecks },
-  { href: "/insights", label: "Insights", icon: Activity },
-  { href: "/assistant", label: "Assistant", icon: MessageCircle },
-  { href: "/settings", label: "Settings", icon: Settings }
+  { href: '/', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/models', label: 'Models', icon: Sparkles },
+  { href: '/jobs', label: 'Jobs', icon: ListChecks },
+  { href: '/insights', label: 'Insights', icon: Activity },
+  { href: '/assistant', label: 'Assistant', icon: MessageCircle },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function MobileNav() {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 pb-4 dark:border-white/10 lg:hidden">
       <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">ASX Portfolio OS</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+          ASX Portfolio OS
+        </p>
         <p className="text-lg font-semibold">Control Deck</p>
       </div>
       <details className="relative">

@@ -1,46 +1,48 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import Topbar from "./Topbar";
-import DriftChart from "./DriftChart";
-import FeatureImpactChart from "./FeatureImpactChart";
-import { Badge } from "./ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { ChartContainer } from "./ui/chart";
-import { Skeleton } from "./ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import useSWR from 'swr';
+import Topbar from './Topbar';
+import DriftChart from './DriftChart';
+import FeatureImpactChart from './FeatureImpactChart';
+import { Badge } from './ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { ChartContainer } from './ui/chart';
+import { Skeleton } from './ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import {
   getAsxAnnouncements,
   getDriftSummary,
   getModelExplainability,
   type AsxAnnouncementsSummary,
   type DriftSummary,
-  type ModelExplainability
-} from "../lib/api";
+  type ModelExplainability,
+} from '../lib/api';
 
 export default function InsightsClient() {
-  const { data: drift, isLoading: driftLoading } = useSWR<DriftSummary>(
-    "drift-summary",
-    () => getDriftSummary("model_a_ml")
+  const { data: drift, isLoading: driftLoading } = useSWR<DriftSummary>('drift-summary', () =>
+    getDriftSummary('model_a_ml')
   );
   const { data: importance, isLoading: importanceLoading } = useSWR<ModelExplainability>(
-    "feature-importance",
-    () => getModelExplainability("v1_2", 8)
+    'feature-importance',
+    () => getModelExplainability('v1_2', 8)
   );
   const { data: announcements, isLoading: announcementsLoading } = useSWR<AsxAnnouncementsSummary>(
-    "asx-announcements",
+    'asx-announcements',
     () => getAsxAnnouncements(8, 30)
   );
 
-  const driftSeries = (drift?.rows || []).slice(0, 8).map((row: any, index: number) => ({
-    label: row.created_at?.slice(5, 10) || `Run ${index + 1}`,
-    psi: row.metrics?.psi_mean ?? 0
-  })).reverse();
+  const driftSeries = (drift?.rows || [])
+    .slice(0, 8)
+    .map((row: any, index: number) => ({
+      label: row.created_at?.slice(5, 10) || `Run ${index + 1}`,
+      psi: row.metrics?.psi_mean ?? 0,
+    }))
+    .reverse();
 
   const latest = drift?.rows?.[0];
   const featurePulse = (importance?.features || []).map((row: any) => ({
     name: row.feature,
-    value: row.importance
+    value: row.importance,
   }));
   const sentimentCounts = announcements?.summary?.sentiment_counts ?? {};
   const eventCounts = announcements?.summary?.event_counts ?? {};
@@ -86,22 +88,26 @@ export default function InsightsClient() {
               <>
                 <div className="flex items-center justify-between">
                   <span>Baseline</span>
-                  <span className="font-semibold text-ink dark:text-mist">{latest?.baseline_label ?? "n/a"}</span>
+                  <span className="font-semibold text-ink dark:text-mist">
+                    {latest?.baseline_label ?? 'n/a'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Current</span>
-                  <span className="font-semibold text-ink dark:text-mist">{latest?.current_label ?? "n/a"}</span>
+                  <span className="font-semibold text-ink dark:text-mist">
+                    {latest?.current_label ?? 'n/a'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>PSI Mean</span>
                   <span className="font-semibold text-ink dark:text-mist">
-                    {latest?.metrics?.psi_mean?.toFixed?.(3) ?? "n/a"}
+                    {latest?.metrics?.psi_mean?.toFixed?.(3) ?? 'n/a'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>PSI Max</span>
                   <span className="font-semibold text-ink dark:text-mist">
-                    {latest?.metrics?.psi_max?.toFixed?.(3) ?? "n/a"}
+                    {latest?.metrics?.psi_max?.toFixed?.(3) ?? 'n/a'}
                   </span>
                 </div>
               </>
@@ -129,11 +135,12 @@ export default function InsightsClient() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
             <p>
-              Momentum and trend factors continue to dominate the signal stack. Liquidity factors become more
-              influential during volatility spikes.
+              Momentum and trend factors continue to dominate the signal stack. Liquidity factors
+              become more influential during volatility spikes.
             </p>
             <p>
-              SHAP exports can be streamed here once the training pipeline publishes them alongside the registry.
+              SHAP exports can be streamed here once the training pipeline publishes them alongside
+              the registry.
             </p>
           </CardContent>
         </Card>
@@ -160,13 +167,13 @@ export default function InsightsClient() {
                 <TableBody>
                   {announcementRows.map((row, idx) => (
                     <TableRow key={`${row.code}-${idx}`}>
-                      <TableCell>{row.dt?.slice(5, 10) ?? "n/a"}</TableCell>
-                      <TableCell className="font-semibold">{row.code ?? "n/a"}</TableCell>
+                      <TableCell>{row.dt?.slice(5, 10) ?? 'n/a'}</TableCell>
+                      <TableCell className="font-semibold">{row.code ?? 'n/a'}</TableCell>
                       <TableCell className="max-w-[260px] truncate text-slate-600 dark:text-slate-400">
-                        {row.headline ?? "n/a"}
+                        {row.headline ?? 'n/a'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{row.sentiment ?? "n/a"}</Badge>
+                        <Badge variant="secondary">{row.sentiment ?? 'n/a'}</Badge>
                       </TableCell>
                     </TableRow>
                   ))}

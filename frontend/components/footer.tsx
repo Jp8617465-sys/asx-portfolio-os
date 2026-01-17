@@ -46,8 +46,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm mb-6">
-              AI-powered portfolio management for ASX investors. Get daily signals,
-              track accuracy, and optimize your holdings with machine learning.
+              AI-powered portfolio management for ASX investors. Get daily signals, track accuracy,
+              and optimize your holdings with machine learning.
             </p>
             <div className="flex items-center gap-4">
               {socialLinks.map((social) => {
@@ -70,9 +70,7 @@ export default function Footer() {
 
           {/* Product links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-              Product
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Product</h3>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.href}>
@@ -89,9 +87,7 @@ export default function Footer() {
 
           {/* Company links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-              Company
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Company</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
@@ -108,9 +104,7 @@ export default function Footer() {
 
           {/* Legal links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-              Legal
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Legal</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.href}>
@@ -133,8 +127,8 @@ export default function Footer() {
               © {currentYear} ASX Portfolio OS. All rights reserved.
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500 text-center md:text-right max-w-md">
-              Not financial advice. AI signals are for informational purposes only.
-              Always conduct your own research before investing.
+              Not financial advice. AI signals are for informational purposes only. Always conduct
+              your own research before investing.
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 interface DriftAlert {
   feature_name: string;
@@ -41,12 +41,12 @@ export default function DriftMonitorClient() {
   const fetchDriftSummary = async () => {
     try {
       setLoading(true);
-      const apiKey = process.env.NEXT_PUBLIC_OS_API_KEY || "";
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8788";
+      const apiKey = process.env.NEXT_PUBLIC_OS_API_KEY || '';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8788';
 
       const response = await fetch(`${apiUrl}/drift/summary`, {
         headers: {
-          "x-api-key": apiKey,
+          'x-api-key': apiKey,
         },
       });
 
@@ -58,7 +58,7 @@ export default function DriftMonitorClient() {
       setData(result);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch drift data");
+      setError(err instanceof Error ? err.message : 'Failed to fetch drift data');
     } finally {
       setLoading(false);
     }
@@ -66,14 +66,14 @@ export default function DriftMonitorClient() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "DRIFT":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "WARNING":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "STABLE":
-        return "bg-green-100 text-green-800 border-green-200";
+      case 'DRIFT':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'WARNING':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'STABLE':
+        return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -103,7 +103,7 @@ export default function DriftMonitorClient() {
     );
   }
 
-  if (!data || data.status === "no_data") {
+  if (!data || data.status === 'no_data') {
     return (
       <div className="p-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -116,14 +116,9 @@ export default function DriftMonitorClient() {
   }
 
   const driftPercent = (data.summary.features_with_drift / data.summary.total_features) * 100;
-  const healthStatus =
-    driftPercent < 5 ? "Healthy" : driftPercent < 15 ? "Warning" : "Critical";
+  const healthStatus = driftPercent < 5 ? 'Healthy' : driftPercent < 15 ? 'Warning' : 'Critical';
   const healthColor =
-    driftPercent < 5
-      ? "text-green-600"
-      : driftPercent < 15
-      ? "text-yellow-600"
-      : "text-red-600";
+    driftPercent < 5 ? 'text-green-600' : driftPercent < 15 ? 'text-yellow-600' : 'text-red-600';
 
   return (
     <div className="p-6 space-y-6">
@@ -143,16 +138,12 @@ export default function DriftMonitorClient() {
 
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-sm font-medium text-gray-500 uppercase">Total Features</h3>
-          <p className="mt-2 text-2xl font-bold text-gray-900">
-            {data.summary.total_features}
-          </p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{data.summary.total_features}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4">
           <h3 className="text-sm font-medium text-gray-500 uppercase">Features Drifting</h3>
-          <p className="mt-2 text-2xl font-bold text-red-600">
-            {data.summary.features_with_drift}
-          </p>
+          <p className="mt-2 text-2xl font-bold text-red-600">{data.summary.features_with_drift}</p>
           <p className="text-sm text-gray-600">{driftPercent.toFixed(1)}%</p>
         </div>
 
@@ -173,10 +164,7 @@ export default function DriftMonitorClient() {
           </h2>
           <div className="space-y-2">
             {data.drift_alerts.map((alert, idx) => (
-              <div
-                key={idx}
-                className={`p-3 rounded-lg border ${getStatusColor(alert.status)}`}
-              >
+              <div key={idx} className={`p-3 rounded-lg border ${getStatusColor(alert.status)}`}>
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{alert.feature_name}</span>
                   <span className="text-sm font-mono">PSI: {alert.psi_score.toFixed(3)}</span>
@@ -196,15 +184,10 @@ export default function DriftMonitorClient() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {data.warning_alerts.slice(0, 10).map((alert, idx) => (
-              <div
-                key={idx}
-                className={`p-2 rounded border ${getStatusColor(alert.status)}`}
-              >
+              <div key={idx} className={`p-2 rounded border ${getStatusColor(alert.status)}`}>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">{alert.feature_name}</span>
-                  <span className="text-xs font-mono">
-                    {alert.psi_score.toFixed(3)}
-                  </span>
+                  <span className="text-xs font-mono">{alert.psi_score.toFixed(3)}</span>
                 </div>
               </div>
             ))}
@@ -227,19 +210,19 @@ export default function DriftMonitorClient() {
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full ${
-                          day.avg_psi > 0.2 ? "bg-red-600" : day.avg_psi > 0.1 ? "bg-yellow-600" : "bg-green-600"
+                          day.avg_psi > 0.2
+                            ? 'bg-red-600'
+                            : day.avg_psi > 0.1
+                              ? 'bg-yellow-600'
+                              : 'bg-green-600'
                         }`}
                         style={{ width: `${Math.min(day.avg_psi * 100, 100)}%` }}
                       ></div>
                     </div>
-                    <span className="text-sm text-gray-600 w-16">
-                      {day.avg_psi.toFixed(3)}
-                    </span>
+                    <span className="text-sm text-gray-600 w-16">{day.avg_psi.toFixed(3)}</span>
                   </div>
                 </div>
-                <div className="w-20 text-sm text-gray-600">
-                  {day.drift_count} drifts
-                </div>
+                <div className="w-20 text-sm text-gray-600">{day.drift_count} drifts</div>
               </div>
             ))}
           </div>

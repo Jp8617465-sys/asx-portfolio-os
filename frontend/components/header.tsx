@@ -89,11 +89,7 @@ export default function Header() {
                        hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <span className="sr-only">Open menu</span>
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>

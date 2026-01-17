@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 interface PortfolioOverview {
   status: string;
@@ -40,12 +40,12 @@ export default function PortfolioFusionClient() {
   const fetchPortfolioOverview = async () => {
     try {
       setLoading(true);
-      const apiKey = process.env.NEXT_PUBLIC_OS_API_KEY || "";
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8788";
+      const apiKey = process.env.NEXT_PUBLIC_OS_API_KEY || '';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8788';
 
       const response = await fetch(`${apiUrl}/portfolio/overview`, {
         headers: {
-          "x-api-key": apiKey,
+          'x-api-key': apiKey,
         },
       });
 
@@ -57,24 +57,24 @@ export default function PortfolioFusionClient() {
       setData(result);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch data");
+      setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-AU", {
-      style: "currency",
-      currency: "AUD",
+    return new Intl.NumberFormat('en-AU', {
+      style: 'currency',
+      currency: 'AUD',
       minimumFractionDigits: 0,
     }).format(value);
   };
 
   const getRiskLevel = (score: number) => {
-    if (score < 30) return { label: "Low", color: "text-green-600" };
-    if (score < 60) return { label: "Medium", color: "text-yellow-600" };
-    return { label: "High", color: "text-red-600" };
+    if (score < 30) return { label: 'Low', color: 'text-green-600' };
+    if (score < 60) return { label: 'Medium', color: 'text-yellow-600' };
+    return { label: 'High', color: 'text-red-600' };
   };
 
   if (loading) {
@@ -109,7 +109,7 @@ export default function PortfolioFusionClient() {
     );
   }
 
-  if (!data || data.status === "no_data") {
+  if (!data || data.status === 'no_data') {
     return (
       <div className="p-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -161,15 +161,11 @@ export default function PortfolioFusionClient() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase">
-            Debt Service Ratio
-          </h3>
+          <h3 className="text-sm font-medium text-gray-500 uppercase">Debt Service Ratio</h3>
           <p className="mt-2 text-3xl font-bold text-gray-900">
             {data.summary.debt_service_ratio.toFixed(1)}%
           </p>
-          <p className="mt-1 text-sm text-gray-600">
-            Monthly commitment relative to income
-          </p>
+          <p className="mt-1 text-sm text-gray-600">Monthly commitment relative to income</p>
         </div>
       </div>
 
@@ -215,9 +211,7 @@ export default function PortfolioFusionClient() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <span className="font-medium text-gray-700">Loans (Liabilities)</span>
-              <span className="text-gray-600">
-                {formatCurrency(data.loans.balance)}
-              </span>
+              <span className="text-gray-600">{formatCurrency(data.loans.balance)}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div

@@ -1,8 +1,8 @@
-import PageTransition from "../../components/PageTransition";
-import Topbar from "../../components/Topbar";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import SettingsStatus from "../../components/SettingsStatus";
+import PageTransition from '../../components/PageTransition';
+import Topbar from '../../components/Topbar';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import SettingsStatus from '../../components/SettingsStatus';
 
 export default function SettingsPage() {
   return (
@@ -23,7 +23,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <span>API Base URL</span>
                 <span className="font-semibold text-ink dark:text-mist">
-                  {process.env.NEXT_PUBLIC_API_URL || "Not set"}
+                  {process.env.NEXT_PUBLIC_API_URL || 'Not set'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -35,8 +35,8 @@ export default function SettingsPage() {
                 <Badge variant="secondary">Planned</Badge>
               </div>
               <p className="text-xs text-slate-500">
-                Fundamentals ingestion is capped while EODHD stabilizes. Add API keys and Supabase auth once Phase 3 is
-                activated.
+                Fundamentals ingestion is capped while EODHD stabilizes. Add API keys and Supabase
+                auth once Phase 3 is activated.
               </p>
             </CardContent>
           </Card>
@@ -50,7 +50,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
             <p>
-              Backend Health:{" "}
+              Backend Health:{' '}
               <a
                 className="text-accent underline"
                 href="https://asx-portfolio-os.onrender.com/health"
@@ -61,7 +61,7 @@ export default function SettingsPage() {
               </a>
             </p>
             <p>
-              API Docs:{" "}
+              API Docs:{' '}
               <a
                 className="text-accent underline"
                 href="https://asx-portfolio-os.onrender.com/docs"

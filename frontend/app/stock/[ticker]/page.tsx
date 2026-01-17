@@ -10,8 +10,15 @@ import ReasoningPanel from '@/components/reasoning-panel';
 import AccuracyDisplay from '@/components/accuracy-display';
 import SignalBadge from '@/components/signal-badge';
 import { api } from '@/lib/api-client';
-import { Signal, SignalReasoning, AccuracyMetric, OHLCData } from '@/lib/types';
-import { TrendingUp, TrendingDown, Bookmark, BookmarkCheck, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Signal, SignalReasoning, AccuracyMetric, OHLCData, WatchlistItem } from '@/lib/types';
+import {
+  TrendingUp,
+  TrendingDown,
+  Bookmark,
+  BookmarkCheck,
+  AlertCircle,
+  ArrowLeft,
+} from 'lucide-react';
 import { designTokens } from '@/lib/design-tokens';
 
 export default function StockDetailPage() {
@@ -114,7 +121,7 @@ export default function StockDetailPage() {
     try {
       const response = await api.getWatchlist();
       const watchlist = response.data.data || [];
-      setIsInWatchlist(watchlist.some((item) => item.ticker === ticker));
+      setIsInWatchlist(watchlist.some((item: WatchlistItem) => item.ticker === ticker));
     } catch (err) {
       console.error('Error checking watchlist:', err);
     }
@@ -201,22 +208,27 @@ export default function StockDetailPage() {
                 </h1>
                 <SignalBadge signal={signal.signal} confidence={signal.confidence} size="md" />
               </div>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
-                {signal.companyName}
-              </p>
+              <p className="text-lg text-gray-600 dark:text-gray-400">{signal.companyName}</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <div className="text-3xl font-bold text-gray-900 dark:text-white">
                   ${signal.lastPrice.toFixed(2)}
                 </div>
-                <div className={`flex items-center gap-1 text-sm font-semibold ${
-                  signal.priceChange >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {signal.priceChange >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                <div
+                  className={`flex items-center gap-1 text-sm font-semibold ${
+                    signal.priceChange >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {signal.priceChange >= 0 ? (
+                    <TrendingUp className="h-4 w-4" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4" />
+                  )}
                   <span>
                     {signal.priceChange >= 0 ? '+' : ''}
-                    {signal.priceChange.toFixed(2)}% (${Math.abs(signal.priceChangeAmount).toFixed(2)})
+                    {signal.priceChange.toFixed(2)}% ($
+                    {Math.abs(signal.priceChangeAmount).toFixed(2)})
                   </span>
                 </div>
               </div>
@@ -261,12 +273,7 @@ export default function StockDetailPage() {
           {/* Right column - Chart */}
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <StockChart
-                ticker={signal.ticker}
-                data={chartData}
-                height={350}
-                showVolume={true}
-              />
+              <StockChart ticker={signal.ticker} data={chartData} height={350} showVolume={true} />
             </div>
           </div>
         </div>

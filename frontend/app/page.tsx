@@ -98,15 +98,13 @@ export default function LandingPage() {
               AI-Driven Portfolio
               <br />
               Management for{' '}
-              <span
-                className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-              >
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 ASX Investors
               </span>
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12">
-              Get daily buy/sell signals powered by machine learning. Track accuracy,
-              understand reasoning, and optimize your Australian stock portfolio with AI.
+              Get daily buy/sell signals powered by machine learning. Track accuracy, understand
+              reasoning, and optimize your Australian stock portfolio with AI.
             </p>
 
             {/* Search */}
@@ -230,9 +228,7 @@ export default function LandingPage() {
           >
             Start Your Free Trial
           </Link>
-          <p className="text-sm text-blue-100 mt-4">
-            No credit card required • Free during beta
-          </p>
+          <p className="text-sm text-blue-100 mt-4">No credit card required • Free during beta</p>
         </div>
       </section>
 
@@ -242,8 +238,8 @@ export default function LandingPage() {
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">
             <p className="mb-2">© 2026 ASX Portfolio OS. All rights reserved.</p>
             <p className="text-xs">
-              Not financial advice. AI signals are for informational purposes only. Always
-              conduct your own research before investing.
+              Not financial advice. AI signals are for informational purposes only. Always conduct
+              your own research before investing.
             </p>
           </div>
         </div>

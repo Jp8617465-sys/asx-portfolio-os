@@ -1,0 +1,51 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Load user environment to get npm in PATH
+[ -f ~/.zshrc ] && . ~/.zshrc
+[ -f ~/.bashrc ] && . ~/.bashrc
+[ -f ~/.bash_profile ] && . ~/.bash_profile
+
+# Add common npm/node paths
+export PATH="/usr/local/bin:/opt/homebrew/bin:$HOME/.nvm/versions/node/$(ls -t $HOME/.nvm/versions/node 2>/dev/null | head -1)/bin:$PATH"
+
+echo "🔍 Running pre-commit checks..."
+echo "⚠️  MANDATORY: Cannot commit without passing all checks"
+echo ""
+
+cd frontend
+
+# 1. Type checking
+echo "📝 TypeScript type checking..."
+npm run type-check || {
+  echo "❌ TypeScript errors detected. Fix them before committing."
+  exit 1
+}
+
+# 2. Linting
+echo "🧹 ESLint checking..."
+npm run lint || {
+  echo "❌ ESLint errors detected. Fix them before committing."
+  exit 1
+}
+
+# 3. Format checking
+echo "💅 Code formatting check..."
+npm run format:check || {
+  echo "❌ Code formatting issues detected."
+  echo "💡 Run 'npm run format' to auto-fix."
+  exit 1
+}
+
+# 4. Run tests with 80% coverage requirement
+echo "🧪 Running tests (80% coverage required)..."
+npm run test:ci || {
+  echo "❌ Tests failed or coverage below 80%."
+  echo "💡 Run 'npm run test:coverage' to see coverage report."
+  exit 1
+}
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+echo "✅ Coverage meets 80% threshold"
+echo "✅ Ready to commit"

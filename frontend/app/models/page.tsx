@@ -1,5 +1,5 @@
-import PageTransition from "../../components/PageTransition";
-import ModelsClient from "../../components/ModelsClient";
+import PageTransition from '../../components/PageTransition';
+import ModelsClient from '../../components/ModelsClient';
 
 export default function ModelsPage() {
   return (

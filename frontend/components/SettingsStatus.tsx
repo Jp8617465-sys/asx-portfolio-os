@@ -1,36 +1,36 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { toast } from "./ui/use-toast";
-import { getHealth } from "../lib/api";
+import useSWR from 'swr';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { toast } from './ui/use-toast';
+import { getHealth } from '../lib/api';
 
 export default function SettingsStatus() {
-  const { data, error } = useSWR("health", () => getHealth());
+  const { data, error } = useSWR('health', () => getHealth());
   const [testing, setTesting] = useState(false);
 
-  const statusLabel = error ? "Offline" : data ? "Healthy" : "Checking...";
+  const statusLabel = error ? 'Offline' : data ? 'Healthy' : 'Checking...';
   const statusClass = error
-    ? "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200"
+    ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200'
     : data
-      ? "bg-accentSoft text-accent dark:bg-white/10 dark:text-slate-200"
-      : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300";
+      ? 'bg-accentSoft text-accent dark:bg-white/10 dark:text-slate-200'
+      : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300';
 
   const handleTest = async () => {
     setTesting(true);
     try {
       const res = await getHealth();
       toast({
-        title: "API OK",
-        description: `Health check returned: ${res?.status ?? "ok"}`
+        title: 'API OK',
+        description: `Health check returned: ${res?.status ?? 'ok'}`,
       });
     } catch (err) {
       toast({
-        title: "API Error",
-        description: "Health check failed. Verify OS_API_KEY and API URL."
+        title: 'API Error',
+        description: 'Health check failed. Verify OS_API_KEY and API URL.',
       });
     } finally {
       setTesting(false);
@@ -51,7 +51,7 @@ export default function SettingsStatus() {
           This check calls `/health` to confirm the backend is reachable.
         </p>
         <Button variant="outline" size="sm" onClick={handleTest} disabled={testing}>
-          {testing ? "Testing..." : "Test API"}
+          {testing ? 'Testing...' : 'Test API'}
         </Button>
       </CardContent>
     </Card>

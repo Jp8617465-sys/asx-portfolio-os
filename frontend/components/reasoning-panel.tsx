@@ -31,9 +31,7 @@ export default function ReasoningPanel({ reasoning, isLoading }: ReasoningPanelP
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Signal Reasoning
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Signal Reasoning</h3>
       </div>
 
       {/* Model breakdown */}
@@ -46,25 +44,19 @@ export default function ReasoningPanel({ reasoning, isLoading }: ReasoningPanelP
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {reasoning.modelBreakdown.technicalScore}%
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Technical
-            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Technical</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {reasoning.modelBreakdown.fundamentalsScore}%
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Fundamentals
-            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fundamentals</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {reasoning.modelBreakdown.sentimentScore}%
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Sentiment
-            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Sentiment</div>
           </div>
         </div>
       </div>
@@ -78,9 +70,7 @@ export default function ReasoningPanel({ reasoning, isLoading }: ReasoningPanelP
           {reasoning.topFactors.map((factor, index) => {
             const impactAbs = Math.abs(factor.impact);
             const isPositive = factor.impact > 0;
-            const maxImpact = Math.max(
-              ...reasoning.topFactors.map((f) => Math.abs(f.impact))
-            );
+            const maxImpact = Math.max(...reasoning.topFactors.map((f) => Math.abs(f.impact)));
             const barWidth = (impactAbs / maxImpact) * 100;
 
             return (
@@ -101,9 +91,7 @@ export default function ReasoningPanel({ reasoning, isLoading }: ReasoningPanelP
                         {factor.feature}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {factor.description}
-                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{factor.description}</p>
                   </div>
                   <div className="text-right">
                     <div
@@ -115,9 +103,7 @@ export default function ReasoningPanel({ reasoning, isLoading }: ReasoningPanelP
                       {factor.impact.toFixed(0)}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {typeof factor.value === 'number'
-                        ? factor.value.toFixed(2)
-                        : factor.value}
+                      {typeof factor.value === 'number' ? factor.value.toFixed(2) : factor.value}
                     </div>
                   </div>
                 </div>
@@ -143,9 +129,9 @@ export default function ReasoningPanel({ reasoning, isLoading }: ReasoningPanelP
       {/* Info note */}
       <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
         <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-          Impact scores show how much each factor influenced the AI's decision. Positive
-          values support the signal direction, while negative values work against it.
-          Values are derived from SHAP (SHapley Additive exPlanations) analysis.
+          Impact scores show how much each factor influenced the AI&apos;s decision. Positive values
+          support the signal direction, while negative values work against it. Values are derived
+          from SHAP (SHapley Additive exPlanations) analysis.
         </p>
       </div>
     </div>

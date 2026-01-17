@@ -55,7 +55,7 @@ export default function ConfidenceGauge({
   useEffect(() => {
     if (!animate) return;
 
-    let start = 0;
+    const start = 0;
     const duration = 800; // ms
     const startTime = Date.now();
 
@@ -80,11 +80,7 @@ export default function ConfidenceGauge({
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <svg
-        width={diameter}
-        height={diameter}
-        className="transform -rotate-90"
-      >
+      <svg width={diameter} height={diameter} className="transform -rotate-90">
         {/* Background circle */}
         <circle
           cx={diameter / 2}
@@ -128,10 +124,7 @@ export default function ConfidenceGauge({
 
       {/* Signal label */}
       <div className="mt-2 text-center">
-        <span
-          className="text-sm font-semibold uppercase tracking-wide"
-          style={{ color }}
-        >
+        <span className="text-sm font-semibold uppercase tracking-wide" style={{ color }}>
           {signal.replace('_', ' ')}
         </span>
       </div>

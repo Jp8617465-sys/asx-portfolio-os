@@ -98,7 +98,8 @@ export default function RebalancingSuggestions({
           Portfolio is Well Balanced
         </h3>
         <p className="text-gray-600 dark:text-gray-400">
-          No rebalancing suggestions at this time. Your portfolio aligns well with current AI signals.
+          No rebalancing suggestions at this time. Your portfolio aligns well with current AI
+          signals.
         </p>
       </div>
     );
@@ -137,15 +138,15 @@ export default function RebalancingSuggestions({
             suggestion.action === 'BUY'
               ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950'
               : suggestion.action === 'SELL'
-              ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950'
-              : 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950';
+                ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950'
+                : 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950';
 
           const priorityColor =
             suggestion.priority === 'high'
               ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
               : suggestion.priority === 'medium'
-              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
 
           return (
             <div
@@ -181,11 +182,7 @@ export default function RebalancingSuggestions({
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           Current Signal:
                         </span>
-                        <SignalBadge
-                          signal={suggestion.currentSignal}
-                          size="sm"
-                          showIcon={false}
-                        />
+                        <SignalBadge signal={suggestion.currentSignal} size="sm" showIcon={false} />
                       </div>
                       <div>
                         <span className="text-sm text-gray-600 dark:text-gray-400">

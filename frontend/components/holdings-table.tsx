@@ -28,9 +28,7 @@ export default function HoldingsTable({
   isLoading = false,
 }: HoldingsTableProps) {
   const router = useRouter();
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'totalValue', desc: true },
-  ]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'totalValue', desc: true }]);
   const [globalFilter, setGlobalFilter] = useState('');
 
   const columns = useMemo<ColumnDef<PortfolioHolding>[]>(
@@ -51,9 +49,7 @@ export default function HoldingsTable({
         accessorKey: 'companyName',
         header: 'Company',
         cell: (info) => (
-          <span className="text-gray-900 dark:text-white">
-            {info.getValue() as string}
-          </span>
+          <span className="text-gray-900 dark:text-white">{info.getValue() as string}</span>
         ),
       },
       {
@@ -152,7 +148,11 @@ export default function HoldingsTable({
         },
         cell: (info) => (
           <span className="font-mono font-semibold text-gray-900 dark:text-white">
-            ${(info.getValue() as number).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            $
+            {(info.getValue() as number).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </span>
         ),
       },
@@ -186,7 +186,9 @@ export default function HoldingsTable({
             <div className="space-y-1">
               <div
                 className={`flex items-center gap-1 font-semibold ${
-                  isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  isPositive
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
                 }`}
               >
                 {isPositive ? (
@@ -195,11 +197,18 @@ export default function HoldingsTable({
                   <TrendingDown className="h-4 w-4" />
                 )}
                 <span className="font-mono">
-                  {isPositive ? '+' : ''}${Math.abs(pl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {isPositive ? '+' : ''}$
+                  {Math.abs(pl).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
               </div>
-              <div className={`text-xs font-medium ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                {isPositive ? '+' : ''}{plPercent.toFixed(2)}%
+              <div
+                className={`text-xs font-medium ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+              >
+                {isPositive ? '+' : ''}
+                {plPercent.toFixed(2)}%
               </div>
             </div>
           );
@@ -213,9 +222,7 @@ export default function HoldingsTable({
       {
         accessorKey: 'signal',
         header: 'AI Signal',
-        cell: (info) => (
-          <SignalBadge signal={info.getValue() as any} size="sm" showIcon={true} />
-        ),
+        cell: (info) => <SignalBadge signal={info.getValue() as any} size="sm" showIcon={true} />,
         sortingFn: (rowA, rowB) => {
           const signalOrder = ['STRONG_SELL', 'SELL', 'HOLD', 'BUY', 'STRONG_BUY'];
           const aIndex = signalOrder.indexOf(rowA.original.signal);
@@ -282,16 +289,19 @@ export default function HoldingsTable({
 
   // Calculate totals
   const totals = useMemo(() => {
-    return holdings.reduce((acc, holding) => {
-      const value = holding.totalValue;
-      const cost = holding.avgCost * holding.shares;
-      const pl = value - cost;
-      return {
-        totalValue: acc.totalValue + value,
-        totalCost: acc.totalCost + cost,
-        totalPL: acc.totalPL + pl,
-      };
-    }, { totalValue: 0, totalCost: 0, totalPL: 0 });
+    return holdings.reduce(
+      (acc, holding) => {
+        const value = holding.totalValue;
+        const cost = holding.avgCost * holding.shares;
+        const pl = value - cost;
+        return {
+          totalValue: acc.totalValue + value,
+          totalCost: acc.totalCost + cost,
+          totalPL: acc.totalPL + pl,
+        };
+      },
+      { totalValue: 0, totalCost: 0, totalPL: 0 }
+    );
   }, [holdings]);
 
   const totalPLPercent = (totals.totalPL / totals.totalCost) * 100;
@@ -307,9 +317,7 @@ export default function HoldingsTable({
   if (holdings.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400 text-lg">
-          No holdings in portfolio
-        </p>
+        <p className="text-gray-500 dark:text-gray-400 text-lg">No holdings in portfolio</p>
         <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
           Upload a CSV file to import your holdings
         </p>
@@ -378,17 +386,26 @@ export default function HoldingsTable({
           {/* Totals footer */}
           <tfoot className="bg-gray-100 dark:bg-gray-800 border-t-2 border-gray-300 dark:border-gray-600">
             <tr>
-              <td colSpan={5} className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white">
+              <td
+                colSpan={5}
+                className="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white"
+              >
                 Totals:
               </td>
               <td className="px-6 py-4 font-mono font-bold text-gray-900 dark:text-white">
-                ${totals.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                $
+                {totals.totalValue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </td>
               <td className="px-6 py-4">
                 <div className="space-y-1">
                   <div
                     className={`flex items-center gap-1 font-bold ${
-                      totals.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      totals.totalPL >= 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
                     }`}
                   >
                     {totals.totalPL >= 0 ? (
@@ -397,11 +414,18 @@ export default function HoldingsTable({
                       <TrendingDown className="h-5 w-5" />
                     )}
                     <span className="font-mono">
-                      {totals.totalPL >= 0 ? '+' : ''}${Math.abs(totals.totalPL).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {totals.totalPL >= 0 ? '+' : ''}$
+                      {Math.abs(totals.totalPL).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </span>
                   </div>
-                  <div className={`text-sm font-semibold ${totals.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {totals.totalPL >= 0 ? '+' : ''}{totalPLPercent.toFixed(2)}%
+                  <div
+                    className={`text-sm font-semibold ${totals.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                  >
+                    {totals.totalPL >= 0 ? '+' : ''}
+                    {totalPLPercent.toFixed(2)}%
                   </div>
                 </div>
               </td>

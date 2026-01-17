@@ -127,7 +127,9 @@ export default function PortfolioPage() {
           <div className="flex items-start gap-3 p-6 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
             <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-red-900 dark:text-red-100">Failed to load portfolio</p>
+              <p className="font-semibold text-red-900 dark:text-red-100">
+                Failed to load portfolio
+              </p>
               <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
               <button
                 onClick={loadPortfolio}
@@ -149,9 +151,7 @@ export default function PortfolioPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Portfolio
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Portfolio</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
               Track your holdings with AI-powered insights
             </p>
@@ -207,7 +207,11 @@ export default function PortfolioPage() {
                   <DollarSign className="w-5 h-5 text-blue-600" />
                 </div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${stats.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {stats.totalValue.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
                 <div
                   className={`flex items-center gap-1 mt-2 text-sm font-medium ${
@@ -222,10 +226,16 @@ export default function PortfolioPage() {
                     <TrendingDown className="w-4 h-4" />
                   )}
                   <span>
-                    {stats.todayChange >= 0 ? '+' : ''}${Math.abs(stats.todayChange).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({stats.todayChange >= 0 ? '+' : ''}{stats.todayChangePercent.toFixed(2)}%)
+                    {stats.todayChange >= 0 ? '+' : ''}$
+                    {Math.abs(stats.todayChange).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{' '}
+                    ({stats.todayChange >= 0 ? '+' : ''}
+                    {stats.todayChangePercent.toFixed(2)}%)
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Today's change</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Today&apos;s change</p>
               </div>
 
               {/* Total P&L */}
@@ -245,10 +255,17 @@ export default function PortfolioPage() {
                       : 'text-red-600 dark:text-red-400'
                   }`}
                 >
-                  {stats.totalPL >= 0 ? '+' : ''}${Math.abs(stats.totalPL).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {stats.totalPL >= 0 ? '+' : ''}$
+                  {Math.abs(stats.totalPL).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
-                <p className={`text-sm font-medium mt-2 ${stats.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                  {stats.totalPL >= 0 ? '+' : ''}{stats.totalPLPercent.toFixed(2)}%
+                <p
+                  className={`text-sm font-medium mt-2 ${stats.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                >
+                  {stats.totalPL >= 0 ? '+' : ''}
+                  {stats.totalPLPercent.toFixed(2)}%
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">All-time return</p>
               </div>
@@ -262,9 +279,7 @@ export default function PortfolioPage() {
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {stats.holdingsCount}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  Unique positions
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Unique positions</p>
               </div>
 
               {/* Strong Signals */}
@@ -274,20 +289,20 @@ export default function PortfolioPage() {
                   <AlertCircle className="w-5 h-5 text-orange-600" />
                 </div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {portfolio.holdings.filter(h => h.signal === 'STRONG_BUY' || h.signal === 'STRONG_SELL').length}
+                  {
+                    portfolio.holdings.filter(
+                      (h) => h.signal === 'STRONG_BUY' || h.signal === 'STRONG_SELL'
+                    ).length
+                  }
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  Requires attention
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Requires attention</p>
               </div>
             </div>
 
             {/* Holdings Table */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Holdings
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Holdings</h2>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
                   Your portfolio positions with AI signals
                 </p>

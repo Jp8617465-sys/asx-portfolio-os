@@ -1,5 +1,5 @@
 // Learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -12,15 +12,15 @@ jest.mock('next/navigation', () => ({
       pathname: '/',
       query: {},
       asPath: '/',
-    }
+    };
   },
   usePathname() {
-    return '/'
+    return '/';
   },
   useSearchParams() {
-    return new URLSearchParams()
+    return new URLSearchParams();
   },
-}))
+}));
 
 // Mock environment variables
-process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000/api/v1'
+process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000/api/v1';

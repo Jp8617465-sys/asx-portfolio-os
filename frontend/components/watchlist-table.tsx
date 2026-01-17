@@ -22,15 +22,9 @@ interface WatchlistTableProps {
   isLoading?: boolean;
 }
 
-export default function WatchlistTable({
-  data,
-  onRemove,
-  isLoading = false,
-}: WatchlistTableProps) {
+export default function WatchlistTable({ data, onRemove, isLoading = false }: WatchlistTableProps) {
   const router = useRouter();
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: 'confidence', desc: true },
-  ]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'confidence', desc: true }]);
   const [globalFilter, setGlobalFilter] = useState('');
 
   const columns = useMemo<ColumnDef<WatchlistItem>[]>(
@@ -51,17 +45,13 @@ export default function WatchlistTable({
         accessorKey: 'companyName',
         header: 'Company',
         cell: (info) => (
-          <span className="text-gray-900 dark:text-white">
-            {info.getValue() as string}
-          </span>
+          <span className="text-gray-900 dark:text-white">{info.getValue() as string}</span>
         ),
       },
       {
         accessorKey: 'signal',
         header: 'Signal',
-        cell: (info) => (
-          <SignalBadge signal={info.getValue() as any} size="sm" showIcon={true} />
-        ),
+        cell: (info) => <SignalBadge signal={info.getValue() as any} size="sm" showIcon={true} />,
         sortingFn: (rowA, rowB) => {
           const signalOrder = ['STRONG_SELL', 'SELL', 'HOLD', 'BUY', 'STRONG_BUY'];
           const aIndex = signalOrder.indexOf(rowA.original.signal);
@@ -195,9 +185,7 @@ export default function WatchlistTable({
             timeAgo = date.toLocaleDateString();
           }
 
-          return (
-            <span className="text-sm text-gray-500 dark:text-gray-400">{timeAgo}</span>
-          );
+          return <span className="text-sm text-gray-500 dark:text-gray-400">{timeAgo}</span>;
         },
       },
       {
@@ -245,9 +233,7 @@ export default function WatchlistTable({
   if (data.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400 text-lg">
-          Your watchlist is empty
-        </p>
+        <p className="text-gray-500 dark:text-gray-400 text-lg">Your watchlist is empty</p>
         <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
           Search for stocks to add to your watchlist
         </p>

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   LineChart,
@@ -7,8 +7,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
-} from "recharts";
+  ResponsiveContainer,
+} from 'recharts';
 
 interface DriftPoint {
   label: string;

@@ -165,9 +165,7 @@ export default function StockSearch({
                   </span>
                 </div>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {result.sector}
-                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{result.sector}</span>
                   {result.marketCap && (
                     <>
                       <span className="text-xs text-gray-400">•</span>

@@ -3,18 +3,21 @@
 ## Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
 cd frontend
 npm install
 ```
 
 This will install:
+
 - Jest (test runner)
 - React Testing Library (component testing)
 - @testing-library/jest-dom (DOM assertions)
 - Prettier (code formatting)
 
 ### 2. Run Tests Locally
+
 ```bash
 # Before every commit
 npm run type-check  # TypeScript checking
@@ -28,27 +31,29 @@ npm run pre-commit
 
 ### 3. Available Commands
 
-| Command | Purpose | When to use |
-|---------|---------|-------------|
-| `npm run type-check` | TypeScript type checking | Before commit |
-| `npm run lint` | ESLint code quality | Before commit |
-| `npm run test` | Run tests in watch mode | During development |
-| `npm run test:ci` | Run tests once with coverage | Before commit/push |
-| `npm run test:coverage` | Generate coverage report | Weekly review |
-| `npm run format` | Auto-fix code formatting | Before commit |
-| `npm run format:check` | Check formatting only | In CI |
-| `npm run build` | Production build | Before push |
-| `npm run pre-commit` | Run all checks | Before every commit |
+| Command                 | Purpose                      | When to use         |
+| ----------------------- | ---------------------------- | ------------------- |
+| `npm run type-check`    | TypeScript type checking     | Before commit       |
+| `npm run lint`          | ESLint code quality          | Before commit       |
+| `npm run test`          | Run tests in watch mode      | During development  |
+| `npm run test:ci`       | Run tests once with coverage | Before commit/push  |
+| `npm run test:coverage` | Generate coverage report     | Weekly review       |
+| `npm run format`        | Auto-fix code formatting     | Before commit       |
+| `npm run format:check`  | Check formatting only        | In CI               |
+| `npm run build`         | Production build             | Before push         |
+| `npm run pre-commit`    | Run all checks               | Before every commit |
 
 ---
 
 ## CI/CD Pipeline
 
 The GitHub Actions workflow (`.github/workflows/ci.yml`) runs automatically on:
+
 - Every push to `main` or `develop`
 - Every pull request
 
 ### Pipeline Stages:
+
 1. **Quality Checks** (2 min)
    - TypeScript type checking
    - ESLint linting
@@ -70,6 +75,7 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) runs automatically on:
 ## Writing Tests
 
 ### Example Test Structure
+
 ```typescript
 // components/__tests__/MyComponent.test.tsx
 import { render, screen } from '@testing-library/react';
@@ -84,7 +90,9 @@ describe('MyComponent', () => {
 ```
 
 ### What to Test
+
 ✅ **Do test:**
+
 - Component renders without crashing
 - Props affect output correctly
 - User interactions work
@@ -92,6 +100,7 @@ describe('MyComponent', () => {
 - Critical business logic
 
 ❌ **Don't test:**
+
 - Third-party library internals
 - CSS styling details
 - Implementation details
@@ -102,12 +111,14 @@ describe('MyComponent', () => {
 ## Coverage Requirements
 
 ### Current Thresholds:
+
 - **Branches**: 50%
 - **Functions**: 50%
 - **Lines**: 50%
 - **Statements**: 50%
 
 ### Goal:
+
 - Increase to 70% within 3 months
 - Focus on critical paths first
 
@@ -116,15 +127,18 @@ describe('MyComponent', () => {
 ## Troubleshooting
 
 ### "npm install" fails
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ### Tests fail with "Cannot find module"
+
 Check `jest.config.js` moduleNameMapper and ensure path aliases match `tsconfig.json`
 
 ### TypeScript errors in tests
+
 Ensure `@types/jest` is installed and `jest.config.js` is using TypeScript
 
 ---

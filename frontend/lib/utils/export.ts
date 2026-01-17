@@ -39,7 +39,11 @@ export function exportToCSV(data: any[], filename: string) {
           const stringValue = String(value);
 
           // Escape commas and quotes
-          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          if (
+            stringValue.includes(',') ||
+            stringValue.includes('"') ||
+            stringValue.includes('\n')
+          ) {
             return `"${stringValue.replace(/"/g, '""')}"`;
           }
 
@@ -67,7 +71,10 @@ export function exportToCSV(data: any[], filename: string) {
  * @param holdings Array of portfolio holdings
  * @param filename Name of the file (default: portfolio-holdings)
  */
-export function exportHoldingsToCSV(holdings: PortfolioHolding[], filename: string = 'portfolio-holdings') {
+export function exportHoldingsToCSV(
+  holdings: PortfolioHolding[],
+  filename: string = 'portfolio-holdings'
+) {
   // Transform holdings to flat structure for CSV
   const exportData = holdings.map((holding) => {
     const pl = (holding.currentPrice - holding.avgCost) * holding.shares;
@@ -84,7 +91,9 @@ export function exportHoldingsToCSV(holdings: PortfolioHolding[], filename: stri
       'P&L (%)': plPercent.toFixed(2),
       Signal: holding.signal,
       Confidence: `${holding.confidence}%`,
-      'Expected Return': holding.expectedReturn ? `${(holding.expectedReturn * 100).toFixed(2)}%` : '',
+      'Expected Return': holding.expectedReturn
+        ? `${(holding.expectedReturn * 100).toFixed(2)}%`
+        : '',
     };
   });
 
@@ -142,7 +151,11 @@ export function exportPortfolioToPDF(
   // Date
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
+  doc.text(
+    `Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+    14,
+    28
+  );
 
   // Summary Section
   doc.setFontSize(14);
@@ -152,9 +165,17 @@ export function exportPortfolioToPDF(
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.text(`Total Value: ${formatCurrency(totalValue)}`, 14, 48);
-  doc.text(`Total P&L: ${formatCurrency(totalPL)} (${totalPLPercent >= 0 ? '+' : ''}${totalPLPercent.toFixed(2)}%)`, 14, 55);
+  doc.text(
+    `Total P&L: ${formatCurrency(totalPL)} (${totalPLPercent >= 0 ? '+' : ''}${totalPLPercent.toFixed(2)}%)`,
+    14,
+    55
+  );
   doc.text(`Holdings: ${portfolio.holdings.length} positions`, 14, 62);
-  doc.text(`Strong Signals: ${portfolio.holdings.filter(h => h.signal === 'STRONG_BUY' || h.signal === 'STRONG_SELL').length}`, 14, 69);
+  doc.text(
+    `Strong Signals: ${portfolio.holdings.filter((h) => h.signal === 'STRONG_BUY' || h.signal === 'STRONG_SELL').length}`,
+    14,
+    69
+  );
 
   // Risk Metrics Section (if provided)
   if (riskMetrics) {
@@ -212,7 +233,19 @@ export function exportPortfolioToPDF(
 
   autoTable(doc, {
     startY: tableStartY + 6,
-    head: [['Ticker', 'Shares', 'Avg Cost', 'Current Price', 'Value', 'P&L ($)', 'P&L (%)', 'Signal', 'Conf.']],
+    head: [
+      [
+        'Ticker',
+        'Shares',
+        'Avg Cost',
+        'Current Price',
+        'Value',
+        'P&L ($)',
+        'P&L (%)',
+        'Signal',
+        'Conf.',
+      ],
+    ],
     body: tableData,
     theme: 'striped',
     headStyles: {

@@ -3,13 +3,7 @@
 import React from 'react';
 import { RiskMetrics } from '@/lib/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import {
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  Target,
-  AlertTriangle,
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Target, AlertTriangle } from 'lucide-react';
 import { designTokens } from '@/lib/design-tokens';
 
 interface RiskMetricsDashboardProps {
@@ -31,17 +25,18 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
   const renderMetricCard = (
     title: string,
     value: number | string,
-    change?: number,
     icon: React.ReactNode,
     iconColor: string,
     suffix: string = '',
-    isPercentage: boolean = false
+    isPercentage: boolean = false,
+    change?: number
   ) => {
-    const displayValue = typeof value === 'number'
-      ? isPercentage
-        ? `${value.toFixed(2)}${suffix}`
-        : value.toFixed(2)
-      : value;
+    const displayValue =
+      typeof value === 'number'
+        ? isPercentage
+          ? `${value.toFixed(2)}${suffix}`
+          : value.toFixed(2)
+        : value;
 
     const changeValue = change !== undefined ? change : 0;
     const isPositive = changeValue >= 0;
@@ -55,16 +50,10 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
           <span className="text-sm text-gray-600 dark:text-gray-400">{title}</span>
           <div className={iconColor}>{icon}</div>
         </div>
-        <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          {displayValue}
-        </div>
+        <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{displayValue}</div>
         {change !== undefined && (
           <div className={`flex items-center gap-1 text-sm font-medium ${changeColor}`}>
-            {isPositive ? (
-              <TrendingUp className="w-4 h-4" />
-            ) : (
-              <TrendingDown className="w-4 h-4" />
-            )}
+            {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
             <span>
               {isPositive ? '+' : ''}
               {changeValue.toFixed(2)}
@@ -103,38 +92,38 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
         {renderMetricCard(
           'Sharpe Ratio',
           metrics.sharpeRatio,
-          metrics.sharpeRatio - (metrics.sharpeRatio * 0.9), // Mock previous value
           <Target className="w-5 h-5" />,
           'text-blue-600',
           '',
-          false
+          false,
+          metrics.sharpeRatio - metrics.sharpeRatio * 0.9 // Mock previous value
         )}
         {renderMetricCard(
           'Volatility',
           metrics.volatility * 100,
-          (metrics.volatility * 100) - ((metrics.volatility * 100) * 1.05), // Mock previous value
           <Activity className="w-5 h-5" />,
           'text-purple-600',
           '%',
-          true
+          true,
+          metrics.volatility * 100 - metrics.volatility * 100 * 1.05 // Mock previous value
         )}
         {renderMetricCard(
           'Beta',
           metrics.beta,
-          metrics.beta - (metrics.beta * 0.95), // Mock previous value
           <TrendingUp className="w-5 h-5" />,
           'text-green-600',
           '',
-          false
+          false,
+          metrics.beta - metrics.beta * 0.95 // Mock previous value
         )}
         {renderMetricCard(
           'Max Drawdown',
           Math.abs(metrics.maxDrawdown || 0) * 100,
-          undefined,
           <AlertTriangle className="w-5 h-5" />,
           'text-red-600',
           '%',
-          true
+          true,
+          undefined
         )}
       </div>
 
@@ -146,9 +135,7 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
         <div className="flex items-start gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Sharpe Ratio:
-              </span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Sharpe Ratio:</span>
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
                 {metrics.sharpeRatio.toFixed(2)}
               </span>
@@ -157,13 +144,15 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
               </span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              The Sharpe ratio measures risk-adjusted returns. Higher values indicate better returns per unit of risk taken.
+              The Sharpe ratio measures risk-adjusted returns. Higher values indicate better returns
+              per unit of risk taken.
             </p>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-600"></div>
                 <span className="text-gray-700 dark:text-gray-300">
-                  <span className="font-semibold">Excellent</span> (≥2.0): Outstanding risk-adjusted returns
+                  <span className="font-semibold">Excellent</span> (≥2.0): Outstanding risk-adjusted
+                  returns
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -181,7 +170,8 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-red-600"></div>
                 <span className="text-gray-700 dark:text-gray-300">
-                  <span className="font-semibold">Poor</span> (&lt;0.5): Returns don't justify risk
+                  <span className="font-semibold">Poor</span> (&lt;0.5): Returns don&apos;t justify
+                  risk
                 </span>
               </div>
             </div>
@@ -206,7 +196,15 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
                 cy="50"
                 r="40"
                 fill="none"
-                stroke={sharpeRating.color.includes('green') ? '#10b981' : sharpeRating.color.includes('blue') ? '#3b82f6' : sharpeRating.color.includes('yellow') ? '#f59e0b' : '#ef4444'}
+                stroke={
+                  sharpeRating.color.includes('green')
+                    ? '#10b981'
+                    : sharpeRating.color.includes('blue')
+                      ? '#3b82f6'
+                      : sharpeRating.color.includes('yellow')
+                        ? '#f59e0b'
+                        : '#ef4444'
+                }
                 strokeWidth="8"
                 strokeDasharray={`${Math.min(metrics.sharpeRatio / 3, 1) * 251.2} 251.2`}
                 strokeLinecap="round"
@@ -251,15 +249,10 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
             {sectorData.map((sector) => (
               <div key={sector.name} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: sector.color }}
-                  />
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: sector.color }} />
                   <span className="text-gray-700 dark:text-gray-300">{sector.name}</span>
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {sector.value}%
-                </span>
+                <span className="font-semibold text-gray-900 dark:text-white">{sector.value}%</span>
               </div>
             ))}
           </div>
@@ -267,9 +260,7 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
 
         {/* Risk Metrics Summary */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Risk Summary
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Risk Summary</h3>
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -306,8 +297,8 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
                 {metrics.beta > 1
                   ? 'More volatile than market'
                   : metrics.beta < 1
-                  ? 'Less volatile than market'
-                  : 'Moves with market'}
+                    ? 'Less volatile than market'
+                    : 'Moves with market'}
               </p>
             </div>
 
@@ -335,12 +326,11 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">
                   Diversification Score
                 </span>
-                <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                  7.2/10
-                </span>
+                <span className="text-lg font-bold text-green-600 dark:text-green-400">7.2/10</span>
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-400">
-                Well diversified across {sectorData.length} sectors with no single sector exceeding 35% allocation
+                Well diversified across {sectorData.length} sectors with no single sector exceeding
+                35% allocation
               </p>
             </div>
           </div>
@@ -348,7 +338,7 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
       </div>
 
       {/* Risk Warnings */}
-      {(metrics.volatility > 0.25 || Math.abs(metrics.maxDrawdown || 0) > 0.20) && (
+      {(metrics.volatility > 0.25 || Math.abs(metrics.maxDrawdown || 0) > 0.2) && (
         <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -358,10 +348,17 @@ export default function RiskMetricsDashboard({ metrics }: RiskMetricsDashboardPr
               </h4>
               <ul className="text-sm text-yellow-800 dark:text-yellow-200 space-y-1">
                 {metrics.volatility > 0.25 && (
-                  <li>• High volatility detected ({(metrics.volatility * 100).toFixed(1)}%). Consider rebalancing to reduce risk.</li>
+                  <li>
+                    • High volatility detected ({(metrics.volatility * 100).toFixed(1)}%). Consider
+                    rebalancing to reduce risk.
+                  </li>
                 )}
-                {Math.abs(metrics.maxDrawdown || 0) > 0.20 && (
-                  <li>• Significant drawdown risk ({(Math.abs(metrics.maxDrawdown || 0) * 100).toFixed(1)}%). Diversification may help.</li>
+                {Math.abs(metrics.maxDrawdown || 0) > 0.2 && (
+                  <li>
+                    • Significant drawdown risk (
+                    {(Math.abs(metrics.maxDrawdown || 0) * 100).toFixed(1)}%). Diversification may
+                    help.
+                  </li>
                 )}
               </ul>
             </div>

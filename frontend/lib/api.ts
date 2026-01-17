@@ -1,24 +1,24 @@
-const INTERNAL_BASE = "/api";
-const EXTERNAL_BASE = process.env.NEXT_PUBLIC_API_URL || "";
-const BASE_URL = typeof window === "undefined" ? (EXTERNAL_BASE || INTERNAL_BASE) : INTERNAL_BASE;
+const INTERNAL_BASE = '/api';
+const EXTERNAL_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const BASE_URL = typeof window === 'undefined' ? EXTERNAL_BASE || INTERNAL_BASE : INTERNAL_BASE;
 
 type FetchOptions = RequestInit & { next?: { revalidate?: number } };
 
 const SERVER_HEADERS =
-  typeof window === "undefined" && process.env.OS_API_KEY
-    ? { "x-api-key": process.env.OS_API_KEY }
+  typeof window === 'undefined' && process.env.OS_API_KEY
+    ? { 'x-api-key': process.env.OS_API_KEY }
     : {};
 
 async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const headers = new Headers(options.headers || undefined);
-  headers.set("Content-Type", "application/json");
-  if (SERVER_HEADERS["x-api-key"]) {
-    headers.set("x-api-key", SERVER_HEADERS["x-api-key"]);
+  headers.set('Content-Type', 'application/json');
+  if (SERVER_HEADERS['x-api-key']) {
+    headers.set('x-api-key', SERVER_HEADERS['x-api-key']);
   }
 
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers
+    headers,
   });
 
   if (!res.ok) {
@@ -210,14 +210,17 @@ export type SignalsLive = {
 };
 
 export async function getModelStatusSummary(model: string, options?: FetchOptions) {
-  return request<ModelStatusSummary>(`/model/status/summary?model=${encodeURIComponent(model)}`, options);
+  return request<ModelStatusSummary>(
+    `/model/status/summary?model=${encodeURIComponent(model)}`,
+    options
+  );
 }
 
 export async function getDriftSummary(model: string, options?: FetchOptions) {
   return request<DriftSummary>(`/drift/summary?model=${encodeURIComponent(model)}`, options);
 }
 
-export async function getDashboard(asOf: string, model = "model_a_v1_1", options?: FetchOptions) {
+export async function getDashboard(asOf: string, model = 'model_a_v1_1', options?: FetchOptions) {
   return request<DashboardSummary>(
     `/dashboard/model_a_v1_1?as_of=${encodeURIComponent(asOf)}&model=${encodeURIComponent(model)}`,
     options
@@ -228,12 +231,20 @@ export async function getHealth(options?: FetchOptions) {
   return request<{ status?: string }>(`/health`, options);
 }
 
-export async function getFeatureImportance(model = "model_a_ml", limit = 10, options?: FetchOptions) {
+export async function getFeatureImportance(
+  model = 'model_a_ml',
+  limit = 10,
+  options?: FetchOptions
+) {
   const params = new URLSearchParams({ model, limit: String(limit) });
   return request<FeatureImportance>(`/insights/feature-importance?${params.toString()}`, options);
 }
 
-export async function getModelExplainability(modelVersion = "v1_2", limit = 20, options?: FetchOptions) {
+export async function getModelExplainability(
+  modelVersion = 'v1_2',
+  limit = 20,
+  options?: FetchOptions
+) {
   const params = new URLSearchParams({ model_version: modelVersion, limit: String(limit) });
   return request<ModelExplainability>(`/model/explainability?${params.toString()}`, options);
 }
@@ -245,9 +256,9 @@ export async function getAsxAnnouncements(limit = 10, lookbackDays = 30, options
 
 export async function sendAssistantChat(query: string, options?: FetchOptions) {
   return request<{ reply?: string }>(`/assistant/chat`, {
-    method: "POST",
+    method: 'POST',
     body: JSON.stringify({ query }),
-    ...options
+    ...options,
   });
 }
 
@@ -257,34 +268,38 @@ export async function getLoanSummary(limit = 10, options?: FetchOptions) {
 }
 
 export async function getPortfolioAttribution(
-  model = "model_a_v1_1",
+  model = 'model_a_v1_1',
   asOf?: string,
   limit = 50,
   options?: FetchOptions
 ) {
   const params = new URLSearchParams({ model, limit: String(limit) });
-  if (asOf) params.set("as_of", asOf);
+  if (asOf) params.set('as_of', asOf);
   return request<PortfolioAttribution>(`/portfolio/attribution?${params.toString()}`, options);
 }
 
-export async function getPortfolioPerformance(model = "model_a_v1_1", limit = 30, options?: FetchOptions) {
+export async function getPortfolioPerformance(
+  model = 'model_a_v1_1',
+  limit = 30,
+  options?: FetchOptions
+) {
   const params = new URLSearchParams({ model, limit: String(limit) });
   return request<PortfolioPerformance>(`/portfolio/performance?${params.toString()}`, options);
 }
 
 export async function getModelCompare(
-  model = "model_a_ml",
+  model = 'model_a_ml',
   leftVersion?: string,
   rightVersion?: string,
   options?: FetchOptions
 ) {
   const params = new URLSearchParams({ model });
-  if (leftVersion) params.set("left_version", leftVersion);
-  if (rightVersion) params.set("right_version", rightVersion);
+  if (leftVersion) params.set('left_version', leftVersion);
+  if (rightVersion) params.set('right_version', rightVersion);
   return request<ModelCompare>(`/model/compare?${params.toString()}`, options);
 }
 
-export async function getSignalsLive(model = "model_a_ml", limit = 20, options?: FetchOptions) {
+export async function getSignalsLive(model = 'model_a_ml', limit = 20, options?: FetchOptions) {
   const params = new URLSearchParams({ model, limit: String(limit) });
   return request<SignalsLive>(`/signals/live?${params.toString()}`, options);
 }

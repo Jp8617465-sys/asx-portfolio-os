@@ -5,7 +5,8 @@
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://asx-portfolio-os.onrender.com/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'https://asx-portfolio-os.onrender.com/api/v1';
 
 // Create axios instance with defaults
 const apiClient: AxiosInstance = axios.create({
@@ -79,20 +80,17 @@ export default apiClient;
 // API endpoint methods
 export const api = {
   // Stock search
-  search: (query: string) =>
-    apiClient.get(`/search`, { params: { q: query } }),
+  search: (query: string) => apiClient.get(`/search`, { params: { q: query } }),
 
   // Live signals
-  getSignal: (ticker: string) =>
-    apiClient.get(`/signals/live/${ticker}`),
+  getSignal: (ticker: string) => apiClient.get(`/signals/live/${ticker}`),
 
-  getSignalReasoning: (ticker: string) =>
-    apiClient.get(`/signals/${ticker}/reasoning`),
+  getSignalReasoning: (ticker: string) => apiClient.get(`/signals/${ticker}/reasoning`),
 
   // Historical data
   getHistoricalSignals: (ticker: string, startDate?: string) =>
     apiClient.get(`/signals/historical/${ticker}`, {
-      params: { start_date: startDate }
+      params: { start_date: startDate },
     }),
 
   // Accuracy metrics
@@ -100,18 +98,14 @@ export const api = {
     apiClient.get(`/accuracy/${ticker}`, { params: { limit } }),
 
   // Watchlist
-  getWatchlist: () =>
-    apiClient.get(`/watchlist`),
+  getWatchlist: () => apiClient.get(`/watchlist`),
 
-  addToWatchlist: (ticker: string) =>
-    apiClient.post(`/watchlist`, { ticker }),
+  addToWatchlist: (ticker: string) => apiClient.post(`/watchlist`, { ticker }),
 
-  removeFromWatchlist: (ticker: string) =>
-    apiClient.delete(`/watchlist/${ticker}`),
+  removeFromWatchlist: (ticker: string) => apiClient.delete(`/watchlist/${ticker}`),
 
   // Portfolio (Phase 3)
-  getPortfolio: () =>
-    apiClient.get(`/portfolio`),
+  getPortfolio: () => apiClient.get(`/portfolio`),
 
   uploadPortfolio: (file: File) => {
     const formData = new FormData();
@@ -121,29 +115,23 @@ export const api = {
     });
   },
 
-  analyzePortfolio: () =>
-    apiClient.post(`/portfolio/analyze`),
+  analyzePortfolio: () => apiClient.post(`/portfolio/analyze`),
 
-  getRebalancingSuggestions: () =>
-    apiClient.get(`/portfolio/rebalance`),
+  getRebalancingSuggestions: () => apiClient.get(`/portfolio/rebalance`),
 
   // User management
-  getCurrentUser: () =>
-    apiClient.get(`/users/me`),
+  getCurrentUser: () => apiClient.get(`/users/me`),
 
   updateUserSettings: (settings: Record<string, any>) =>
     apiClient.patch(`/users/me/settings`, settings),
 
   // Alerts & Notifications (Phase 3)
-  getAlertPreferences: () =>
-    apiClient.get(`/alerts/preferences`),
+  getAlertPreferences: () => apiClient.get(`/alerts/preferences`),
 
   updateAlertPreferences: (preferences: Record<string, any>) =>
     apiClient.put(`/alerts/preferences`, preferences),
 
-  getNotifications: () =>
-    apiClient.get(`/notifications`),
+  getNotifications: () => apiClient.get(`/notifications`),
 
-  markNotificationAsRead: (id: string) =>
-    apiClient.put(`/notifications/${id}/read`),
+  markNotificationAsRead: (id: string) => apiClient.put(`/notifications/${id}/read`),
 };

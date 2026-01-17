@@ -26,19 +26,14 @@ const getSignalColor = (signal: SignalType): string => {
   }
 };
 
-export default function AccuracyDisplay({
-  accuracy,
-  showBreakdown = true,
-}: AccuracyDisplayProps) {
+export default function AccuracyDisplay({ accuracy, showBreakdown = true }: AccuracyDisplayProps) {
   const overallAccuracy = accuracy.accuracyRate;
 
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Historical Accuracy
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Historical Accuracy</h3>
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <Target className="h-4 w-4" />
           <span>{accuracy.ticker}</span>
@@ -64,8 +59,8 @@ export default function AccuracyDisplay({
                 overallAccuracy >= 70
                   ? designTokens.colors.chart.bullish
                   : overallAccuracy >= 50
-                  ? designTokens.colors.signals.hold
-                  : designTokens.colors.chart.bearish,
+                    ? designTokens.colors.signals.hold
+                    : designTokens.colors.chart.bearish,
             }}
           />
         </div>
@@ -76,9 +71,7 @@ export default function AccuracyDisplay({
           </div>
           <div className="flex items-center gap-1">
             <XCircle className="h-4 w-4 text-red-600" />
-            <span>
-              {accuracy.totalPredictions - accuracy.correctPredictions} incorrect
-            </span>
+            <span>{accuracy.totalPredictions - accuracy.correctPredictions} incorrect</span>
           </div>
         </div>
       </div>
@@ -128,9 +121,9 @@ export default function AccuracyDisplay({
       {/* Confidence note */}
       <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
         <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-          Historical accuracy is calculated based on past predictions and actual price
-          movements. Past performance does not guarantee future results. Higher
-          confidence signals tend to have better accuracy rates.
+          Historical accuracy is calculated based on past predictions and actual price movements.
+          Past performance does not guarantee future results. Higher confidence signals tend to have
+          better accuracy rates.
         </p>
       </div>
     </div>

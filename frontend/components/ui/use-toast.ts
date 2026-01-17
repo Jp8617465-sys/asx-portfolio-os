@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export interface ToastMessage {
   id: string;
@@ -13,7 +13,7 @@ function emit() {
   listeners.forEach((listener) => listener(toasts));
 }
 
-export function toast(message: Omit<ToastMessage, "id">) {
+export function toast(message: Omit<ToastMessage, 'id'>) {
   const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   toasts = [...toasts, { id, ...message }];
   emit();

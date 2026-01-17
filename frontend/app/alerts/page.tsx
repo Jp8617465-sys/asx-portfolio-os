@@ -132,9 +132,7 @@ export default function AlertsPage() {
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Alert Preferences
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Alert Preferences</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Customize how and when you receive notifications
           </p>
@@ -251,9 +249,7 @@ export default function AlertsPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    Signal changes
-                  </span>
+                  <span className="font-medium text-gray-900 dark:text-white">Signal changes</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Alert when a signal changes (e.g., BUY → SELL)
@@ -289,7 +285,9 @@ export default function AlertsPage() {
                       max="100"
                       step="5"
                       value={preferences.confidenceThreshold}
-                      onChange={(e) => handleChange('confidenceThreshold', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handleChange('confidenceThreshold', parseInt(e.target.value))
+                      }
                       className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer mt-2"
                     />
                   </div>
@@ -307,9 +305,7 @@ export default function AlertsPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    Price movements
-                  </span>
+                  <span className="font-medium text-gray-900 dark:text-white">Price movements</span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Alert for significant price changes ≥ ±{preferences.priceMovementThreshold}%
@@ -325,7 +321,9 @@ export default function AlertsPage() {
                       max="20"
                       step="1"
                       value={preferences.priceMovementThreshold}
-                      onChange={(e) => handleChange('priceMovementThreshold', parseInt(e.target.value))}
+                      onChange={(e) =>
+                        handleChange('priceMovementThreshold', parseInt(e.target.value))
+                      }
                       className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer mt-2"
                     />
                   </div>

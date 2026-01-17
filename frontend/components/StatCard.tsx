@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import { Card } from "./ui/card";
-import { Skeleton } from "./ui/skeleton";
+import { ReactNode } from 'react';
+import { Card } from './ui/card';
+import { Skeleton } from './ui/skeleton';
 
 interface StatCardProps {
   label: string;
@@ -14,7 +14,9 @@ export default function StatCard({ label, value, trend, icon, isLoading }: StatC
   return (
     <Card className="flex flex-col gap-3 border-slate-200/70 bg-white/80 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">{label}</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+          {label}
+        </p>
         <div className="text-slate-500 dark:text-slate-400">{icon}</div>
       </div>
       {isLoading ? (
@@ -24,9 +26,9 @@ export default function StatCard({ label, value, trend, icon, isLoading }: StatC
       )}
       {isLoading ? (
         <Skeleton className="h-4 w-32" />
-      ) : (
-        trend ? <p className="text-xs text-slate-500 dark:text-slate-400">{trend}</p> : null
-      )}
+      ) : trend ? (
+        <p className="text-xs text-slate-500 dark:text-slate-400">{trend}</p>
+      ) : null}
     </Card>
   );
 }

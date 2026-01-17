@@ -41,7 +41,7 @@ export default function PortfolioUpload({ onSuccess }: PortfolioUploadProps) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      const lines = text.split('\n').filter(line => line.trim());
+      const lines = text.split('\n').filter((line) => line.trim());
 
       if (lines.length < 2) {
         setError('CSV file is empty or invalid');
@@ -49,11 +49,11 @@ export default function PortfolioUpload({ onSuccess }: PortfolioUploadProps) {
       }
 
       // Parse header
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
 
       // Validate required columns
       const requiredColumns = ['ticker', 'shares', 'avg_cost'];
-      const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+      const missingColumns = requiredColumns.filter((col) => !headers.includes(col));
 
       if (missingColumns.length > 0) {
         setError(`Missing required columns: ${missingColumns.join(', ')}`);
@@ -61,8 +61,8 @@ export default function PortfolioUpload({ onSuccess }: PortfolioUploadProps) {
       }
 
       // Parse data rows (first 5 for preview)
-      const dataRows = lines.slice(1, 6).map(line => {
-        const values = line.split(',').map(v => v.trim());
+      const dataRows = lines.slice(1, 6).map((line) => {
+        const values = line.split(',').map((v) => v.trim());
         const row: any = {};
         headers.forEach((header, index) => {
           row[header] = values[index] || '';
@@ -157,13 +157,11 @@ export default function PortfolioUpload({ onSuccess }: PortfolioUploadProps) {
             <div className="mt-6 text-left max-w-md mx-auto">
               <p className="text-sm font-semibold mb-2">Required CSV format:</p>
               <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded overflow-x-auto">
-{`ticker,shares,avg_cost,date_acquired
+                {`ticker,shares,avg_cost,date_acquired
 CBA.AX,100,95.50,2023-06-15
 BHP.AX,250,42.30,2023-08-20`}
               </pre>
-              <p className="text-xs text-gray-500 mt-2">
-                * date_acquired is optional
-              </p>
+              <p className="text-xs text-gray-500 mt-2">* date_acquired is optional</p>
             </div>
           </>
         ) : (

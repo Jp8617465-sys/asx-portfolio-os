@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import useSWR from "swr";
-import Topbar from "./Topbar";
-import DriftChart from "./DriftChart";
-import FeatureImpactChart from "./FeatureImpactChart";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import useSWR from 'swr';
+import Topbar from './Topbar';
+import DriftChart from './DriftChart';
+import FeatureImpactChart from './FeatureImpactChart';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
-} from "./ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Skeleton } from "./ui/skeleton";
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Skeleton } from './ui/skeleton';
 import {
   getDriftSummary,
   getFeatureImportance,
@@ -22,8 +22,8 @@ import {
   getModelStatusSummary,
   getPortfolioAttribution,
   getPortfolioPerformance,
-  getSignalsLive
-} from "../lib/api";
+  getSignalsLive,
+} from '../lib/api';
 
 type ModelStatusSummary = {
   last_run?: {
@@ -106,43 +106,43 @@ type PortfolioPerformance = {
 
 export default function ModelsClient() {
   const { data: summary, isLoading: summaryLoading } = useSWR<ModelStatusSummary>(
-    "model-status-summary",
-    () => getModelStatusSummary("model_a_ml")
+    'model-status-summary',
+    () => getModelStatusSummary('model_a_ml')
   );
-  const { data: drift } = useSWR<DriftSummary>(
-    "drift-summary",
-    () => getDriftSummary("model_a_ml")
+  const { data: drift } = useSWR<DriftSummary>('drift-summary', () =>
+    getDriftSummary('model_a_ml')
   );
   const { data: importance, isLoading: importanceLoading } = useSWR<FeatureImportance>(
-    "feature-importance",
-    () => getFeatureImportance("model_a_ml", 8)
+    'feature-importance',
+    () => getFeatureImportance('model_a_ml', 8)
   );
-  const { data: compare, isLoading: compareLoading } = useSWR<ModelCompare>(
-    "model-compare",
-    () => getModelCompare("model_a_ml")
+  const { data: compare, isLoading: compareLoading } = useSWR<ModelCompare>('model-compare', () =>
+    getModelCompare('model_a_ml')
   );
-  const { data: liveSignals, isLoading: signalsLoading } = useSWR<SignalsLive>(
-    "signals-live",
-    () => getSignalsLive("model_a_ml", 20)
+  const { data: liveSignals, isLoading: signalsLoading } = useSWR<SignalsLive>('signals-live', () =>
+    getSignalsLive('model_a_ml', 20)
   );
   const { data: attribution, isLoading: attributionLoading } = useSWR<PortfolioAttribution>(
-    "portfolio-attribution",
-    () => getPortfolioAttribution("model_a_v1_1", undefined, 10)
+    'portfolio-attribution',
+    () => getPortfolioAttribution('model_a_v1_1', undefined, 10)
   );
   const { data: performance, isLoading: performanceLoading } = useSWR<PortfolioPerformance>(
-    "portfolio-performance",
-    () => getPortfolioPerformance("model_a_v1_1", 20)
+    'portfolio-performance',
+    () => getPortfolioPerformance('model_a_v1_1', 20)
   );
 
   const featureImportance = (importance?.features || []).map((row: any) => ({
     name: row.feature,
-    value: row.importance
+    value: row.importance,
   }));
 
-  const driftSeries = (drift?.rows || []).slice(0, 6).map((row: any, index: number) => ({
-    label: row.created_at?.slice(5, 10) || `Run ${index + 1}`,
-    psi: row.metrics?.psi_mean ?? 0
-  })).reverse();
+  const driftSeries = (drift?.rows || [])
+    .slice(0, 6)
+    .map((row: any, index: number) => ({
+      label: row.created_at?.slice(5, 10) || `Run ${index + 1}`,
+      psi: row.metrics?.psi_mean ?? 0,
+    }))
+    .reverse();
 
   const compareDelta = compare?.delta || {};
   const liveRows = (liveSignals?.signals || []).slice(0, 12);
@@ -189,33 +189,35 @@ export default function ModelsClient() {
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
-            <TableBody>
-              {summaryLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5}>
-                    <div className="grid gap-3 md:grid-cols-5">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-6 w-20" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                <TableRow>
-                  <TableCell className="font-semibold">{summary?.last_run?.version ?? "n/a"}</TableCell>
-                  <TableCell>{summary?.last_run?.roc_auc_mean?.toFixed?.(3) ?? "n/a"}</TableCell>
-                  <TableCell>{summary?.last_run?.rmse_mean?.toFixed?.(3) ?? "n/a"}</TableCell>
-                  <TableCell>{summary?.drift?.psi_mean?.toFixed?.(3) ?? "n/a"}</TableCell>
-                  <TableCell>
-                    <Badge>Active</Badge>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
+              <TableBody>
+                {summaryLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5}>
+                      <div className="grid gap-3 md:grid-cols-5">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-6 w-20" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <TableRow>
+                    <TableCell className="font-semibold">
+                      {summary?.last_run?.version ?? 'n/a'}
+                    </TableCell>
+                    <TableCell>{summary?.last_run?.roc_auc_mean?.toFixed?.(3) ?? 'n/a'}</TableCell>
+                    <TableCell>{summary?.last_run?.rmse_mean?.toFixed?.(3) ?? 'n/a'}</TableCell>
+                    <TableCell>{summary?.drift?.psi_mean?.toFixed?.(3) ?? 'n/a'}</TableCell>
+                    <TableCell>
+                      <Badge>Active</Badge>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
         </Card>
 
         <div className="flex flex-col gap-6">
@@ -235,25 +237,25 @@ export default function ModelsClient() {
                   <div className="flex items-center justify-between">
                     <span>Left</span>
                     <span className="font-semibold text-ink dark:text-mist">
-                      {compare?.left?.version ?? "n/a"}
+                      {compare?.left?.version ?? 'n/a'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Right</span>
                     <span className="font-semibold text-ink dark:text-mist">
-                      {compare?.right?.version ?? "n/a"}
+                      {compare?.right?.version ?? 'n/a'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Δ ROC-AUC</span>
                     <span className="font-semibold text-ink dark:text-mist">
-                      {compareDelta.roc_auc_mean?.toFixed?.(3) ?? "n/a"}
+                      {compareDelta.roc_auc_mean?.toFixed?.(3) ?? 'n/a'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Δ RMSE</span>
                     <span className="font-semibold text-ink dark:text-mist">
-                      {compareDelta.rmse_mean?.toFixed?.(3) ?? "n/a"}
+                      {compareDelta.rmse_mean?.toFixed?.(3) ?? 'n/a'}
                     </span>
                   </div>
                 </>
@@ -320,8 +322,8 @@ export default function ModelsClient() {
                   <TableRow key={row.symbol}>
                     <TableCell>{row.rank}</TableCell>
                     <TableCell className="font-semibold">{row.symbol}</TableCell>
-                    <TableCell>{row.score?.toFixed?.(4) ?? "n/a"}</TableCell>
-                    <TableCell>{row.ml_prob?.toFixed?.(4) ?? "n/a"}</TableCell>
+                    <TableCell>{row.score?.toFixed?.(4) ?? 'n/a'}</TableCell>
+                    <TableCell>{row.ml_prob?.toFixed?.(4) ?? 'n/a'}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -366,11 +368,21 @@ export default function ModelsClient() {
                 ) : attributionRows.length ? (
                   attributionRows.map((row: any) => (
                     <TableRow key={row.symbol}>
-                      <TableCell className="font-semibold">{row.symbol ?? "n/a"}</TableCell>
-                      <TableCell>{row.weight !== null && row.weight !== undefined ? row.weight.toFixed(4) : "n/a"}</TableCell>
-                      <TableCell>{row.return_1d !== null && row.return_1d !== undefined ? row.return_1d.toFixed(4) : "n/a"}</TableCell>
+                      <TableCell className="font-semibold">{row.symbol ?? 'n/a'}</TableCell>
                       <TableCell>
-                        {row.contribution !== null && row.contribution !== undefined ? row.contribution.toFixed(4) : "n/a"}
+                        {row.weight !== null && row.weight !== undefined
+                          ? row.weight.toFixed(4)
+                          : 'n/a'}
+                      </TableCell>
+                      <TableCell>
+                        {row.return_1d !== null && row.return_1d !== undefined
+                          ? row.return_1d.toFixed(4)
+                          : 'n/a'}
+                      </TableCell>
+                      <TableCell>
+                        {row.contribution !== null && row.contribution !== undefined
+                          ? row.contribution.toFixed(4)
+                          : 'n/a'}
                       </TableCell>
                     </TableRow>
                   ))
@@ -402,32 +414,33 @@ export default function ModelsClient() {
                 <div className="flex items-center justify-between">
                   <span>Latest Return</span>
                   <span className="font-semibold text-ink dark:text-mist">
-                    {attribution?.summary?.portfolio_return !== null && attribution?.summary?.portfolio_return !== undefined
+                    {attribution?.summary?.portfolio_return !== null &&
+                    attribution?.summary?.portfolio_return !== undefined
                       ? attribution.summary.portfolio_return.toFixed(4)
-                      : "n/a"}
+                      : 'n/a'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Volatility</span>
                   <span className="font-semibold text-ink dark:text-mist">
-                    {attribution?.summary?.volatility !== null && attribution?.summary?.volatility !== undefined
+                    {attribution?.summary?.volatility !== null &&
+                    attribution?.summary?.volatility !== undefined
                       ? attribution.summary.volatility.toFixed(4)
-                      : "n/a"}
+                      : 'n/a'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Sharpe</span>
                   <span className="font-semibold text-ink dark:text-mist">
-                    {attribution?.summary?.sharpe !== null && attribution?.summary?.sharpe !== undefined
+                    {attribution?.summary?.sharpe !== null &&
+                    attribution?.summary?.sharpe !== undefined
                       ? attribution.summary.sharpe.toFixed(3)
-                      : "n/a"}
+                      : 'n/a'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Observations</span>
-                  <span className="font-semibold text-ink dark:text-mist">
-                    {perfSeries.length}
-                  </span>
+                  <span className="font-semibold text-ink dark:text-mist">{perfSeries.length}</span>
                 </div>
               </>
             )}

@@ -87,9 +87,7 @@ export default function SignalBadge({
     >
       {showIcon && <Icon size={iconSize} />}
       <span>{config.label}</span>
-      {confidence !== undefined && (
-        <span className="opacity-75">({confidence}%)</span>
-      )}
+      {confidence !== undefined && <span className="opacity-75">({confidence}%)</span>}
     </div>
   );
 }

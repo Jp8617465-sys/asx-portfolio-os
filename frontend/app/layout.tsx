@@ -1,11 +1,11 @@
-import "./globals.css";
-import Sidebar from "../components/Sidebar";
-import MobileNav from "../components/MobileNav";
-import Toaster from "../components/ui/toaster";
+import './globals.css';
+import Sidebar from '../components/Sidebar';
+import MobileNav from '../components/MobileNav';
+import Toaster from '../components/ui/toaster';
 
 export const metadata = {
-  title: "ASX Portfolio OS",
-  description: "AI-driven portfolio and model management platform"
+  title: 'ASX Portfolio OS',
+  description: 'AI-driven portfolio and model management platform',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
