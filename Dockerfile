@@ -15,5 +15,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app
 COPY . .
 
+# Create output directories with proper permissions
+RUN mkdir -p /app/outputs /app/data/training && \
+    chmod -R 777 /app/outputs /app/data/training
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:10000/health', timeout=5).raise_for_status()" || exit 1
+
 EXPOSE 10000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
+
+# Add startup logging
+CMD echo "🚀 Starting ASX Portfolio OS API..." && \
+    echo "📁 Working directory: $(pwd)" && \
+    echo "📁 Output directory exists: $(test -d /app/outputs && echo 'YES' || echo 'NO')" && \
+    echo "📁 Output directory permissions: $(ls -ld /app/outputs)" && \
+    uvicorn app.main:app --host 0.0.0.0 --port 10000
