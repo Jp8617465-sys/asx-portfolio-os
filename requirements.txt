@@ -57,6 +57,10 @@ urllib3==1.26.20
 uvicorn==0.28.0
 zipp==3.23.0
 
+# Testing dependencies
+pytest==8.3.4
+pytest-mock==3.14.0
+
 # Optional: RL dependencies (Phase 2)
 # Uncomment when ready to use RL features
 # gymnasium==0.29.1
