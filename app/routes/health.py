@@ -62,8 +62,8 @@ def health():
                 try:
                     os.makedirs(dir_path, exist_ok=True)
                     exists = True
-                except:
-                    pass
+                except (PermissionError, OSError) as e:
+                    logger.warning(f"Could not create directory {dir_path}: {e}")
             
             # Test write permissions
             writable = False
@@ -74,8 +74,8 @@ def health():
                         f.write("test")
                     os.remove(test_file)
                     writable = True
-                except:
-                    pass
+                except (PermissionError, OSError, IOError) as e:
+                    logger.warning(f"Directory not writable {dir_path}: {e}")
             
             dir_checks[dir_path] = {
                 "exists": exists,

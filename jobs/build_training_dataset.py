@@ -313,5 +313,5 @@ for file_path in output_files.keys():
         logger.warning(f"  ⚠️ {file_path} (NOT FOUND)")
 logger.info("")
 logger.info("Sample data:")
-print(df.head(5))
+logger.info("\n" + str(df.head(5)))
 logger.info("=" * 70)

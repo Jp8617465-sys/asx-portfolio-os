@@ -176,19 +176,14 @@ def check_directories():
             status = "ok" if (readable and writable) else "warning"
             print_check(dir_path, status, f"Permissions: {'/'.join(perms) if perms else 'NONE'}")
             
-            # Show ls -ld output
+            # Show file stats using os.stat instead of subprocess
             try:
-                import subprocess
-                result = subprocess.run(
-                    ["ls", "-ld", dir_path],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
-                )
-                if result.returncode == 0:
-                    print(f"    → {result.stdout.strip()}")
-            except:
-                pass
+                stat_info = os.stat(dir_path)
+                import stat as stat_module
+                mode = stat_module.filemode(stat_info.st_mode)
+                print(f"    → Mode: {mode}, Owner UID: {stat_info.st_uid}, GID: {stat_info.st_gid}")
+            except Exception as e:
+                print(f"    → Could not get stat info: {e}")
                 
         except Exception as e:
             print_check(dir_path, "error", str(e))

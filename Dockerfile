@@ -16,8 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create output directories with proper permissions
+# Note: Using 755 for security - writable only by owner
 RUN mkdir -p /app/outputs /app/data/training && \
-    chmod -R 777 /app/outputs /app/data/training
+    chmod -R 755 /app/outputs /app/data/training
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
