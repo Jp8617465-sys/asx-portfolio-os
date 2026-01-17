@@ -47,17 +47,17 @@ export default function DashboardPage() {
 
       // Calculate stats
       const strongSignals = watchlistData.filter(
-        (item) => item.signal === 'STRONG_BUY' || item.signal === 'STRONG_SELL'
+        (item: WatchlistItem) => item.signal === 'STRONG_BUY' || item.signal === 'STRONG_SELL'
       ).length;
 
       const avgConf =
         watchlistData.length > 0
-          ? watchlistData.reduce((sum, item) => sum + item.confidence, 0) /
+          ? watchlistData.reduce((sum: number, item: WatchlistItem) => sum + item.confidence, 0) /
             watchlistData.length
           : 0;
 
       const todayChanges = watchlistData.filter(
-        (item) => Math.abs(item.priceChange) > 2
+        (item: WatchlistItem) => Math.abs(item.priceChange) > 2
       ).length;
 
       setStats({
