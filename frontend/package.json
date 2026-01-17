@@ -14,7 +14,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "pre-commit": "npm run type-check && npm run lint && npm run test:ci",
-    "pre-push": "npm run build"
+    "pre-push": "npm run build",
+    "prepare": "cd .. && husky install frontend/.husky",
+    "postinstall": "husky install || true"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "2.1.1",
@@ -42,11 +44,29 @@
     "@types/node": "25.0.6",
     "@types/react": "18.3.27",
     "autoprefixer": "10.4.20",
+    "husky": "^8.0.3",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "lint-staged": "^15.2.0",
     "postcss": "8.4.47",
     "prettier": "^3.1.1",
     "tailwindcss": "3.4.13",
     "typescript": "5.6.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run test:ci && npm run build"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "prettier --write",
+      "eslint --fix",
+      "jest --bail --findRelatedTests --passWithNoTests"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }
