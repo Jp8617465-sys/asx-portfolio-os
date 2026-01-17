@@ -85,24 +85,16 @@ export interface PortfolioHolding {
   shares: number;
   avgCost: number;
   currentPrice: number;
-  value: number;
-  costBasis: number;
-  gainLoss: number;
-  gainLossPercent: number;
-  signal: Signal;
-  recommendation: 'HOLD' | 'SELL' | 'TRIM' | 'ADD';
+  totalValue: number; // Total value of this holding (currentPrice * shares)
+  signal: SignalType; // AI signal for this stock
+  confidence: number; // Confidence level 0-100
+  expectedReturn?: number; // Expected return percentage
 }
 
 export interface Portfolio {
   totalValue: number;
-  costBasis: number;
-  gainLoss: number;
-  gainLossPercent: number;
-  todayChange: number;
-  todayChangePercent: number;
-  aiPortfolioScore: number;
   holdings: PortfolioHolding[];
-  riskMetrics: RiskMetrics;
+  riskMetrics?: RiskMetrics;
 }
 
 export interface RiskMetrics {
@@ -114,15 +106,20 @@ export interface RiskMetrics {
 }
 
 export interface RebalancingSuggestion {
-  action: 'SELL' | 'BUY' | 'TRIM';
+  id: string;
+  action: 'SELL' | 'BUY' | 'HOLD';
   ticker: string;
   companyName: string;
-  shares: number;
-  price: number;
-  value: number;
+  quantity: number;
+  currentSignal: SignalType;
+  currentConfidence: number;
   reason: string;
-  confidence: number;
-  taxImpact?: number;
+  impact: {
+    expectedReturn: number;
+    volatilityChange: number;
+    newAllocation: number;
+  };
+  priority: 'high' | 'medium' | 'low';
 }
 
 export interface RebalancingPlan {
