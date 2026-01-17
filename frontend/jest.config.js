@@ -23,12 +23,18 @@ const customJestConfig = {
   ],
   coverageThreshold: {
     global: {
-      branches: 50,
-      functions: 50,
-      lines: 50,
-      statements: 50,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
     },
   },
+  // Fail tests if coverage falls below threshold
+  coverageReporters: ['text', 'lcov', 'html'],
+  // Force exit to prevent hanging
+  forceExit: true,
+  // Detect open handles (memory leaks)
+  detectOpenHandles: true,
   testMatch: [
     '**/__tests__/**/*.[jt]s?(x)',
     '**/?(*.)+(spec|test).[jt]s?(x)',
