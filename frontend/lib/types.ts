@@ -51,7 +51,7 @@ export interface SearchResult {
 export interface AccuracyMetric {
   ticker: string;
   totalPredictions: number;
-  correct Predictions: number;
+  correctPredictions: number;
   accuracyRate: number; // percentage
   bySignal: {
     [key in SignalType]: {
