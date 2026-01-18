@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
 
 from app.core import logger
-from app.routes import health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift
+from app.routes import health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift, portfolio_management
 
 # Initialize FastAPI app
 app = FastAPI(title="ASX Portfolio OS", version="0.4.0")
@@ -42,6 +42,7 @@ app.include_router(health.router)
 app.include_router(refresh.router)
 app.include_router(model.router)
 app.include_router(portfolio.router)
+app.include_router(portfolio_management.router)  # User portfolio management (upload, holdings, rebalancing)
 app.include_router(loan.router)
 app.include_router(signals.router)
 app.include_router(insights.router)
@@ -87,6 +88,10 @@ def openapi_actions(request: Request):
         "/portfolio/allocation",
         "/portfolio/refresh",
         "/portfolio/performance",
+        "/portfolio/upload",  # User portfolio CSV upload
+        "/portfolio",  # Get user holdings
+        "/portfolio/rebalancing",  # AI rebalancing suggestions
+        "/portfolio/risk-metrics",  # Portfolio risk calculations
         "/jobs/history",
         "/jobs/summary",
         "/drift/summary",
