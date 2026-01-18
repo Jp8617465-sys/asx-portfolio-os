@@ -5,12 +5,16 @@ import { createChart, IChartApi, ISeriesApi, UTCTimestamp } from 'lightweight-ch
 import { designTokens } from '@/lib/design-tokens';
 import { OHLCData, ChartSignalMarker, SignalType } from '@/lib/types';
 
+export type Timeframe = '1D' | '1W' | '1M' | '3M' | '6M' | '1Y' | 'ALL';
+
 interface StockChartProps {
   ticker: string;
   data: OHLCData[];
   signalMarkers?: ChartSignalMarker[];
   height?: number;
   showVolume?: boolean;
+  onTimeframeChange?: (timeframe: Timeframe) => void;
+  initialTimeframe?: Timeframe;
 }
 
 export default function StockChart({
@@ -19,12 +23,24 @@ export default function StockChart({
   signalMarkers = [],
   height = 400,
   showVolume = true,
+  onTimeframeChange,
+  initialTimeframe = '3M',
 }: StockChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>(initialTimeframe);
+
+  const timeframes: Timeframe[] = ['1D', '1W', '1M', '3M', '6M', '1Y', 'ALL'];
+
+  const handleTimeframeChange = (timeframe: Timeframe) => {
+    setSelectedTimeframe(timeframe);
+    if (onTimeframeChange) {
+      onTimeframeChange(timeframe);
+    }
+  };
 
   useEffect(() => {
     if (!chartContainerRef.current || data.length === 0) return;
@@ -154,6 +170,27 @@ export default function StockChart({
           )}
         </div>
       </div>
+
+      {/* Timeframe Selector */}
+      <div className="flex gap-1 mb-3 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg w-fit">
+        {timeframes.map((timeframe) => (
+          <button
+            key={timeframe}
+            onClick={() => handleTimeframeChange(timeframe)}
+            className={`
+              px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200
+              ${
+                selectedTimeframe === timeframe
+                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              }
+            `}
+          >
+            {timeframe}
+          </button>
+        ))}
+      </div>
+
       <div
         ref={chartContainerRef}
         className="w-full rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"

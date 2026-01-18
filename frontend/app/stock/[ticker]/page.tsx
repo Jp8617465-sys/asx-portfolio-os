@@ -30,6 +30,7 @@ export default function StockDetailPage() {
   const [reasoning, setReasoning] = useState<SignalReasoning | null>(null);
   const [accuracy, setAccuracy] = useState<AccuracyMetric | null>(null);
   const [chartData, setChartData] = useState<OHLCData[]>([]);
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('3M');
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,6 +116,20 @@ export default function StockDetailPage() {
     }
 
     return data;
+  };
+
+  const handleTimeframeChange = async (timeframe: string) => {
+    setSelectedTimeframe(timeframe);
+
+    // TODO: Fetch historical data from API based on timeframe
+    // For now, regenerate mock data (in production, this would call:
+    // const response = await api.getHistoricalPrices(ticker, { timeframe });
+    // setChartData(response.data.data);
+
+    console.log(`Timeframe changed to: ${timeframe}`);
+    // Regenerate mock data for the new timeframe
+    const mockData = generateMockChartData();
+    setChartData(mockData);
   };
 
   const checkWatchlistStatus = async () => {
@@ -273,7 +288,14 @@ export default function StockDetailPage() {
           {/* Right column - Chart */}
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <StockChart ticker={signal.ticker} data={chartData} height={350} showVolume={true} />
+              <StockChart
+                ticker={signal.ticker}
+                data={chartData}
+                height={350}
+                showVolume={true}
+                onTimeframeChange={handleTimeframeChange}
+                initialTimeframe={selectedTimeframe as any}
+              />
             </div>
           </div>
         </div>
