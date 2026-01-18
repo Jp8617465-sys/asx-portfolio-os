@@ -1,0 +1,116 @@
+services:
+  - type: web
+    name: asx-portfolio-api
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_DB_URL
+        sync: false
+      - key: EODHD_API_KEY
+        sync: false
+      - key: FRED_API_KEY
+        sync: false
+      - key: NEWS_API_KEY
+        sync: false
+      - key: OS_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ENABLE_ASSISTANT
+        sync: false
+      - key: MODEL_C_TICKERS
+        sync: false
+      - key: MODEL_C_NEWS_LIMIT
+        sync: false
+      - key: MODEL_C_NEWS_QUERY
+        sync: false
+      - key: EODHD_NEWS_PREFIX
+        sync: false
+      - key: MODEL_A_API
+        value: https://asx-portfolio-os.onrender.com
+
+  # Cron Jobs
+  - type: cron
+    name: asx-daily-prices
+    env: python
+    plan: free
+    schedule: "0 11 * * *"  # 11:00 UTC = 9:00 PM AEST (after market close)
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/cron_daily_prices.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: EODHD_API_KEY
+        sync: false
+      - key: OS_API_KEY
+        sync: false
+      - key: MODEL_A_API
+        value: https://asx-portfolio-os.onrender.com
+
+  - type: cron
+    name: asx-daily-announcements
+    env: python
+    plan: free
+    schedule: "30 20 * * *"  # 20:30 UTC = 6:30 AM AEST (before market open)
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/cron_daily_announcements.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: EODHD_API_KEY
+        sync: false
+      - key: NEWS_API_KEY
+        sync: false
+      - key: MODEL_C_TICKERS
+        sync: false
+      - key: MODEL_C_NEWS_LIMIT
+        sync: false
+
+  - type: cron
+    name: asx-weekly-fundamentals
+    env: python
+    plan: free
+    schedule: "0 17 * * 1"  # 17:00 UTC Monday = 3:00 AM AEST Tuesday
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/cron_weekly_fundamentals.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: EODHD_API_KEY
+        sync: false
+      - key: FUNDAMENTALS_MODE
+        value: full
+      - key: FUNDAMENTALS_SOURCE
+        value: universe
+
+  - type: cron
+    name: asx-weekly-features
+    env: python
+    plan: free
+    schedule: "0 16 * * 0"  # 16:00 UTC Sunday = 2:00 AM AEST Monday
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/cron_weekly_features.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: FRED_API_KEY
+        sync: false
+      - key: NEWS_API_KEY
+        sync: false
+
+  - type: cron
+    name: asx-weekly-drift
+    env: python
+    plan: free
+    schedule: "0 18 * * 0"  # 18:00 UTC Sunday = 4:00 AM AEST Monday
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/cron_weekly_drift.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
