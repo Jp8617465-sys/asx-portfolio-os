@@ -17,6 +17,26 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def validate_environment():
+    """Validate all required environment variables are set."""
+    required_vars = {
+        "DATABASE_URL": "PostgreSQL connection string",
+        "EODHD_API_KEY": "EOD Historical Data API key",
+        "OS_API_KEY": "API key for protecting endpoints",
+    }
+
+    missing = []
+    for var, description in required_vars.items():
+        if not os.getenv(var):
+            missing.append(f"  - {var}: {description}")
+
+    if missing:
+        error_msg = "Missing required environment variables:\n" + "\n".join(missing)
+        raise RuntimeError(error_msg)
+
+# Validate environment before loading variables
+validate_environment()
+
 # Configuration
 DATABASE_URL = os.environ["DATABASE_URL"]
 EODHD_API_KEY = os.environ["EODHD_API_KEY"]
