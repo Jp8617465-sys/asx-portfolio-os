@@ -6,6 +6,7 @@ ASX announcements scraper with NLP sentiment and event tagging.
 import os
 import re
 import time
+import sys
 from datetime import datetime
 from typing import Optional
 
@@ -16,6 +17,10 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from transformers import pipeline
+
+# Import logger for structured logging
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app.core import logger
 
 load_dotenv(dotenv_path=".env", override=True)
 
@@ -77,7 +82,8 @@ def fetch_announcements() -> pd.DataFrame:
                     "pdf_link": pdf_link,
                 }
             )
-        except Exception:
+        except (AttributeError, IndexError) as e:
+            logger.warning(f"Failed to parse announcement row: {e}")
             continue
     return pd.DataFrame(records)
 
@@ -97,7 +103,7 @@ def parse_pdf_text(url: Optional[str]) -> str:
                 text += page.extract_text() or ""
         return re.sub(r"\s+", " ", text).strip()
     except Exception as exc:
-        print(f"PDF parse failed for {url}: {exc}")
+        logger.error(f"PDF parse failed for {url}: {exc}")
         return ""
 
 

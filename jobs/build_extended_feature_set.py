@@ -5,12 +5,17 @@ Ready for use in Model A ML and multi-asset models.
 """
 
 import os
+import sys
 import pandas as pd
 import numpy as np
 import psycopg2
 import requests
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+
+# Import logger for structured logging
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app.core import logger
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -24,8 +29,8 @@ def _safe_read_sql(query: str, params=None):
     try:
         with db() as con:
             return pd.read_sql(query, con, params=params)
-    except Exception as e:
-        print("⚠️ SQL fetch failed, returning empty frame:", e)
+    except psycopg2.Error as e:
+        logger.error(f"SQL fetch failed: {e}")
         return pd.DataFrame()
 
 # --- Load technicals (from prices) ---

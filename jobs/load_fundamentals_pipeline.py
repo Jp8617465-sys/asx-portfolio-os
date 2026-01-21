@@ -13,6 +13,11 @@ import psycopg2
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv
 
+# Import logger for structured logging
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app.core import logger
+
 load_dotenv(dotenv_path=".env", override=True)
 
 API_KEY = os.getenv("EODHD_API_KEY")
@@ -57,7 +62,8 @@ def _parse_as_of(payload: dict) -> pd.Timestamp:
     if raw:
         try:
             return pd.to_datetime(raw).normalize()
-        except Exception:
+        except (TypeError, ValueError) as e:
+            logger.warning(f"Failed to parse date '{raw}': {e}. Using current date.")
             pass
     return pd.Timestamp.utcnow().normalize()
 
@@ -239,7 +245,8 @@ def fundamentals_pipeline(tickers: List[str]) -> None:
                 collected.append(fetch_fundamentals(ticker))
                 time.sleep(THROTTLE_S)
             except Exception as exc:
-                print(f"Error for {ticker}: {exc}")
+                logger.error(f"Failed to fetch fundamentals for {ticker}: {exc}")
+                # Continue with other tickers instead of silently failing
 
         if collected:
             persist_to_db(pd.concat(collected, ignore_index=True))
