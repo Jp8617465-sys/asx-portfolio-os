@@ -25,6 +25,7 @@ models/model_a_training_summary_*.txt
 # Node/Next build artifacts
 **/node_modules/
 **/.next/
+frontend/coverage/
 
 # IDE and system files
 .DS_Store
