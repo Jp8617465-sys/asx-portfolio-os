@@ -10,12 +10,20 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.core import logger
 from app.routes import health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift, portfolio_management
 
 # Initialize FastAPI app
 app = FastAPI(title="ASX Portfolio OS", version="0.4.0")
+
+# Rate limiting configuration
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 @app.get("/")

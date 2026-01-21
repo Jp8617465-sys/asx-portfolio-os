@@ -10,8 +10,10 @@ import shutil
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime, date
 from typing import Optional
+from contextlib import contextmanager
 
 import psycopg2
+from psycopg2.pool import ThreadedConnectionPool
 from fastapi import HTTPException
 from dotenv import load_dotenv
 
@@ -89,9 +91,47 @@ logger.addHandler(console_handler)
 logger.info("🔧 Logging initialized with daily rotation + gzip at %s", LOG_PATH)
 
 
+# Database connection pool
+_connection_pool = None
+
+
+def get_pool():
+    """Get or create connection pool."""
+    global _connection_pool
+    if _connection_pool is None:
+        _connection_pool = ThreadedConnectionPool(
+            minconn=2,
+            maxconn=10,
+            dsn=DATABASE_URL
+        )
+        logger.info("✅ Database connection pool initialized (2-10 connections)")
+    return _connection_pool
+
+
 def db():
-    """Create a database connection."""
-    return psycopg2.connect(DATABASE_URL)
+    """Get connection from pool."""
+    pool = get_pool()
+    return pool.getconn()
+
+
+def return_conn(conn):
+    """Return connection to pool."""
+    pool = get_pool()
+    pool.putconn(conn)
+
+
+@contextmanager
+def db_context():
+    """Context manager for pooled connections with automatic commit/rollback."""
+    conn = db()
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        return_conn(conn)
 
 
 def require_key(x_api_key: Optional[str]):
