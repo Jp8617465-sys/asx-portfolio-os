@@ -6,6 +6,7 @@ This is the entry point for the API. All route handlers are organized
 in separate modules under app/routes/.
 """
 
+import os
 from datetime import datetime
 
 from fastapi import FastAPI, Request
@@ -16,6 +17,34 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core import logger
 from app.routes import health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift, portfolio_management
+
+# Initialize Sentry (if DSN provided)
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+    SENTRY_DSN = os.getenv("SENTRY_DSN")
+    if SENTRY_DSN:
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            # Set traces_sample_rate to capture 10% of transactions for performance monitoring
+            traces_sample_rate=0.1,
+            # Set profiles_sample_rate to profile 10% of sampled transactions
+            profiles_sample_rate=0.1,
+            environment=os.getenv("RENDER_ENV", "production"),
+            integrations=[
+                FastApiIntegration(),
+                SqlalchemyIntegration(),
+            ],
+            # Automatically capture breadcrumbs (logs, HTTP requests, DB queries)
+            enable_tracing=True,
+        )
+        logger.info("✅ Sentry error tracking initialized")
+    else:
+        logger.warning("⚠️ SENTRY_DSN not set - error tracking disabled")
+except ImportError:
+    logger.warning("⚠️ sentry-sdk not installed - error tracking disabled")
 
 # Initialize FastAPI app
 app = FastAPI(title="ASX Portfolio OS", version="0.4.0")
@@ -100,6 +129,7 @@ def openapi_actions(request: Request):
         "/portfolio",  # Get user holdings
         "/portfolio/rebalancing",  # AI rebalancing suggestions
         "/portfolio/risk-metrics",  # Portfolio risk calculations
+        "/stock/{code}/history",  # Historical price data for charts
         "/jobs/history",
         "/jobs/summary",
         "/drift/summary",

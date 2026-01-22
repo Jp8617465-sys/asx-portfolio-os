@@ -508,3 +508,61 @@ def property_valuation(req: PropertyValuationReq, x_api_key: Optional[str] = Hea
             con.commit()
 
     return {"status": "ok", "summary": summary}
+
+
+@router.get("/stock/{code}/history")
+def get_stock_history(
+    code: str,
+    days: int = Query(default=90, ge=7, le=365, description="Number of days of history"),
+    x_api_key: Optional[str] = Header(default=None),
+):
+    """
+    Get historical price data for a stock.
+
+    Returns OHLCV data for the specified number of days.
+    Used by stock detail page charts.
+    """
+    require_key(x_api_key)
+
+    # Normalize stock code (add .AX if not present)
+    if not code.endswith('.AX'):
+        code = f"{code}.AX"
+
+    try:
+        with db() as con:
+            query = """
+                SELECT
+                    date,
+                    open,
+                    high,
+                    low,
+                    close,
+                    volume
+                FROM asx_stock_prices
+                WHERE code = %s
+                  AND date >= CURRENT_DATE - INTERVAL '%s days'
+                ORDER BY date ASC
+            """
+            df = pd.read_sql(query, con, params=(code, days))
+    except Exception as e:
+        logger.error("Failed to fetch history for %s: %s", code, e)
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+
+    if df.empty:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No price history found for {code}. Try a different symbol or check if prices are synced."
+        )
+
+    # Convert to required format
+    df['date'] = df['date'].astype(str)
+    history = df.to_dict(orient='records')
+
+    return {
+        "code": code,
+        "days": days,
+        "data_points": len(history),
+        "start_date": history[0]['date'] if history else None,
+        "end_date": history[-1]['date'] if history else None,
+        "history": history
+    }

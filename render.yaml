@@ -23,6 +23,7 @@ services:
       # Only build if source code changed (saves build minutes on doc updates)
       bash scripts/should_build.sh && pip install -r requirements-ml.txt || echo "Skipping build"
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -76,6 +77,24 @@ services:
         sync: false
       - key: MODEL_A_API
         value: https://asx-portfolio-os.onrender.com
+
+  # ---------------------------------------------------------------------------
+  # Daily ML Signals (CRITICAL - Core V1 feature)
+  # ---------------------------------------------------------------------------
+  - type: cron
+    name: asx-daily-signals
+    env: python
+    plan: free
+    schedule: "30 11 * * *"  # 11:30 UTC = 9:30 PM AEST (30 min after prices sync)
+    buildCommand: |
+      # ML signals require LightGBM + full ML dependencies
+      pip install -r requirements-ml.txt
+    startCommand: python scripts/cron_daily_signals.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: OS_API_KEY
+        sync: false
 
   # ---------------------------------------------------------------------------
   # Daily Announcements (No ML needed - just scraping + DB writes)

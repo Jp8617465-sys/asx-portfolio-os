@@ -146,3 +146,31 @@ def parse_as_of(value: str, field_name: str = "as_of") -> date:
         return datetime.strptime(value, "%Y-%m-%d").date()
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid {field_name} format; expected YYYY-MM-DD")
+
+
+def set_sentry_context(user_id: str = None, endpoint: str = None, **kwargs):
+    """
+    Add custom context to Sentry errors.
+
+    Args:
+        user_id: User identifier for tracking user-specific errors
+        endpoint: API endpoint name for grouping errors
+        **kwargs: Additional context key-value pairs
+
+    Example:
+        set_sentry_context(
+            user_id="test_user_001",
+            endpoint="portfolio_upload",
+            portfolio_name="My Portfolio"
+        )
+    """
+    try:
+        import sentry_sdk
+        if user_id:
+            sentry_sdk.set_user({"id": user_id})
+        if endpoint:
+            sentry_sdk.set_tag("endpoint", endpoint)
+        for key, value in kwargs.items():
+            sentry_sdk.set_context(key, value)
+    except ImportError:
+        pass  # Sentry not installed - silently skip
