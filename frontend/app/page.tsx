@@ -28,9 +28,9 @@ const features = [
   },
   {
     icon: Zap,
-    title: 'Real-Time Updates',
+    title: 'Daily Updates',
     description:
-      'Signals updated daily based on latest market data, fundamentals, and sentiment analysis.',
+      'Signals updated daily based on latest market data using momentum and technical indicators.',
   },
   {
     icon: Shield,
@@ -176,8 +176,8 @@ export default function LandingPage() {
               Everything You Need to Make Smarter Investment Decisions
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Powered by ensemble machine learning models trained on technical indicators,
-              fundamentals, and sentiment data.
+              Powered by LightGBM machine learning models trained on momentum, volatility, and
+              technical indicators.
             </p>
           </div>
 

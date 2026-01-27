@@ -1,36 +1,34 @@
 # ASX Portfolio OS
 
-AI-driven portfolio and model management platform for ASX equities with multi-asset fusion.
+AI-driven momentum trading signal platform for ASX equities.
 
-**Version:** 0.4.0 (Phase 8 Complete)
+**Version:** 1.0.0-rc1 (Production Release Candidate)
 
 ## Stack
 - Backend: FastAPI + Python (Render)
-- Frontend: Next.js (Vercel)
-- Database: Postgres (Supabase)
+- Frontend: Next.js 14 + TypeScript (Vercel)
+- Database: PostgreSQL (Supabase)
 - ML: LightGBM, scikit-learn, SHAP
-- RL: Stable-Baselines3 (optional)
+- Infrastructure: Rate limiting, connection pooling, Sentry error tracking
 
 ## Features
 
-### ✅ Core Models
-- **Model A (Quant ML)**: LightGBM classifier/regressor for price predictions
-- **Model B (Fundamentals)**: Feature derivation from EODHD fundamentals
-- **Model C (NLP)**: Sentiment analysis on ASX announcements
+### ✅ Production Ready (V1)
+- **Model A (Technical Analysis)**: LightGBM ensemble for momentum-based buy/sell signals
+  - Daily signal generation (STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL)
+  - Features: 12-month momentum, volatility, trend, volume indicators
+  - Walk-forward validation with time-series splits
+- **Portfolio Management**: CSV upload, holdings tracking, rebalancing suggestions
+- **Live Signals API**: Real-time access to ranked ASX stock signals
+- **Job Monitoring**: Track pipeline executions with success/failure rates
+- **Risk Metrics**: Sharpe ratio, volatility, max drawdown tracking
 
-### ✅ Portfolio Intelligence (Phase 8)
-- **Portfolio Fusion**: Unified view across equities, property, and loans
-- **Risk Analysis**: Debt service ratio, leverage, risk scoring
-- **Asset Allocation**: Dynamic allocation tracking by class
-
-### ✅ Monitoring & Operations
-- **Job History**: Track all pipeline executions with success/failure rates
-- **Drift Monitoring**: PSI-based feature drift detection with alerts
-- **Explainability**: SHAP-based model interpretability
-
-### 🚧 Experimental (Phase 2)
-- **RL Sandbox**: Reinforcement learning for portfolio optimization
-- **Custom Gym Environment**: ASX-specific trading environment
+### 🚧 Coming Soon (Phase 2)
+- **Model B (Fundamentals)**: P/E, revenue growth, debt ratios integration
+- **Model C (Sentiment)**: NLP analysis of ASX announcements
+- **Ensemble Strategy**: Multi-model signal combination
+- **Advanced Drift Monitoring**: PSI-based feature drift detection UI
+- **Multi-Asset Fusion**: Property and loan portfolio integration
 
 ## Quickstart
 ```bash
@@ -55,52 +53,70 @@ uvicorn app.main:app --reload --port 8788
 ```
 
 ## Core Endpoints
-- `GET /health` - Service health check
-- `GET /model/status/summary` - Model performance summary
-- `GET /drift/summary` - Drift monitoring dashboard
-- `GET /model/explainability` - SHAP-based feature importance
-- `GET /dashboard/model_a_v1_1` - Model A dashboard
-- `POST /assistant/chat` - AI assistant (paused - see note below)
+- `GET /health` - Service health check and database connectivity
+- `GET /dashboard/model_a_v1_1` - Model A ranked signals (production)
+- `GET /signals/live` - Current buy/sell signals for all ASX stocks
+- `POST /portfolio/upload` - Upload portfolio CSV
+- `GET /portfolio/holdings` - View current holdings with signals
+- `GET /portfolio/rebalancing` - Get AI-powered rebalancing suggestions
+- `GET /jobs/history` - Pipeline execution history
+- `GET /model/status/summary` - Model performance metrics
+## Pipeline Jobs
 
-## Portfolio Fusion (New in v0.4.0)
-- `GET /portfolio/overview` - Unified portfolio snapshot
-- `GET /portfolio/risk` - Risk analysis and metrics
-- `GET /portfolio/allocation` - Asset allocation breakdown
-### Data Ingestion
-- `jobs/ingest_fundamentals_job.py` - EODHD fundamentals
-- `jobs/ingest_asx_announcements_job.py` - NLP news feed
-- `jobs/ingest_loan_job.py` - Loan account data
-- `jobs/ingest_etf_job.py` - ETF holdings
-- `jobs/ingest_macro_job.py` - Macro economic indicators
+### Daily Operations (Production)
+- `jobs/sync_live_prices_job.py` - Ingest latest ASX prices from EODHD
+- `jobs/build_extended_feature_set.py` - Compute technical features
+- `jobs/generate_signals.py` - Run Model A inference and rank stocks
+- `jobs/portfolio_fusion_job.py` - Update portfolio metrics
 
-### Feature Engineering
-- `jobs/build_extended_feature_set.py` - Unified feature pipeline
-- `jobs/derive_fundamentals_features.py` - Fundamental scoring
-- `jobs/export_feature_importance.py` - SHAP importance
+### Model Training & Analysis
+- `models/train_model_a_ml.py` - Train/retrain Model A with walk-forward validation
+- `jobs/backtest_model_a_ml.py` - Backtest Model A on historical data
+- `jobs/export_feature_importance.py` - SHAP feature importance analysis
 
-### Analytics & Monitoring
-- `jobs/portfolio_fusion_job.py` - **NEW:** Unified portfolio metrics
-- `jobs/audit_drift_job.py` - Feature drift detection
-- `jobs/compute_risk_snapshot_job.py` - Risk analytics
+### Future Pipeline (Phase 2)
+- `jobs/ingest_fundamentals_job.py` - EODHD fundamentals (prepared)
+- `jobs/ingest_asx_announcements_job.py` - ASX announcements (prepared)
+- `jobs/audit_drift_job.py` - Feature drift detection (infrastructure ready)
 
-### Machine Learning
-- `jobs/run_model_a_job.py` - Model A predictions
-- `jobs/backtest_model_a_ml.py` - Backtesting
-- `jobs/train_rl_agent.py` - **NEW:** RL training (experimental)regated statistics
-- `GET /jobs/health` - Job health monitoring
+## What's in V1 vs Roadmap
 
-## Feature Status
-**OpenAI Assistant (PAUSED):** The conversational AI assistant feature (`/assistant/chat`) is currently on pause. The `OPENAI_API_KEY` and `ENABLE_ASSISTANT` environment variables are not required until this feature is reactivated.
+**V1 Production (Current)**:
+- Model A momentum signals (technical analysis only)
+- Portfolio upload and tracking
+- Daily signal generation
+- Risk metrics and rebalancing suggestions
+- Job monitoring and health checks
 
-## Key Jobs
-- `jobs/ingest_fundamentals_job.py`
-- `jobs/ingest_asx_announcements_job.py`
-- `jobs/build_extended_feature_set.py`
-- `jobs/export_feature_importance.py`
-- `jobs/audit_drift_job.py`
+**Phase 2 Roadmap**:
+- Model B: Fundamentals integration (P/E, revenue, debt)
+- Model C: Sentiment analysis (NLP on announcements)
+- Ensemble strategy combining A+B+C
+- Advanced drift monitoring with PSI scores
+- Multi-asset portfolio fusion (property + loans)
+
+**Paused Features**:
+- OpenAI Assistant (`/assistant/chat` returns 503)
+
+## Database Schema
+
+**Production Tables (Active)**:
+- `prices` - Historical ASX price data (1.2M rows)
+- `model_a_ml_signals` - Daily signal generation output
+- `model_a_features_extended` - Pre-computed features for optimization
+- `model_a_drift_audit` - Feature drift monitoring
+- `portfolio_fusion` - Portfolio tracking
+- `portfolio_attribution` - Portfolio analytics
+- `job_history` - Pipeline execution tracking
+- `model_feature_importance` - SHAP feature importance
+- `fundamentals` - Fundamentals data (prepared for Phase 2)
+
+**Archived Tables**: 17 unused tables moved to `schemas/archive/` (RL experiments, property assets, unused model tables)
+
+To clean up unused tables in database: `psql $DATABASE_URL -f schemas/cleanup_unused_tables.sql`
 
 ## Deployment Notes
-- Render uses `Dockerfile` with `requirements.txt`.
-- Vercel deploys the `frontend/` app.
-- Vercel settings: Root Directory `frontend`, Production Branch `main`, and ensure `.vercelignore` keeps `frontend/app` via `!/frontend/app/**`.
-- If Vercel logs show an old commit, redeploy with “Use current branch” + “Clear cache”; if it persists, reconnect the GitHub integration.
+- Render uses `Dockerfile` with `requirements.txt`
+- Vercel deploys the `frontend/` app
+- Vercel settings: Root Directory `frontend`, Production Branch `main`, and ensure `.vercelignore` keeps `frontend/app` via `!/frontend/app/**`
+- If Vercel logs show an old commit, redeploy with "Use current branch" + "Clear cache"; if it persists, reconnect the GitHub integration

@@ -49,4 +49,10 @@ jobs:
       - name: Type check (mypy)
         run: mypy app jobs services --ignore-missing-imports
       - name: Run tests
-        run: pytest -q --cov=app --cov=jobs --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under=0
+        run: pytest tests/ -v --cov=app --cov=jobs --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under=40
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
