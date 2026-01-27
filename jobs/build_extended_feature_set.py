@@ -350,6 +350,8 @@ def build_features(start_date, end_date):
     if "return_1m" in df.columns and "asx200_return_1m" in df.columns:
         df["sector_spread_1m"] = df["return_1m"] - df["asx200_return_1m"]
     df.dropna(subset=["close"], inplace=True)
+
+    # Save to parquet files (backup)
     dated_path = f"outputs/featureset_extended_{end_date}.parquet"
     df.to_parquet(dated_path, index=False)
     latest_path = "outputs/featureset_extended_latest.parquet"
@@ -361,9 +363,32 @@ def build_features(start_date, end_date):
         os.symlink(os.path.basename(dated_path), link_path)
     except Exception as e:
         print(f"⚠️ Symlink creation failed: {e}")
+
+    # PERFORMANCE OPTIMIZATION: Write to database for fast API access
+    try:
+        logger.info(f"Writing {len(df)} feature rows to database...")
+        with db() as con:
+            # Write to model_a_features_extended table
+            # This allows API to read pre-computed features instead of computing on-demand
+            df.to_sql(
+                "model_a_features_extended",
+                con,
+                if_exists="replace",  # Replace existing data
+                index=False,
+                method="multi",  # Batch insert for performance
+                chunksize=1000
+            )
+            con.commit()
+        logger.info("✅ Features successfully written to database")
+        print(f"✅ Features written to database: model_a_features_extended")
+    except Exception as e:
+        logger.error(f"Failed to write features to database: {e}")
+        print(f"⚠️ Database write failed (features still in parquet): {e}")
+
     print(f"✅ Extended features saved: {len(df)} rows.")
     print(f"📦 Dated parquet: {dated_path}")
     print(f"📌 Latest parquet: {latest_path}")
+    print(f"💾 Database table: model_a_features_extended")
     return df
 
 if __name__ == "__main__":
