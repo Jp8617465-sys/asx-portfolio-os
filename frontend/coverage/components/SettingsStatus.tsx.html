@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">70% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>14/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">58.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>7/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>2/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">68.42% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>13/19</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -124,26 +124,26 @@
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -183,26 +183,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">'use client';
 &nbsp;
-import useSWR from <span class="cstat-no" title="statement not covered" >'swr';</span>
-import { useState } from <span class="cstat-no" title="statement not covered" >'react';</span>
-import { Card, CardContent, CardHeader, CardTitle } from <span class="cstat-no" title="statement not covered" >'./ui/card';</span>
-import { Badge } from <span class="cstat-no" title="statement not covered" >'./ui/badge';</span>
-import { Button } from <span class="cstat-no" title="statement not covered" >'./ui/button';</span>
-import { toast } from <span class="cstat-no" title="statement not covered" >'./ui/use-toast';</span>
-import { getHealth } from <span class="cstat-no" title="statement not covered" >'../lib/api';</span>
+import useSWR from 'swr';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { toast } from './ui/use-toast';
+import { getHealth } from '../lib/api';
 &nbsp;
-export default function <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >SettingsStatus() {</span></span>
-  const { data, error } = <span class="cstat-no" title="statement not covered" >useSWR('health', <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >g</span>etHealth());</span></span>
-  const [testing, setTesting] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
+export default function SettingsStatus() {
+  const { data, error } = useSWR('health', () =&gt; getHealth());
+  const [testing, setTesting] = useState(false);
 &nbsp;
-  const statusLabel = <span class="cstat-no" title="statement not covered" >error ? 'Offline' : data ? 'Healthy' : 'Checking...';</span>
-  const statusClass = <span class="cstat-no" title="statement not covered" >error</span>
+  const statusLabel = error ? 'Offline' : data ? <span class="branch-0 cbranch-no" title="branch not covered" >'Healthy' : '</span>Checking...';
+  const statusClass = error
     ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200'
     : data
-      ? 'bg-accentSoft text-accent dark:bg-white/10 dark:text-slate-200'
+      ? <span class="branch-0 cbranch-no" title="branch not covered" >'bg-accentSoft text-accent dark:bg-white/10 dark:text-slate-200'</span>
       : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300';
 &nbsp;
-  const handleTest = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
+  const handleTest = <span class="fstat-no" title="function not covered" >async () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    setTesting(true);</span>
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const res = <span class="cstat-no" title="statement not covered" >await getHealth();</span>
@@ -234,7 +234,7 @@ export default function <span class="cstat-no" title="statement not covered" ><s
           This check calls `/health` to confirm the backend is reachable.
         &lt;/p&gt;
         &lt;Button variant="outline" size="sm" onClick={handleTest} disabled={testing}&gt;
-          {testing ? 'Testing...' : 'Test API'}
+          {testing ? <span class="branch-0 cbranch-no" title="branch not covered" >'Testing...' : '</span>Test API'}
         &lt;/Button&gt;
       &lt;/CardContent&gt;
     &lt;/Card&gt;
@@ -247,7 +247,7 @@ export default function <span class="cstat-no" title="statement not covered" ><s
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T10:57:20.144Z
+                at 2026-01-27T11:00:10.025Z
             </div>
         <script src="../prettify.js"></script>
         <script>
