@@ -29,15 +29,15 @@ npm run format:check || {
   exit 1
 }
 
-# 4. Run tests with 80% coverage requirement
-echo "🧪 Running tests (80% coverage required)..."
+# 4. Run tests with coverage requirement
+echo "🧪 Running tests with coverage..."
 npm run test:ci || {
-  echo "❌ Tests failed or coverage below 80%."
+  echo "❌ Tests failed or coverage below threshold."
   echo "💡 Run 'npm run test:coverage' to see coverage report."
   exit 1
 }
 
 echo ""
 echo "✅ All pre-commit checks passed!"
-echo "✅ Coverage meets 80% threshold"
+echo "✅ Tests passed and coverage meets threshold"
 echo "✅ Ready to commit"

@@ -38,13 +38,13 @@ describe('Page Smoke Tests', () => {
     it('displays main heading', async () => {
       const LandingPage = (await import('@/app/page')).default;
       render(<LandingPage />);
-      expect(screen.getByText(/ASX Portfolio OS/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/ASX Portfolio OS/i)[0]).toBeInTheDocument();
     });
 
     it('displays feature section', async () => {
       const LandingPage = (await import('@/app/page')).default;
       render(<LandingPage />);
-      expect(screen.getByText(/AI-Powered Signals/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/AI-Powered Signals/i)[0]).toBeInTheDocument();
     });
   });
 
@@ -108,7 +108,7 @@ describe('Component Smoke Tests', () => {
   describe('Stat Card', () => {
     it('renders title and value', () => {
       const StatCard = require('@/components/StatCard').default;
-      render(<StatCard title="Test" value="123" />);
+      render(<StatCard label="Test" value="123" />);
       expect(screen.getByText('Test')).toBeInTheDocument();
       expect(screen.getByText('123')).toBeInTheDocument();
     });
@@ -133,13 +133,12 @@ describe('Component Smoke Tests', () => {
     it('renders with sample holding', () => {
       const HoldingsTable = require('@/components/holdings-table').default;
       const sampleHolding = {
-        symbol: 'CBA.AX',
+        ticker: 'CBA.AX',
+        companyName: 'Commonwealth Bank',
         shares: 100,
-        avg_cost: 95.5,
-        current_price: 100,
-        value: 10000,
-        gain_loss: 450,
-        gain_loss_pct: 4.71,
+        avgCost: 95.5,
+        currentPrice: 100,
+        totalValue: 10000,
         signal: 'BUY' as const,
         confidence: 65,
       };
@@ -151,7 +150,7 @@ describe('Component Smoke Tests', () => {
   describe('Confidence Gauge', () => {
     it('renders with confidence value', () => {
       const ConfidenceGauge = require('@/components/confidence-gauge').default;
-      render(<ConfidenceGauge confidence={75} />);
+      render(<ConfidenceGauge confidence={75} signal="BUY" />);
       expect(document.body).toBeInTheDocument();
     });
   });
