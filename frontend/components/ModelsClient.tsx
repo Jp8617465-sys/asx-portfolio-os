@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import Topbar from './Topbar';
 import DriftChart from './DriftChart';
 import FeatureImpactChart from './FeatureImpactChart';
+import EnsembleSignalsTable from './EnsembleSignalsTable';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -23,6 +24,8 @@ import {
   getPortfolioAttribution,
   getPortfolioPerformance,
   getSignalsLive,
+  getEnsembleSignalsLatest,
+  type EnsembleSignals,
 } from '../lib/api';
 
 type ModelStatusSummary = {
@@ -129,6 +132,10 @@ export default function ModelsClient() {
   const { data: performance, isLoading: performanceLoading } = useSWR<PortfolioPerformance>(
     'portfolio-performance',
     () => getPortfolioPerformance('model_a_v1_1', 20)
+  );
+  const { data: ensembleSignals, isLoading: ensembleLoading } = useSWR<EnsembleSignals>(
+    'ensemble-signals',
+    () => getEnsembleSignalsLatest(20)
   );
 
   const featureImportance = (importance?.features || []).map((row: any) => ({
@@ -446,6 +453,11 @@ export default function ModelsClient() {
             )}
           </CardContent>
         </Card>
+      </section>
+
+      {/* V2: Ensemble Signals (Model A + Model B) */}
+      <section>
+        <EnsembleSignalsTable data={ensembleSignals} isLoading={ensembleLoading} />
       </section>
 
       <Card>

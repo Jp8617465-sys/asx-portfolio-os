@@ -9,6 +9,7 @@ import StockChart from '@/components/stock-chart';
 import ReasoningPanel from '@/components/reasoning-panel';
 import AccuracyDisplay from '@/components/accuracy-display';
 import SignalBadge from '@/components/signal-badge';
+import FundamentalsTab from '@/components/FundamentalsTab';
 import { api } from '@/lib/api-client';
 import { Signal, SignalReasoning, AccuracyMetric, OHLCData, WatchlistItem } from '@/lib/types';
 import {
@@ -34,6 +35,7 @@ export default function StockDetailPage() {
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'fundamentals'>('overview');
 
   useEffect(() => {
     if (ticker) {
@@ -300,19 +302,55 @@ export default function StockDetailPage() {
           </div>
         </div>
 
-        {/* Reasoning and Accuracy */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {reasoning && (
-            <div>
-              <ReasoningPanel reasoning={reasoning} />
-            </div>
-          )}
-          {accuracy && (
-            <div>
-              <AccuracyDisplay accuracy={accuracy} showBreakdown={true} />
-            </div>
-          )}
+        {/* Tabs */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'overview'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('fundamentals')}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'fundamentals'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Fundamentals
+              </button>
+            </nav>
+          </div>
         </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {reasoning && (
+              <div>
+                <ReasoningPanel reasoning={reasoning} />
+              </div>
+            )}
+            {accuracy && (
+              <div>
+                <AccuracyDisplay accuracy={accuracy} showBreakdown={true} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'fundamentals' && (
+          <div>
+            <FundamentalsTab ticker={ticker} />
+          </div>
+        )}
       </main>
 
       <Footer />
