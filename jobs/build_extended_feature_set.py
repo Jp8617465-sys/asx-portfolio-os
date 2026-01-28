@@ -89,7 +89,9 @@ def load_technical_features(start_date: str, end_date: str):
 def load_fundamentals():
     q = """
     SELECT DISTINCT ON (symbol)
-        symbol, pe_ratio, pb_ratio, eps, roe, debt_to_equity, market_cap, div_yield, sector, industry, period_end
+        symbol, pe_ratio, pb_ratio, eps, roe, debt_to_equity, market_cap, div_yield, sector, industry, period_end,
+        -- V2 additions for Model B
+        revenue_growth_yoy, profit_margin, current_ratio, quick_ratio, eps_growth, free_cash_flow
     FROM fundamentals
     WHERE pe_ratio IS NOT NULL OR market_cap IS NOT NULL
     ORDER BY symbol, updated_at DESC
@@ -293,6 +295,33 @@ def build_features(start_date, end_date):
         df["roe_ratio"] = df["roe"]
     if "debt_to_equity" in df.columns:
         df["debt_to_equity_ratio"] = df["debt_to_equity"]
+
+    # V2 Model B fundamental features
+    if "pe_ratio" in df.columns and "pe_ratio" in df.columns:
+        df["pe_inverse"] = 1 / df["pe_ratio"].replace(0, np.nan)
+        df["pe_inverse_zscore"] = df.groupby("date")["pe_inverse"].transform(lambda x: (x - x.mean()) / x.std())
+
+    # Financial health score (combines profitability, liquidity, leverage)
+    if all(c in df.columns for c in ["roe", "current_ratio", "debt_to_equity"]):
+        # Normalize each component (handle missing values)
+        roe_norm = df.groupby("date")["roe"].transform(lambda x: (x - x.mean()) / x.std()).fillna(0)
+        current_norm = df.groupby("date")["current_ratio"].transform(lambda x: (x - x.mean()) / x.std()).fillna(0)
+        debt_norm = df.groupby("date")["debt_to_equity"].transform(lambda x: (x.mean() - x) / x.std()).fillna(0)  # Inverted (lower is better)
+        df["financial_health_score"] = (roe_norm + current_norm + debt_norm) / 3
+
+    # Value score (combines P/E, P/B, ROE)
+    if all(c in df.columns for c in ["pe_inverse", "pb_ratio", "roe"]):
+        pe_inv_rank = df.groupby("date")["pe_inverse"].rank(pct=True)
+        pb_inv_rank = df.groupby("date")["pb_ratio"].transform(lambda x: 1 - x.rank(pct=True))  # Lower P/B is better
+        roe_rank = df.groupby("date")["roe"].rank(pct=True)
+        df["value_score"] = (pe_inv_rank + pb_inv_rank + roe_rank) / 3
+
+    # Quality score (profitability + growth)
+    if all(c in df.columns for c in ["roe", "profit_margin", "revenue_growth_yoy"]):
+        roe_rank = df.groupby("date")["roe"].rank(pct=True)
+        margin_rank = df.groupby("date")["profit_margin"].rank(pct=True)
+        growth_rank = df.groupby("date")["revenue_growth_yoy"].rank(pct=True)
+        df["quality_score_v2"] = (roe_rank + margin_rank + growth_rank) / 3
 
     # Macro deltas
     for col in ("cpi", "yield_curve_slope", "yield_10y"):

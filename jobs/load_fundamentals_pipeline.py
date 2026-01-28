@@ -1,6 +1,11 @@
 """
 jobs/load_fundamentals_pipeline.py
-Fetch fundamentals from EODHD and persist to Postgres.
+Fetch fundamentals from yfinance (free) or EODHD (paid) and persist to Postgres.
+
+Environment Variables:
+    FUNDAMENTALS_DATA_SOURCE: 'yfinance' (default, free) or 'eodhd' (paid)
+    EODHD_API_KEY: Required if using eodhd
+    FUNDAMENTALS_MODE: 'sample' or 'full'
 """
 
 import os
@@ -20,18 +25,31 @@ from app.core import logger
 
 load_dotenv(dotenv_path=".env", override=True)
 
+# Data source configuration
+DATA_SOURCE = os.getenv("FUNDAMENTALS_DATA_SOURCE", "yfinance").lower()  # 'yfinance' or 'eodhd'
 API_KEY = os.getenv("EODHD_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 TICKERS = os.getenv("FUNDAMENTALS_TICKERS", "BHP,CBA,CSL,WES,FMG,WBC")
 MODE = os.getenv("FUNDAMENTALS_MODE", "sample").lower()
 SOURCE = os.getenv("FUNDAMENTALS_SOURCE", "universe" if MODE == "full" else "env").lower()
 MAX_TICKERS = int(os.getenv("FUNDAMENTALS_MAX_TICKERS", "0") or 0)
-THROTTLE_S = float(os.getenv("EODHD_FUNDAMENTALS_SLEEP", "1.2"))
+THROTTLE_S = float(os.getenv("EODHD_FUNDAMENTALS_SLEEP", "2.0"))  # Increased for yfinance
 BATCH_SIZE = int(os.getenv("FUNDAMENTALS_BATCH_SIZE", "100"))
 BATCH_SLEEP_S = float(os.getenv("FUNDAMENTALS_BATCH_SLEEP", "0.0"))
 EODHD_SUFFIX = os.getenv("EODHD_FUNDAMENTALS_SUFFIX", "AU")
 HISTORY_MODE = os.getenv("FUNDAMENTALS_HISTORY_MODE", "0") == "1"
 USE_PREFECT = os.getenv("USE_PREFECT", "0") == "1"
+
+# Import yfinance client if using yfinance
+if DATA_SOURCE == "yfinance":
+    from api_clients.yfinance_client import fetch_fundamentals_yfinance
+    print(f"ℹ️ Using yfinance (free) for fundamentals data")
+elif DATA_SOURCE == "eodhd":
+    if not API_KEY:
+        raise EnvironmentError("EODHD_API_KEY not set but DATA_SOURCE=eodhd")
+    print(f"ℹ️ Using EODHD (paid) for fundamentals data")
+else:
+    raise ValueError(f"Invalid DATA_SOURCE: {DATA_SOURCE}. Must be 'yfinance' or 'eodhd'")
 
 if USE_PREFECT:
     from prefect import flow, task
@@ -46,8 +64,8 @@ else:
     def flow(fn):
         return fn
 
-if not API_KEY:
-    raise EnvironmentError("EODHD_API_KEY not set")
+if not DATABASE_URL:
+    raise EnvironmentError("DATABASE_URL not set")
 if not DATABASE_URL:
     raise EnvironmentError("DATABASE_URL not set")
 
@@ -105,14 +123,26 @@ def _load_universe_tickers() -> List[str]:
 
 @task(retries=3, retry_delay_seconds=10)
 def fetch_fundamentals(ticker: str) -> pd.DataFrame:
-    symbol = f"{ticker}.{EODHD_SUFFIX}" if EODHD_SUFFIX else ticker
-    url = f"https://eodhd.com/api/fundamentals/{symbol}?api_token={API_KEY}&fmt=json"
-    resp = requests.get(url, timeout=30)
-    if resp.status_code != 200:
-        raise RuntimeError(f"Failed for {ticker}: {resp.text[:200]}")
-    df = _parse_fundamentals(ticker, resp.json())
-    print(f"✅ Pulled fundamentals for {ticker}")
-    return df
+    """Fetch fundamentals using configured data source (yfinance or eodhd)."""
+    if DATA_SOURCE == "yfinance":
+        # Use yfinance client
+        data = fetch_fundamentals_yfinance(ticker, throttle_s=THROTTLE_S)
+        if not data:
+            raise RuntimeError(f"Failed to fetch {ticker} from yfinance")
+        # Convert dict to DataFrame
+        df = pd.DataFrame([data])
+        print(f"✅ Pulled fundamentals for {ticker} (yfinance)")
+        return df
+    else:
+        # Use EODHD (original implementation)
+        symbol = f"{ticker}.{EODHD_SUFFIX}" if EODHD_SUFFIX else ticker
+        url = f"https://eodhd.com/api/fundamentals/{symbol}?api_token={API_KEY}&fmt=json"
+        resp = requests.get(url, timeout=30)
+        if resp.status_code != 200:
+            raise RuntimeError(f"Failed for {ticker}: {resp.text[:200]}")
+        df = _parse_fundamentals(ticker, resp.json())
+        print(f"✅ Pulled fundamentals for {ticker} (eodhd)")
+        return df
 
 
 @task
@@ -135,12 +165,19 @@ def persist_to_db(df: pd.DataFrame) -> None:
             d.get("market_cap"),
             d.get("div_yield"),
             d.get("updated_at"),
+            d.get("revenue_growth_yoy"),
+            d.get("profit_margin"),
+            d.get("current_ratio"),
+            d.get("quick_ratio"),
+            d.get("eps_growth"),
+            d.get("free_cash_flow"),
         ))
 
     sql = """
     insert into fundamentals (
         symbol, sector, industry, pe_ratio, pb_ratio, eps, roe, debt_to_equity,
-        market_cap, div_yield, updated_at
+        market_cap, div_yield, updated_at, revenue_growth_yoy, profit_margin,
+        current_ratio, quick_ratio, eps_growth, free_cash_flow
     ) values %s
     on conflict (symbol, updated_at) do update set
       sector = excluded.sector,
@@ -151,7 +188,13 @@ def persist_to_db(df: pd.DataFrame) -> None:
       roe = excluded.roe,
       debt_to_equity = excluded.debt_to_equity,
       market_cap = excluded.market_cap,
-      div_yield = excluded.div_yield
+      div_yield = excluded.div_yield,
+      revenue_growth_yoy = excluded.revenue_growth_yoy,
+      profit_margin = excluded.profit_margin,
+      current_ratio = excluded.current_ratio,
+      quick_ratio = excluded.quick_ratio,
+      eps_growth = excluded.eps_growth,
+      free_cash_flow = excluded.free_cash_flow
     """
 
     with psycopg2.connect(DATABASE_URL) as con, con.cursor() as cur:
