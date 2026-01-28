@@ -303,3 +303,221 @@ export async function getSignalsLive(model = 'model_a_ml', limit = 20, options?:
   const params = new URLSearchParams({ model, limit: String(limit) });
   return request<SignalsLive>(`/signals/live?${params.toString()}`, options);
 }
+
+// ============================================================================
+// V2: Fundamental Analysis & Ensemble Signals
+// ============================================================================
+
+export type FundamentalsMetrics = {
+  symbol?: string;
+  sector?: string;
+  industry?: string;
+  metrics?: {
+    valuation?: {
+      pe_ratio?: number | null;
+      pb_ratio?: number | null;
+      market_cap?: number | null;
+    };
+    profitability?: {
+      roe?: number | null;
+      profit_margin?: number | null;
+      eps?: number | null;
+    };
+    growth?: {
+      revenue_growth_yoy?: number | null;
+      eps_growth?: number | null;
+    };
+    financial_health?: {
+      debt_to_equity?: number | null;
+      current_ratio?: number | null;
+      quick_ratio?: number | null;
+      free_cash_flow?: number | null;
+    };
+    income?: {
+      div_yield?: number | null;
+    };
+  };
+  updated_at?: string | null;
+  period_end?: string | null;
+};
+
+export type FundamentalsQuality = {
+  symbol?: string;
+  as_of?: string;
+  quality?: {
+    score?: string; // A, B, C, D, F
+    grade_description?: string;
+    confidence?: number | null;
+  };
+  signal?: string;
+  expected_return?: number | null;
+  rank?: number | null;
+  fundamentals_snapshot?: {
+    pe_ratio?: number | null;
+    pb_ratio?: number | null;
+    roe?: number | null;
+    debt_to_equity?: number | null;
+    profit_margin?: number | null;
+  };
+  created_at?: string | null;
+};
+
+export type ModelBSignal = {
+  symbol?: string;
+  signal?: string;
+  quality_score?: string;
+  confidence?: number | null;
+  expected_return?: number | null;
+  rank?: number | null;
+  fundamentals?: {
+    pe_ratio?: number | null;
+    pb_ratio?: number | null;
+    roe?: number | null;
+    debt_to_equity?: number | null;
+    profit_margin?: number | null;
+  };
+};
+
+export type ModelBSignals = {
+  status?: string;
+  count?: number;
+  as_of?: string | null;
+  filters?: {
+    signal?: string | null;
+    quality?: string | null;
+  };
+  signals?: ModelBSignal[];
+  message?: string;
+};
+
+export type EnsembleSignal = {
+  symbol?: string;
+  signal?: string;
+  ensemble_score?: number | null;
+  confidence?: number | null;
+  rank?: number | null;
+  component_signals?: {
+    model_a?: {
+      signal?: string;
+      confidence?: number | null;
+      rank?: number | null;
+    };
+    model_b?: {
+      signal?: string;
+      confidence?: number | null;
+      rank?: number | null;
+    };
+  };
+  agreement?: {
+    signals_agree?: boolean;
+    conflict?: boolean;
+    conflict_reason?: string | null;
+  };
+};
+
+export type EnsembleSignals = {
+  status?: string;
+  count?: number;
+  as_of?: string | null;
+  statistics?: {
+    total?: number;
+    agreement_rate?: number;
+    conflict_rate?: number;
+  };
+  filters?: {
+    signal?: string | null;
+    agreement_only?: boolean;
+    no_conflict?: boolean;
+  };
+  signals?: EnsembleSignal[];
+  message?: string;
+};
+
+export type SignalsComparison = {
+  symbol?: string;
+  model_a?: {
+    as_of?: string;
+    signal?: string;
+    confidence?: number | null;
+    expected_return?: number | null;
+    rank?: number | null;
+  } | null;
+  model_b?: {
+    as_of?: string;
+    signal?: string;
+    quality_score?: string;
+    confidence?: number | null;
+    expected_return?: number | null;
+    rank?: number | null;
+  } | null;
+  ensemble?: {
+    as_of?: string;
+    signal?: string;
+    ensemble_score?: number | null;
+    confidence?: number | null;
+    rank?: number | null;
+    conflict?: boolean;
+    signals_agree?: boolean;
+  } | null;
+  availability?: {
+    model_a?: boolean;
+    model_b?: boolean;
+    ensemble?: boolean;
+  };
+  comparison?: {
+    models_agree?: boolean;
+    conflict_detected?: boolean;
+    recommendation?: string | null;
+  };
+};
+
+// V2 API Functions
+
+export async function getFundamentalsMetrics(ticker: string, options?: FetchOptions) {
+  const params = new URLSearchParams({ ticker });
+  return request<FundamentalsMetrics>(`/fundamentals/metrics?${params.toString()}`, options);
+}
+
+export async function getFundamentalsQuality(ticker: string, options?: FetchOptions) {
+  const params = new URLSearchParams({ ticker });
+  return request<FundamentalsQuality>(`/fundamentals/quality?${params.toString()}`, options);
+}
+
+export async function getModelBSignalsLatest(
+  limit = 50,
+  signalFilter?: string,
+  qualityFilter?: string,
+  options?: FetchOptions
+) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (signalFilter) params.set('signal_filter', signalFilter);
+  if (qualityFilter) params.set('quality_filter', qualityFilter);
+  return request<ModelBSignals>(`/signals/model_b/latest?${params.toString()}`, options);
+}
+
+export async function getModelBSignal(ticker: string, options?: FetchOptions) {
+  return request<ModelBSignal>(`/signals/model_b/${ticker}`, options);
+}
+
+export async function getEnsembleSignalsLatest(
+  limit = 50,
+  signalFilter?: string,
+  agreementOnly = false,
+  noConflict = false,
+  options?: FetchOptions
+) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (signalFilter) params.set('signal_filter', signalFilter);
+  if (agreementOnly) params.set('agreement_only', 'true');
+  if (noConflict) params.set('no_conflict', 'true');
+  return request<EnsembleSignals>(`/signals/ensemble/latest?${params.toString()}`, options);
+}
+
+export async function getEnsembleSignal(ticker: string, options?: FetchOptions) {
+  return request<EnsembleSignal>(`/signals/ensemble/${ticker}`, options);
+}
+
+export async function compareSignals(ticker: string, options?: FetchOptions) {
+  const params = new URLSearchParams({ ticker });
+  return request<SignalsComparison>(`/signals/compare?${params.toString()}`, options);
+}
