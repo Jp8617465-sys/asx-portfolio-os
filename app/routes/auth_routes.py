@@ -72,7 +72,7 @@ class UserResponse(BaseModel):
 
 
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit("5/15minutes")  # Rate limit: 5 login attempts per 15 minutes per IP
+@limiter.limit("100/15minutes")  # Rate limit: Temporarily increased for testing
 async def login(request: Request, login_request: LoginRequest):
     """
     Authenticate user and return JWT access token.

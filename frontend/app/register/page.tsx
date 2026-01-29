@@ -99,6 +99,9 @@ export default function RegisterPage() {
       // Store user info
       localStorage.setItem('user', JSON.stringify(user));
 
+      // Also set cookie for middleware authentication check
+      document.cookie = `access_token=${access_token}; path=/; max-age=3600; SameSite=Strict`;
+
       // Redirect to dashboard
       router.push('/app/dashboard');
     } catch (err: any) {
