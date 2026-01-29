@@ -43,9 +43,5 @@ export function middleware(request: NextRequest) {
  * Matches all routes under /app/* (dashboard, portfolio, models, etc.)
  */
 export const config = {
-  matcher: [
-    '/app/:path*',
-    // Exclude static files and Next.js internals
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: '/app/:path*',
 };
