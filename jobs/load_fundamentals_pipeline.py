@@ -26,28 +26,29 @@ from app.core import logger
 load_dotenv(dotenv_path=".env", override=True)
 
 # Data source configuration
-DATA_SOURCE = os.getenv("FUNDAMENTALS_DATA_SOURCE", "yfinance").lower()  # 'yfinance' or 'eodhd'
+DATA_SOURCE = os.getenv("FUNDAMENTALS_DATA_SOURCE", "eodhd").lower()  # 'eodhd' (default) or 'yfinance'
 API_KEY = os.getenv("EODHD_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 TICKERS = os.getenv("FUNDAMENTALS_TICKERS", "BHP,CBA,CSL,WES,FMG,WBC")
 MODE = os.getenv("FUNDAMENTALS_MODE", "sample").lower()
 SOURCE = os.getenv("FUNDAMENTALS_SOURCE", "universe" if MODE == "full" else "env").lower()
 MAX_TICKERS = int(os.getenv("FUNDAMENTALS_MAX_TICKERS", "0") or 0)
-THROTTLE_S = float(os.getenv("EODHD_FUNDAMENTALS_SLEEP", "2.0"))  # Increased for yfinance
+THROTTLE_S = float(os.getenv("EODHD_FUNDAMENTALS_SLEEP", "2.0"))
 BATCH_SIZE = int(os.getenv("FUNDAMENTALS_BATCH_SIZE", "100"))
 BATCH_SLEEP_S = float(os.getenv("FUNDAMENTALS_BATCH_SLEEP", "0.0"))
 EODHD_SUFFIX = os.getenv("EODHD_FUNDAMENTALS_SUFFIX", "AU")
 HISTORY_MODE = os.getenv("FUNDAMENTALS_HISTORY_MODE", "0") == "1"
 USE_PREFECT = os.getenv("USE_PREFECT", "0") == "1"
 
-# Import yfinance client if using yfinance
-if DATA_SOURCE == "yfinance":
-    from api_clients.yfinance_client import fetch_fundamentals_yfinance
-    print(f"ℹ️ Using yfinance (free) for fundamentals data")
-elif DATA_SOURCE == "eodhd":
+# Import appropriate client based on data source
+if DATA_SOURCE == "eodhd":
     if not API_KEY:
         raise EnvironmentError("EODHD_API_KEY not set but DATA_SOURCE=eodhd")
-    print(f"ℹ️ Using EODHD (paid) for fundamentals data")
+    from api_clients.eodhd_client import fetch_fundamentals_eodhd
+    logger.info("✅ Using EODHD fundamentals API (paid, reliable)")
+elif DATA_SOURCE == "yfinance":
+    from api_clients.yfinance_client import fetch_fundamentals_yfinance
+    logger.info("⚠️ Using yfinance fundamentals API (free, fallback)")
 else:
     raise ValueError(f"Invalid DATA_SOURCE: {DATA_SOURCE}. Must be 'yfinance' or 'eodhd'")
 
@@ -123,26 +124,27 @@ def _load_universe_tickers() -> List[str]:
 
 @task(retries=3, retry_delay_seconds=10)
 def fetch_fundamentals(ticker: str) -> pd.DataFrame:
-    """Fetch fundamentals using configured data source (yfinance or eodhd)."""
-    if DATA_SOURCE == "yfinance":
-        # Use yfinance client
+    """Fetch fundamentals using configured data source (eodhd or yfinance)."""
+    if DATA_SOURCE == "eodhd":
+        # Use EODHD client (new default)
+        data = fetch_fundamentals_eodhd(ticker, api_key=API_KEY, throttle_s=THROTTLE_S)
+        if not data:
+            raise RuntimeError(f"Failed to fetch {ticker} from EODHD")
+        # Convert dict to DataFrame
+        df = pd.DataFrame([data])
+        logger.info(f"✅ Pulled fundamentals for {ticker} (EODHD)")
+        return df
+    elif DATA_SOURCE == "yfinance":
+        # Use yfinance client (fallback)
         data = fetch_fundamentals_yfinance(ticker, throttle_s=THROTTLE_S)
         if not data:
             raise RuntimeError(f"Failed to fetch {ticker} from yfinance")
         # Convert dict to DataFrame
         df = pd.DataFrame([data])
-        print(f"✅ Pulled fundamentals for {ticker} (yfinance)")
+        logger.info(f"✅ Pulled fundamentals for {ticker} (yfinance)")
         return df
     else:
-        # Use EODHD (original implementation)
-        symbol = f"{ticker}.{EODHD_SUFFIX}" if EODHD_SUFFIX else ticker
-        url = f"https://eodhd.com/api/fundamentals/{symbol}?api_token={API_KEY}&fmt=json"
-        resp = requests.get(url, timeout=30)
-        if resp.status_code != 200:
-            raise RuntimeError(f"Failed for {ticker}: {resp.text[:200]}")
-        df = _parse_fundamentals(ticker, resp.json())
-        print(f"✅ Pulled fundamentals for {ticker} (eodhd)")
-        return df
+        raise ValueError(f"Unknown DATA_SOURCE: {DATA_SOURCE}")
 
 
 @task

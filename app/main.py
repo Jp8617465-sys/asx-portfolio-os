@@ -11,12 +11,15 @@ from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core import logger
-from app.routes import health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift, portfolio_management, fundamentals, ensemble
+from app.routes import (
+    health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift,
+    portfolio_management, fundamentals, ensemble, auth_routes, user_routes,
+    notification_routes, search, watchlist, prices
+)
+from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 
 # Initialize Sentry (if DSN provided)
 try:
@@ -50,9 +53,8 @@ except ImportError:
 app = FastAPI(title="ASX Portfolio OS", version="0.4.0")
 
 # Rate limiting configuration
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 
 @app.get("/")
@@ -76,6 +78,13 @@ async def log_requests(request: Request, call_next):
 
 # Include all route modules
 app.include_router(health.router)
+app.include_router(auth_routes.router)  # Authentication (login, register, token management)
+app.include_router(user_routes.router)  # User management (settings, preferences, profile)
+app.include_router(notification_routes.router)  # Notifications
+app.include_router(notification_routes.alert_router)  # Alert preferences
+app.include_router(search.router)  # Stock search and autocomplete
+app.include_router(watchlist.router)  # User watchlist management
+app.include_router(prices.router)  # Historical price data for charts
 app.include_router(refresh.router)
 app.include_router(model.router)
 app.include_router(portfolio.router)
@@ -114,6 +123,24 @@ def openapi_actions(request: Request):
 
     allowed_paths = {
         "/health",
+        # Authentication endpoints
+        "/auth/login",
+        "/auth/register",
+        "/auth/me",
+        "/auth/refresh",
+        "/auth/logout",
+        # User management endpoints
+        "/users/me",
+        "/users/me/settings",
+        "/users/me/password",
+        # Notification endpoints
+        "/notifications",
+        "/notifications/{notification_id}/read",
+        "/notifications/{notification_id}",
+        "/notifications/mark-all-read",
+        # Alert preferences
+        "/alerts/preferences",
+        "/alerts/preferences/{alert_type}",
         "/dashboard/model_a_v1_1",
         "/model/status/summary",
         "/model/compare",
@@ -154,11 +181,22 @@ def openapi_actions(request: Request):
     }
     schema["paths"] = {p: v for p, v in schema["paths"].items() if p in allowed_paths}
 
+    # Add Bearer token security scheme
+    schema["components"]["securitySchemes"]["BearerAuth"] = {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+    }
+
+    # Public endpoints (no auth required)
+    public_paths = {"/health", "/auth/login", "/auth/register"}
+
     for path, ops in schema["paths"].items():
         for op in ops.values():
-            if path == "/health":
+            if path in public_paths:
                 op["security"] = []
             else:
-                op["security"] = [{"ApiKeyAuth": []}]
+                # Support both API key and Bearer token auth
+                op["security"] = [{"ApiKeyAuth": []}, {"BearerAuth": []}]
 
     return schema

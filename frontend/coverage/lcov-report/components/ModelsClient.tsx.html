@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">89.74% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>32/36</span>
+                <span class='fraction'>35/39</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">69.23% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>8/12</span>
+                <span class='fraction'>9/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">91.42% </span>
+                <span class="strong">92.1% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>32/35</span>
+                <span class='fraction'>35/38</span>
             </div>
         
             
@@ -527,7 +527,19 @@
 <a name='L462'></a><a href='#L462'>462</a>
 <a name='L463'></a><a href='#L463'>463</a>
 <a name='L464'></a><a href='#L464'>464</a>
-<a name='L465'></a><a href='#L465'>465</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L465'></a><a href='#L465'>465</a>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a>
+<a name='L475'></a><a href='#L475'>475</a>
+<a name='L476'></a><a href='#L476'>476</a>
+<a name='L477'></a><a href='#L477'>477</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -536,6 +548,7 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -544,6 +557,8 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -659,6 +674,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -897,6 +916,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -997,6 +1021,7 @@ import useSWR from 'swr';
 import Topbar from './Topbar';
 import DriftChart from './DriftChart';
 import FeatureImpactChart from './FeatureImpactChart';
+import EnsembleSignalsTable from './EnsembleSignalsTable';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -1016,6 +1041,8 @@ import {
   getPortfolioAttribution,
   getPortfolioPerformance,
   getSignalsLive,
+  getEnsembleSignalsLatest,
+  type EnsembleSignals,
 } from '../lib/api';
 &nbsp;
 type ModelStatusSummary = {
@@ -1122,6 +1149,10 @@ export default function ModelsClient() {
   const { data: performance, isLoading: performanceLoading } = useSWR&lt;PortfolioPerformance&gt;(
     'portfolio-performance',
     () =&gt; getPortfolioPerformance('model_a_v1_1', 20)
+  );
+  const { data: ensembleSignals, isLoading: ensembleLoading } = useSWR&lt;EnsembleSignals&gt;(
+    'ensemble-signals',
+    () =&gt; getEnsembleSignalsLatest(20)
   );
 &nbsp;
   const featureImportance = (importance?.features || []).map(<span class="fstat-no" title="function not covered" >(r</span>ow: any) =&gt; (<span class="cstat-no" title="statement not covered" >{</span>
@@ -1441,6 +1472,11 @@ export default function ModelsClient() {
         &lt;/Card&gt;
       &lt;/section&gt;
 &nbsp;
+      {/* V2: Ensemble Signals (Model A + Model B) */}
+      &lt;section&gt;
+        &lt;EnsembleSignalsTable data={ensembleSignals} isLoading={ensembleLoading} /&gt;
+      &lt;/section&gt;
+&nbsp;
       &lt;Card&gt;
         &lt;CardHeader&gt;
           &lt;CardTitle&gt;Retrain Controls&lt;/CardTitle&gt;
@@ -1462,7 +1498,7 @@ export default function ModelsClient() {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T11:00:09.880Z
+                at 2026-01-29T06:18:20.131Z
             </div>
         <script src="../prettify.js"></script>
         <script>

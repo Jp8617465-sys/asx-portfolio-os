@@ -48,11 +48,32 @@ jobs:
         run: isort --check-only app jobs services tests
       - name: Type check (mypy)
         run: mypy app jobs services --ignore-missing-imports
-      - name: Run tests
-        run: pytest tests/ -v --cov=app --cov=jobs --cov=services --cov-report=term-missing --cov-report=xml --cov-fail-under=40
-      - name: Upload coverage reports
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v \
+            --cov=app \
+            --cov=jobs \
+            --cov=services \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-fail-under=75
+      - name: Coverage by module
+        if: always()
+        run: |
+          echo "📊 Coverage by module:"
+          pytest tests/ --cov=app --cov=jobs --cov=services --cov-report=term-missing --quiet || true
+      - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         if: always()
         with:
-          file: ./coverage.xml
+          files: ./coverage.xml
+          flags: backend
+          name: backend-coverage
           fail_ci_if_error: false
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-html
+          path: htmlcov/

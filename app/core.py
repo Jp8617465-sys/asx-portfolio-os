@@ -27,6 +27,14 @@ def validate_environment():
         "OS_API_KEY": "API key for protecting endpoints",
     }
 
+    # Optional but recommended for production
+    if not os.getenv("JWT_SECRET_KEY"):
+        import warnings
+        warnings.warn(
+            "JWT_SECRET_KEY not set - using default (INSECURE for production). "
+            "Generate one with: openssl rand -hex 32"
+        )
+
     missing = []
     for var, description in required_vars.items():
         if not os.getenv(var):

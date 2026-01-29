@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.get("/fundamentals/metrics")
 def get_fundamentals_metrics(
-    ticker: str = Query(..., description="Stock ticker (e.g., 'CBA')"),
+    ticker: str,
     x_api_key: Optional[str] = Header(default=None),
 ):
     """
@@ -105,7 +105,7 @@ def get_fundamentals_metrics(
 
 @router.get("/fundamentals/quality")
 def get_fundamentals_quality(
-    ticker: str = Query(..., description="Stock ticker (e.g., 'CBA')"),
+    ticker: str,
     x_api_key: Optional[str] = Header(default=None),
 ):
     """
@@ -188,9 +188,9 @@ def get_fundamentals_quality(
 
 @router.get("/signals/model_b/latest")
 def get_model_b_signals_latest(
-    limit: int = Query(default=50, ge=1, le=500, description="Number of signals to return"),
-    signal_filter: Optional[str] = Query(default=None, description="Filter by signal type (BUY, HOLD, SELL)"),
-    quality_filter: Optional[str] = Query(default=None, description="Filter by quality score (A, B, C, D, F)"),
+    limit: int = 50,
+    signal_filter: Optional[str] = None,
+    quality_filter: Optional[str] = None,
     x_api_key: Optional[str] = Header(default=None),
 ):
     """

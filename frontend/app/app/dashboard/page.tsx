@@ -40,10 +40,22 @@ export default function DashboardPage() {
     setError(null);
 
     try {
-      // Load watchlist
+      // Load watchlist from real API
       const watchlistResponse = await api.getWatchlist();
-      const watchlistData = watchlistResponse.data.data || [];
-      setWatchlist(watchlistData);
+      const watchlistData = watchlistResponse.data.items || [];
+
+      // Transform backend response to component format
+      const transformedWatchlist: WatchlistItem[] = watchlistData.map((item: any) => ({
+        ticker: item.ticker,
+        name: item.name || item.ticker,
+        signal: item.current_signal || 'HOLD',
+        confidence: (item.signal_confidence || 50) * 100,
+        lastPrice: item.current_price || 0,
+        priceChange: item.price_change_pct || 0,
+        priceChangeAmount: 0, // Calculate if needed
+      }));
+
+      setWatchlist(transformedWatchlist);
 
       // Calculate stats
       const strongSignals = watchlistData.filter(

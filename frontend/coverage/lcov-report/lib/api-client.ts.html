@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/54</span>
+                <span class='fraction'>0/53</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/18</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/52</span>
+                <span class='fraction'>0/51</span>
             </div>
         
             
@@ -200,7 +200,14 @@
 <a name='L135'></a><a href='#L135'>135</a>
 <a name='L136'></a><a href='#L136'>136</a>
 <a name='L137'></a><a href='#L137'>137</a>
-<a name='L138'></a><a href='#L138'>138</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -229,9 +236,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -334,6 +339,15 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -365,11 +379,9 @@ const apiClient: AxiosInstance = <span class="cstat-no" title="statement not cov
 <span class="cstat-no" title="statement not covered" >      config.headers.Authorization = `Bearer ${token}`;</span>
     }
 &nbsp;
-    // Add API key for authenticated requests
-    const apiKey = <span class="cstat-no" title="statement not covered" >process.env.NEXT_PUBLIC_OS_API_KEY;</span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (apiKey) {</span>
-<span class="cstat-no" title="statement not covered" >      config.headers['x-api-key'] = apiKey;</span>
-    }
+    // Note: API key removed from frontend for security.
+    // Frontend now uses JWT-only authentication.
+    // API key should only be used for server-to-server communication.
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return config;</span>
   },
@@ -473,6 +485,15 @@ export const <span class="cstat-no" title="statement not covered" >api </span>= 
   getNotifications: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >a</span>piClient.get(`/notifications`),</span>
 &nbsp;
   markNotificationAsRead: <span class="fstat-no" title="function not covered" >(i</span>d: string) =&gt; <span class="cstat-no" title="statement not covered" >apiClient.put(`/notifications/${id}/read`),</span>
+&nbsp;
+  // Model comparison
+  getSignalComparison: <span class="fstat-no" title="function not covered" >(t</span>icker: string) =&gt; <span class="cstat-no" title="statement not covered" >apiClient.get(`/signals/compare?ticker=${ticker}`),</span>
+&nbsp;
+  // Price history
+  getPriceHistory: <span class="fstat-no" title="function not covered" >(</span>
+    ticker: string,
+    params?: { period?: string; start_date?: string; end_date?: string }
+  ) =&gt; <span class="cstat-no" title="statement not covered" >apiClient.get(`/prices/${ticker}/history`, { params }),</span>
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -481,7 +502,7 @@ export const <span class="cstat-no" title="statement not covered" >api </span>= 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T11:00:09.880Z
+                at 2026-01-29T06:18:20.131Z
             </div>
         <script src="../prettify.js"></script>
         <script>

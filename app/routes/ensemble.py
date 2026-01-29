@@ -16,10 +16,10 @@ router = APIRouter()
 
 @router.get("/signals/ensemble/latest")
 def get_ensemble_signals_latest(
-    limit: int = Query(default=50, ge=1, le=500, description="Number of signals to return"),
-    signal_filter: Optional[str] = Query(default=None, description="Filter by signal (STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL)"),
-    agreement_only: bool = Query(default=False, description="Only show signals where both models agree"),
-    no_conflict: bool = Query(default=False, description="Exclude conflicting signals"),
+    limit: int = 50,
+    signal_filter: Optional[str] = None,
+    agreement_only: bool = False,
+    no_conflict: bool = False,
     x_api_key: Optional[str] = Header(default=None),
 ):
     """

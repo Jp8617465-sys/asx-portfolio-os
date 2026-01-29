@@ -23,14 +23,32 @@ const customJestConfig = {
   ],
   coverageThreshold: {
     global: {
-      branches: 1,
-      functions: 0.5,
-      lines: 1,
-      statements: 1,
+      branches: 75,
+      functions: 75,
+      lines: 75,
+      statements: 75,
+    },
+    './app/**/*.{ts,tsx}': {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+    './components/**/*.{ts,tsx}': {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+    './lib/**/*.{ts,tsx}': {
+      branches: 75,
+      functions: 75,
+      lines: 75,
+      statements: 75,
     },
   },
-  // TODO: Increase to 80% as we add tests in Task #5 (frontend smoke tests)
-  // Fail tests if coverage falls below threshold
+  // Coverage thresholds updated as part of V2 testing strategy
+  // Target: 75-85% overall, 90-100% for core logic
   coverageReporters: ['text', 'lcov', 'html'],
   // Force exit to prevent hanging
   forceExit: true,

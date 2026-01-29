@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25.35% </span>
+                <span class="strong">36.61% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/71</span>
+                <span class='fraction'>26/71</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">9.75% </span>
+                <span class="strong">14.63% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/41</span>
+                <span class='fraction'>6/41</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">6.25% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/16</span>
+                <span class='fraction'>4/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">28.12% </span>
+                <span class="strong">39.06% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/64</span>
+                <span class='fraction'>25/64</span>
             </div>
         
             
@@ -280,7 +280,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -296,10 +296,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -321,19 +321,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -498,11 +498,11 @@ export default function StockSearch({
   const router = useRouter();
 &nbsp;
   // Debounced search
-  useEffect(<span class="fstat-no" title="function not covered" >() =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (!query || query.length &lt; 2) {</span>
-<span class="cstat-no" title="statement not covered" >      setResults([]);</span>
-<span class="cstat-no" title="statement not covered" >      setIsOpen(false);</span>
-<span class="cstat-no" title="statement not covered" >      return;</span>
+  useEffect(() =&gt; {
+    if (!query || <span class="branch-1 cbranch-no" title="branch not covered" >query.length &lt; 2) {</span>
+      setResults([]);
+      setIsOpen(false);
+      return;
     }
 &nbsp;
     const timeoutId = <span class="cstat-no" title="statement not covered" >setTimeout(<span class="fstat-no" title="function not covered" >async () =&gt; {</span></span>
@@ -523,8 +523,8 @@ export default function StockSearch({
   }, [query]);
 &nbsp;
   // Click outside to close
-  useEffect(<span class="fstat-no" title="function not covered" >() =&gt; {</span>
-    const handleClickOutside = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>vent: MouseEvent) =&gt; {</span>
+  useEffect(() =&gt; {
+    const handleClickOutside = <span class="fstat-no" title="function not covered" >(e</span>vent: MouseEvent) =&gt; {
 <span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (</span>
         dropdownRef.current &amp;&amp;
         !dropdownRef.current.contains(event.target as Node) &amp;&amp;
@@ -535,8 +535,8 @@ export default function StockSearch({
       }
     };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    document.addEventListener('mousedown', handleClickOutside);</span>
-<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >d</span>ocument.removeEventListener('mousedown', handleClickOutside);</span></span>
+    document.addEventListener('mousedown', handleClickOutside);
+    return () =&gt; document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 &nbsp;
   // Keyboard navigation
@@ -679,7 +679,7 @@ export default function StockSearch({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-27T11:00:09.880Z
+                at 2026-01-29T06:18:20.131Z
             </div>
         <script src="../prettify.js"></script>
         <script>

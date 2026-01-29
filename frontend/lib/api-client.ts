@@ -26,11 +26,9 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Add API key for authenticated requests
-    const apiKey = process.env.NEXT_PUBLIC_OS_API_KEY;
-    if (apiKey) {
-      config.headers['x-api-key'] = apiKey;
-    }
+    // Note: API key removed from frontend for security.
+    // Frontend now uses JWT-only authentication.
+    // API key should only be used for server-to-server communication.
 
     return config;
   },
@@ -134,4 +132,13 @@ export const api = {
   getNotifications: () => apiClient.get(`/notifications`),
 
   markNotificationAsRead: (id: string) => apiClient.put(`/notifications/${id}/read`),
+
+  // Model comparison
+  getSignalComparison: (ticker: string) => apiClient.get(`/signals/compare?ticker=${ticker}`),
+
+  // Price history
+  getPriceHistory: (
+    ticker: string,
+    params?: { period?: string; start_date?: string; end_date?: string }
+  ) => apiClient.get(`/prices/${ticker}/history`, { params }),
 };

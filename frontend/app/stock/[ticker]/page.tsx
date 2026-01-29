@@ -10,6 +10,7 @@ import ReasoningPanel from '@/components/reasoning-panel';
 import AccuracyDisplay from '@/components/accuracy-display';
 import SignalBadge from '@/components/signal-badge';
 import FundamentalsTab from '@/components/FundamentalsTab';
+import ModelComparisonPanel from '@/components/ModelComparisonPanel';
 import { api } from '@/lib/api-client';
 import { Signal, SignalReasoning, AccuracyMetric, OHLCData, WatchlistItem } from '@/lib/types';
 import {
@@ -61,25 +62,39 @@ export default function StockDetailPage() {
         console.warn('Reasoning not available:', err);
       }
 
-      // Mock chart data (replace with real API call)
-      const mockChartData: OHLCData[] = generateMockChartData();
-      setChartData(mockChartData);
+      // Load historical price data
+      await loadChartData(selectedTimeframe);
 
-      // Mock accuracy data (replace with real API call)
-      const mockAccuracy: AccuracyMetric = {
-        ticker,
-        totalPredictions: 48,
-        correctPredictions: 34,
-        accuracyRate: 70.8,
-        bySignal: {
-          STRONG_BUY: { total: 12, correct: 10, accuracy: 83.3 },
-          BUY: { total: 15, correct: 11, accuracy: 73.3 },
-          HOLD: { total: 8, correct: 6, accuracy: 75.0 },
-          SELL: { total: 10, correct: 5, accuracy: 50.0 },
-          STRONG_SELL: { total: 3, correct: 2, accuracy: 66.7 },
-        },
-      };
-      setAccuracy(mockAccuracy);
+      // Load accuracy data
+      try {
+        const accuracyResponse = await api.getAccuracy(ticker);
+        const accuracyData = accuracyResponse.data;
+
+        // Transform backend response to component format
+        const totalSignals = accuracyData.signals_analyzed || 0;
+        const overallAccuracy = (accuracyData.overall_accuracy || 0) * 100;
+        const bySignal: any = {};
+
+        if (accuracyData.by_signal) {
+          Object.entries(accuracyData.by_signal).forEach(([signal, stats]: [string, any]) => {
+            bySignal[signal] = {
+              total: stats.count,
+              correct: stats.correct,
+              accuracy: stats.accuracy * 100,
+            };
+          });
+        }
+
+        setAccuracy({
+          ticker,
+          totalPredictions: totalSignals,
+          correctPredictions: Math.round(totalSignals * (accuracyData.overall_accuracy || 0)),
+          accuracyRate: overallAccuracy,
+          bySignal,
+        });
+      } catch (err) {
+        console.warn('Accuracy data not available:', err);
+      }
 
       // Check if in watchlist
       checkWatchlistStatus();
@@ -91,47 +106,47 @@ export default function StockDetailPage() {
     }
   };
 
-  const generateMockChartData = (): OHLCData[] => {
-    const data: OHLCData[] = [];
-    const now = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
-    let price = 100;
+  const loadChartData = async (timeframe: string) => {
+    try {
+      // Map timeframe to period parameter
+      const periodMap: Record<string, string> = {
+        '1D': '1D',
+        '1W': '1W',
+        '1M': '1M',
+        '3M': '3M',
+        '6M': '6M',
+        '1Y': '1Y',
+        ALL: '5Y',
+      };
 
-    for (let i = 90; i >= 0; i--) {
-      const change = (Math.random() - 0.5) * 2;
-      const open = price;
-      const close = price + change;
-      const high = Math.max(open, close) + Math.random() * 1;
-      const low = Math.min(open, close) - Math.random() * 1;
-      const volume = Math.floor(1000000 + Math.random() * 5000000);
+      const period = periodMap[timeframe] || '3M';
 
-      data.push({
-        time: Math.floor((now - i * dayMs) / 1000),
-        open,
-        high,
-        low,
-        close,
-        volume,
-      });
+      // Fetch real price history from API
+      const response = await api.getPriceHistory(ticker, { period });
 
-      price = close;
+      const priceHistory = response.data.data || [];
+
+      // Transform to chart format
+      const formattedData: OHLCData[] = priceHistory.map((point: any) => ({
+        time: Math.floor(new Date(point.date).getTime() / 1000),
+        open: point.open,
+        high: point.high,
+        low: point.low,
+        close: point.close,
+        volume: point.volume,
+      }));
+
+      setChartData(formattedData);
+    } catch (err) {
+      console.error('Failed to load chart data:', err);
+      // Fall back to empty chart if data unavailable
+      setChartData([]);
     }
-
-    return data;
   };
 
   const handleTimeframeChange = async (timeframe: string) => {
     setSelectedTimeframe(timeframe);
-
-    // TODO: Fetch historical data from API based on timeframe
-    // For now, regenerate mock data (in production, this would call:
-    // const response = await api.getHistoricalPrices(ticker, { timeframe });
-    // setChartData(response.data.data);
-
-    console.log(`Timeframe changed to: ${timeframe}`);
-    // Regenerate mock data for the new timeframe
-    const mockData = generateMockChartData();
-    setChartData(mockData);
+    await loadChartData(timeframe);
   };
 
   const checkWatchlistStatus = async () => {
@@ -272,6 +287,9 @@ export default function StockDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Model Comparison Panel - V2 Feature */}
+        <ModelComparisonPanel ticker={ticker} />
 
         {/* Main content grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">

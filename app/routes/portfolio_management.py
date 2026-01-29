@@ -10,10 +10,11 @@ from typing import Optional, List
 import pandas as pd
 import numpy as np
 
-from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Query, Depends
 from pydantic import BaseModel, Field
 
 from app.core import db, require_key, logger
+from app.auth import get_current_user_id
 
 router = APIRouter()
 
@@ -93,8 +94,7 @@ class RiskMetrics(BaseModel):
 async def upload_portfolio(
     file: UploadFile = File(...),
     portfolio_name: str = Query(default="My Portfolio"),
-    user_id: str = Query(default="default_user"),
-    x_api_key: Optional[str] = Header(default=None),
+    user_id: int = Depends(get_current_user_id),
 ):
     """
     Upload a CSV file with portfolio holdings.
@@ -105,8 +105,11 @@ async def upload_portfolio(
     BHP.AX,250,42.30,2023-08-20
 
     Returns the created portfolio ID and number of holdings processed.
+
+    Authentication: Requires valid JWT token in Authorization header.
+    User ID is extracted from token automatically.
     """
-    require_key(x_api_key)
+    # No API key check needed - JWT authentication required via dependency
 
     try:
         # Read CSV file
@@ -240,13 +243,15 @@ async def upload_portfolio(
 
 @router.get("/portfolio", response_model=PortfolioResponse)
 def get_portfolio(
-    user_id: str = Query(default="default_user"),
-    x_api_key: Optional[str] = Header(default=None),
+    user_id: int = Depends(get_current_user_id),
 ):
     """
     Get user's portfolio with all holdings, current prices, P&L, and signals.
+
+    Authentication: Requires valid JWT token in Authorization header.
+    User ID is extracted from token automatically.
     """
-    require_key(x_api_key)
+    # No API key check needed - JWT authentication required via dependency
 
     with db() as con, con.cursor() as cur:
         # Get portfolio
@@ -318,14 +323,66 @@ def get_portfolio(
 
 
 # =============================================================================
+# POST /portfolio/analyze - Analyze portfolio and sync prices/signals
+# =============================================================================
+
+@router.post("/portfolio/analyze")
+def analyze_portfolio(
+    user_id: int = Depends(get_current_user_id),
+):
+    """
+    Analyze user's portfolio by syncing latest prices and signals.
+
+    This endpoint:
+    1. Syncs current prices for all holdings
+    2. Updates signals from Model A and Model B
+    3. Calculates P&L and valuations
+    4. Updates portfolio totals
+
+    Returns refreshed portfolio with latest data.
+
+    Authentication: Requires valid JWT token in Authorization header.
+    User ID is extracted from token automatically.
+    """
+    # No API key check needed - JWT authentication required via dependency
+
+    with db() as con, con.cursor() as cur:
+        # Get portfolio
+        cur.execute(
+            """
+            select id from user_portfolios
+            where user_id = %s and is_active = true
+            limit 1
+            """,
+            (user_id,)
+        )
+        portfolio_row = cur.fetchone()
+
+        if not portfolio_row:
+            raise HTTPException(status_code=404, detail="Portfolio not found")
+
+        portfolio_id = portfolio_row[0]
+
+        # Sync all holdings
+        cur.execute("select sync_portfolio_prices(%s)", (portfolio_id,))
+        updated_count = cur.fetchone()[0]
+
+        con.commit()
+
+        logger.info(f"✅ Analyzed portfolio {portfolio_id}, synced {updated_count} holdings")
+
+    # Return updated portfolio
+    return get_portfolio(user_id=user_id)
+
+
+# =============================================================================
 # GET /portfolio/rebalancing - AI rebalancing suggestions
 # =============================================================================
 
 @router.get("/portfolio/rebalancing")
 def get_rebalancing_suggestions(
-    user_id: str = Query(default="default_user"),
+    user_id: int = Depends(get_current_user_id),
     regenerate: bool = Query(default=False),
-    x_api_key: Optional[str] = Header(default=None),
 ):
     """
     Get AI-driven rebalancing suggestions for the user's portfolio.
@@ -338,8 +395,11 @@ def get_rebalancing_suggestions(
 
     Args:
         regenerate: If True, regenerate suggestions instead of using cached ones
+
+    Authentication: Requires valid JWT token in Authorization header.
+    User ID is extracted from token automatically.
     """
-    require_key(x_api_key)
+    # No API key check needed - JWT authentication required via dependency
 
     with db() as con, con.cursor() as cur:
         # Get portfolio
@@ -559,9 +619,8 @@ def get_rebalancing_suggestions(
 
 @router.get("/portfolio/risk-metrics", response_model=RiskMetrics)
 def get_risk_metrics(
-    user_id: str = Query(default="default_user"),
+    user_id: int = Depends(get_current_user_id),
     recalculate: bool = Query(default=False),
-    x_api_key: Optional[str] = Header(default=None),
 ):
     """
     Get calculated risk metrics for the user's portfolio.
@@ -574,8 +633,11 @@ def get_risk_metrics(
     - Concentration metrics
     - Sector weights
     - Signal distribution
+
+    Authentication: Requires valid JWT token in Authorization header.
+    User ID is extracted from token automatically.
     """
-    require_key(x_api_key)
+    # No API key check needed - JWT authentication required via dependency
 
     with db() as con, con.cursor() as cur:
         # Get portfolio

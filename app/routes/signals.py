@@ -457,3 +457,305 @@ def signals_live(
     ]
 
     return {"status": "ok", "model": model, "as_of": as_of_d.isoformat(), "count": len(signals), "signals": signals}
+
+
+@router.get("/signals/live/{ticker}")
+def get_live_signal_for_ticker(
+    ticker: str,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    """
+    Get the latest signal for a specific ticker.
+
+    **Parameters**:
+    - ticker: Stock ticker symbol (e.g., "BHP.AX")
+
+    **Returns**:
+    - Latest Model A signal with confidence and expected return
+    """
+    require_key(x_api_key)
+
+    ticker = ticker.strip().upper()
+    if not ticker.endswith('.AX'):
+        ticker = f"{ticker}.AX"
+
+    with db() as con, con.cursor() as cur:
+        # Get latest signal
+        cur.execute(
+            """
+            SELECT
+                as_of,
+                signal_label,
+                confidence,
+                ml_prob,
+                ml_expected_return,
+                rank
+            FROM model_a_ml_signals
+            WHERE symbol = %s
+            ORDER BY as_of DESC
+            LIMIT 1
+            """,
+            (ticker,)
+        )
+        row = cur.fetchone()
+
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No signal found for {ticker}"
+            )
+
+        return {
+            "status": "ok",
+            "ticker": ticker,
+            "as_of": row[0].isoformat() if row[0] else None,
+            "signal": row[1],
+            "confidence": float(row[2]) if row[2] else None,
+            "ml_prob": float(row[3]) if row[3] else None,
+            "ml_expected_return": float(row[4]) if row[4] else None,
+            "rank": int(row[5]) if row[5] else None,
+        }
+
+
+@router.get("/signals/{ticker}/reasoning")
+def get_signal_reasoning(
+    ticker: str,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    """
+    Get SHAP-based reasoning for why a stock received its signal.
+
+    **Parameters**:
+    - ticker: Stock ticker symbol (e.g., "BHP.AX")
+
+    **Returns**:
+    - Feature contributions (SHAP values)
+    - Top factors driving the signal
+    - Direction of each factor's influence
+
+    **Example Response**:
+    ```json
+    {
+      "ticker": "BHP.AX",
+      "signal": "STRONG_BUY",
+      "confidence": 0.87,
+      "factors": [
+        {"feature": "momentum", "contribution": 0.45, "direction": "positive"},
+        {"feature": "volume_trend", "contribution": 0.32, "direction": "positive"},
+        {"feature": "rsi", "contribution": -0.15, "direction": "negative"},
+        {"feature": "ma_cross", "contribution": 0.28, "direction": "positive"}
+      ]
+    }
+    ```
+    """
+    require_key(x_api_key)
+
+    ticker = ticker.strip().upper()
+    if not ticker.endswith('.AX'):
+        ticker = f"{ticker}.AX"
+
+    with db() as con, con.cursor() as cur:
+        # Get latest signal with SHAP values
+        cur.execute(
+            """
+            SELECT
+                signal_label,
+                confidence,
+                shap_values,
+                feature_contributions
+            FROM model_a_ml_signals
+            WHERE symbol = %s
+            ORDER BY as_of DESC
+            LIMIT 1
+            """,
+            (ticker,)
+        )
+        row = cur.fetchone()
+
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No signal reasoning found for {ticker}"
+            )
+
+        signal_label = row[0]
+        confidence = float(row[1]) if row[1] else None
+        shap_values = row[2]  # JSONB column
+        feature_contributions = row[3]  # JSONB column
+
+        # Parse SHAP values if stored as JSON
+        factors = []
+        if feature_contributions and isinstance(feature_contributions, dict):
+            # Sort by absolute contribution value
+            sorted_features = sorted(
+                feature_contributions.items(),
+                key=lambda x: abs(float(x[1])),
+                reverse=True
+            )
+
+            for feature_name, contribution_value in sorted_features:
+                contrib_float = float(contribution_value)
+                factors.append({
+                    "feature": feature_name,
+                    "contribution": abs(contrib_float),
+                    "direction": "positive" if contrib_float > 0 else "negative"
+                })
+
+        elif shap_values and isinstance(shap_values, dict):
+            # Fall back to shap_values if feature_contributions not available
+            sorted_features = sorted(
+                shap_values.items(),
+                key=lambda x: abs(float(x[1])),
+                reverse=True
+            )
+
+            for feature_name, shap_value in sorted_features:
+                shap_float = float(shap_value)
+                factors.append({
+                    "feature": feature_name,
+                    "contribution": abs(shap_float),
+                    "direction": "positive" if shap_float > 0 else "negative"
+                })
+
+        return {
+            "status": "ok",
+            "ticker": ticker,
+            "signal": signal_label,
+            "confidence": confidence,
+            "factors": factors[:10],  # Top 10 factors
+            "explanation": f"{signal_label} signal driven by {len(factors)} features"
+        }
+
+
+@router.get("/accuracy/{ticker}")
+def get_signal_accuracy(
+    ticker: str,
+    limit: int = 50,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    """
+    Get historical signal accuracy for a specific ticker.
+
+    Shows how accurate Model A signals have been for this stock historically.
+
+    **Parameters**:
+    - ticker: Stock ticker symbol (e.g., "BHP.AX")
+    - limit: Number of historical signals to analyze (default: 50)
+
+    **Returns**:
+    - Accuracy by signal type (STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL)
+    - Overall win rate
+    - Total signals analyzed
+
+    **Example Response**:
+    ```json
+    {
+      "ticker": "BHP.AX",
+      "signals_analyzed": 48,
+      "overall_accuracy": 0.68,
+      "by_signal": {
+        "STRONG_BUY": {"accuracy": 0.72, "count": 11, "correct": 8},
+        "BUY": {"accuracy": 0.65, "count": 15, "correct": 10},
+        "HOLD": {"accuracy": 0.60, "count": 10, "correct": 6},
+        "SELL": {"accuracy": 0.70, "count": 8, "correct": 6},
+        "STRONG_SELL": {"accuracy": 0.75, "count": 4, "correct": 3}
+      }
+    }
+    ```
+    """
+    require_key(x_api_key)
+
+    ticker = ticker.strip().upper()
+    if not ticker.endswith('.AX'):
+        ticker = f"{ticker}.AX"
+
+    with db() as con, con.cursor() as cur:
+        # Get historical signals with actual outcomes
+        # Note: This is a simplified version. In production, you'd compare
+        # the signal prediction with actual price movement over the next N days.
+        cur.execute(
+            """
+            SELECT
+                s.signal_label,
+                s.confidence,
+                s.as_of,
+                -- Calculate if signal was correct (simplified):
+                -- Compare predicted return with actual return 30 days later
+                CASE
+                    WHEN s.ml_expected_return > 0
+                         AND p_future.close > p_current.close
+                    THEN true
+                    WHEN s.ml_expected_return < 0
+                         AND p_future.close < p_current.close
+                    THEN true
+                    WHEN s.ml_expected_return = 0
+                         AND abs(p_future.close - p_current.close) / p_current.close < 0.02
+                    THEN true
+                    ELSE false
+                END as was_correct
+            FROM model_a_ml_signals s
+            LEFT JOIN prices p_current ON p_current.ticker = s.symbol
+                AND p_current.dt = s.as_of
+            LEFT JOIN prices p_future ON p_future.ticker = s.symbol
+                AND p_future.dt = s.as_of + INTERVAL '30 days'
+            WHERE s.symbol = %s
+              AND p_current.close IS NOT NULL
+              AND p_future.close IS NOT NULL
+            ORDER BY s.as_of DESC
+            LIMIT %s
+            """,
+            (ticker, limit)
+        )
+        rows = cur.fetchall()
+
+        if not rows:
+            # Return default response if no historical data
+            return {
+                "status": "ok",
+                "ticker": ticker,
+                "signals_analyzed": 0,
+                "overall_accuracy": None,
+                "by_signal": {},
+                "message": "No historical signals with outcome data available"
+            }
+
+        # Calculate accuracy by signal type
+        signal_stats = {}
+        total_correct = 0
+        total_signals = 0
+
+        for signal_label, confidence, as_of, was_correct in rows:
+            if signal_label not in signal_stats:
+                signal_stats[signal_label] = {
+                    "count": 0,
+                    "correct": 0
+                }
+
+            signal_stats[signal_label]["count"] += 1
+            total_signals += 1
+
+            if was_correct:
+                signal_stats[signal_label]["correct"] += 1
+                total_correct += 1
+
+        # Calculate accuracies
+        by_signal = {}
+        for signal_label, stats in signal_stats.items():
+            accuracy = stats["correct"] / stats["count"] if stats["count"] > 0 else 0
+            by_signal[signal_label] = {
+                "accuracy": round(accuracy, 2),
+                "count": stats["count"],
+                "correct": stats["correct"]
+            }
+
+        overall_accuracy = total_correct / total_signals if total_signals > 0 else 0
+
+        return {
+            "status": "ok",
+            "ticker": ticker,
+            "signals_analyzed": total_signals,
+            "overall_accuracy": round(overall_accuracy, 2),
+            "by_signal": by_signal,
+            "lookback_days": 30,
+            "message": f"Analyzed {total_signals} historical signals"
+        }
