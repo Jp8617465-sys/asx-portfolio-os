@@ -10,6 +10,7 @@ import os
 from datetime import datetime
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from slowapi.errors import RateLimitExceeded
 
@@ -51,6 +52,19 @@ except ImportError:
 
 # Initialize FastAPI app
 app = FastAPI(title="ASX Portfolio OS", version="0.4.0")
+
+# CORS configuration - Allow frontend to connect
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://asx-portfolio-os.onrender.com",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Rate limiting configuration
 app.state.limiter = limiter

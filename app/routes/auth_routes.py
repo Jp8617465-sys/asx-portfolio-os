@@ -73,7 +73,7 @@ class UserResponse(BaseModel):
 
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("5/15minutes")  # Rate limit: 5 login attempts per 15 minutes per IP
-async def login(http_request: Request, request: LoginRequest):
+async def login(request: Request, login_request: LoginRequest):
     """
     Authenticate user and return JWT access token.
 
@@ -89,10 +89,10 @@ async def login(http_request: Request, request: LoginRequest):
 
     **Rate Limit**: 5 attempts per 15 minutes per IP address
     """
-    user = authenticate_user(request.username, request.password)
+    user = authenticate_user(login_request.username, login_request.password)
 
     if not user:
-        logger.warning(f"Failed login attempt for username: {request.username}")
+        logger.warning(f"Failed login attempt for username: {login_request.username}")
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password",
@@ -123,7 +123,7 @@ async def login(http_request: Request, request: LoginRequest):
 
 @router.post("/register", response_model=TokenResponse)
 @limiter.limit("3/hour")  # Rate limit: 3 registrations per hour per IP
-async def register(http_request: Request, request: RegisterRequest):
+async def register(request: Request, register_request: RegisterRequest):
     """
     Register a new user account.
 
@@ -144,17 +144,17 @@ async def register(http_request: Request, request: RegisterRequest):
         cur = conn.cursor()
 
         # Check if username already exists
-        cur.execute("SELECT username FROM user_accounts WHERE username = %s", (request.username,))
+        cur.execute("SELECT username FROM user_accounts WHERE username = %s", (register_request.username,))
         if cur.fetchone():
             raise HTTPException(status_code=400, detail="Username already registered")
 
         # Check if email already exists
-        cur.execute("SELECT email FROM user_accounts WHERE email = %s", (request.email,))
+        cur.execute("SELECT email FROM user_accounts WHERE email = %s", (register_request.email,))
         if cur.fetchone():
             raise HTTPException(status_code=400, detail="Email already registered")
 
         # Hash password
-        password_hash = get_password_hash(request.password)
+        password_hash = get_password_hash(register_request.password)
 
         # Create user
         cur.execute(
@@ -163,7 +163,7 @@ async def register(http_request: Request, request: RegisterRequest):
             VALUES (%s, %s, %s, %s, TRUE, FALSE)
             RETURNING user_id, username, email, full_name, is_active, is_verified, created_at
             """,
-            (request.username, request.email, password_hash, request.full_name)
+            (register_request.username, register_request.email, password_hash, register_request.full_name)
         )
         row = cur.fetchone()
         conn.commit()
