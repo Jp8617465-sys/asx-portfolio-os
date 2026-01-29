@@ -3,9 +3,27 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, TrendingUp, LayoutDashboard, Bookmark, User, Bell } from 'lucide-react';
+import {
+  Menu,
+  X,
+  TrendingUp,
+  LayoutDashboard,
+  Bookmark,
+  User,
+  Bell,
+  LogOut,
+  Settings as SettingsIcon,
+} from 'lucide-react';
 import { designTokens } from '@/lib/design-tokens';
 import NotificationBell from './notification-bell';
+import { logout, getUser } from '@/lib/auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 interface NavItem {
   label: string;
@@ -15,7 +33,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
-  { label: 'Watchlist', href: '/app/dashboard#watchlist', icon: Bookmark },
+  { label: 'Watchlist', href: '/app/dashboard', icon: Bookmark },
   { label: 'Portfolio', href: '/app/portfolio', icon: TrendingUp },
   { label: 'Alerts', href: '/app/alerts', icon: Bell },
 ];
@@ -23,6 +41,7 @@ const navItems: NavItem[] = [
 export default function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const user = getUser();
 
   const isActive = (href: string) => pathname === href;
 
@@ -70,14 +89,36 @@ export default function Header() {
             <NotificationBell />
 
             {/* User menu */}
-            <button
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
-                       text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800
-                       transition-colors"
-            >
-              <User className="h-4 w-4" />
-              <span>Account</span>
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+                           text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800
+                           transition-colors"
+                  data-testid="user-menu"
+                >
+                  <User className="h-4 w-4" />
+                  <span>{user?.username || 'Account'}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                  {user?.email || 'Not logged in'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/app/settings" className="cursor-pointer flex items-center">
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout} className="text-red-600 cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Mobile menu button */}
@@ -119,14 +160,36 @@ export default function Header() {
               })}
 
               {/* Mobile user menu */}
-              <button
-                className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-base font-medium
-                         text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800
-                         transition-colors"
-              >
-                <User className="h-5 w-5" />
-                Account
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-base font-medium
+                             text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800
+                             transition-colors"
+                    data-testid="user-menu-mobile"
+                  >
+                    <User className="h-5 w-5" />
+                    {user?.username || 'Account'}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                    {user?.email || 'Not logged in'}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/app/settings" className="cursor-pointer flex items-center">
+                      <SettingsIcon className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-red-600 cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         )}
