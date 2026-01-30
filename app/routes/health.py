@@ -45,7 +45,7 @@ def health():
             with con.cursor() as cur:
                 cur.execute("""
                     SELECT COUNT(*), MAX(signal_date)
-                    FROM ml_signals
+                    FROM model_a_ml_signals
                     WHERE signal_date >= CURRENT_DATE - INTERVAL '7 days'
                 """)
                 count, max_date = cur.fetchone()

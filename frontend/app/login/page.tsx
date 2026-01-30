@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import apiClient from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,10 +27,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post('/auth/login', {
-        username,
-        password,
-      });
+      const response = await api.login(username, password);
 
       const { access_token, user } = response.data;
 
@@ -40,11 +37,14 @@ export default function LoginPage() {
       // Store user info
       localStorage.setItem('user', JSON.stringify(user));
 
-      // Also set cookie for middleware authentication check
-      document.cookie = `access_token=${access_token}; path=/; max-age=3600; SameSite=Strict`;
+      // Set cookie for middleware authentication check
+      // Using SameSite=Lax to allow the cookie to be sent with navigation
+      // 7 days expiration
+      document.cookie = `access_token=${access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 
-      // Redirect to dashboard
-      router.push('/app/dashboard');
+      // Use window.location instead of router.push to ensure cookie is sent
+      // This triggers a full page navigation which includes the cookie
+      window.location.href = '/app/dashboard';
     } catch (err: any) {
       console.error('Login failed:', err);
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
       <Card className="w-full max-w-md shadow-2xl border-slate-700">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">ASX Portfolio OS</CardTitle>
@@ -87,7 +87,7 @@ export default function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your username"
                 required
                 autoComplete="username"
@@ -104,7 +104,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your password"
                 required
                 autoComplete="current-password"
@@ -114,8 +114,11 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-slate-600 bg-slate-800" />
-                <span className="text-slate-300">Remember me</span>
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                />
+                <span className="text-gray-700 dark:text-slate-300">Remember me</span>
               </label>
               <Link
                 href="/forgot-password"

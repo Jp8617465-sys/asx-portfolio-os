@@ -104,15 +104,15 @@ _connection_pool = None
 
 
 def get_pool():
-    """Get or create connection pool."""
+    """Get or create connection pool with optimized settings."""
     global _connection_pool
     if _connection_pool is None:
         _connection_pool = ThreadedConnectionPool(
-            minconn=2,
-            maxconn=10,
+            minconn=5,    # Increased from 2 to handle baseline load
+            maxconn=20,   # Increased from 10 to handle concurrent requests
             dsn=DATABASE_URL
         )
-        logger.info("✅ Database connection pool initialized (2-10 connections)")
+        logger.info("✅ Database connection pool initialized (5-20 connections)")
     return _connection_pool
 
 
@@ -140,6 +140,23 @@ def db_context():
         raise
     finally:
         return_conn(conn)
+
+
+def get_pool_stats():
+    """
+    Get connection pool statistics for monitoring.
+
+    Returns:
+        dict: Pool statistics including total, in_use, and available connections
+    """
+    pool = get_pool()
+    # Note: ThreadedConnectionPool doesn't expose internal state directly
+    # This is a simplified implementation
+    return {
+        "min_conn": pool.minconn,
+        "max_conn": pool.maxconn,
+        "status": "active",
+    }
 
 
 def require_key(x_api_key: Optional[str]):

@@ -18,7 +18,7 @@ from app.core import logger
 from app.routes import (
     health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift,
     portfolio_management, fundamentals, ensemble, auth_routes, user_routes,
-    notification_routes, search, watchlist, prices
+    notification_routes, search, watchlist, prices, sentiment
 )
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 
@@ -58,7 +58,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "http://localhost:3001",  # Allow port 3001 for dev server
         "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
         "https://asx-portfolio-os.onrender.com",
     ],
     allow_credentials=True,
@@ -111,6 +113,7 @@ app.include_router(jobs.router)
 app.include_router(drift.router)
 app.include_router(fundamentals.router)  # V2: Fundamental analysis endpoints
 app.include_router(ensemble.router)  # V2: Ensemble signals (Model A + Model B)
+app.include_router(sentiment.router)  # V2: Sentiment analysis (Model C)
 
 
 @app.get("/openapi-actions.json", include_in_schema=False)

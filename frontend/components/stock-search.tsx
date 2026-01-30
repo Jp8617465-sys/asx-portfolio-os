@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api-client';
 import { SearchResult } from '@/lib/types';
-import { Search, TrendingUp } from 'lucide-react';
+import { notify } from '@/lib/stores/notification-store';
+import { Search, TrendingUp, Plus } from 'lucide-react';
 
 interface StockSearchProps {
   placeholder?: string;
@@ -22,6 +23,7 @@ export default function StockSearch({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [addingSymbol, setAddingSymbol] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function StockSearch({
       setIsLoading(true);
       try {
         const response = await api.search(query);
-        setResults(response.data.data || []);
+        setResults(response.data.results || []); // Backend returns 'results' not 'data'
         setIsOpen(true);
       } catch (error) {
         console.error('Search error:', error);
@@ -84,7 +86,7 @@ export default function StockSearch({
       case 'Enter':
         e.preventDefault();
         if (results[selectedIndex]) {
-          handleSelectStock(results[selectedIndex].ticker);
+          handleSelectStock(results[selectedIndex].symbol);
         }
         break;
       case 'Escape':
@@ -102,6 +104,20 @@ export default function StockSearch({
       onSelect(ticker);
     } else {
       router.push(`/stock/${ticker}`);
+    }
+  };
+
+  const handleAddToWatchlist = async (symbol: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger navigation
+    setAddingSymbol(symbol);
+    try {
+      await api.addToWatchlist(symbol);
+      notify.success('Added to Watchlist', `${symbol} has been added to your watchlist`);
+    } catch (error) {
+      console.error('Failed to add to watchlist:', error);
+      notify.error('Failed to Add', `Could not add ${symbol} to watchlist. Please try again.`);
+    } finally {
+      setAddingSymbol(null);
     }
   };
 
@@ -146,38 +162,47 @@ export default function StockSearch({
                    max-h-96 overflow-y-auto"
         >
           {results.map((result, index) => (
-            <button
-              key={result.ticker}
-              onClick={() => handleSelectStock(result.ticker)}
-              className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700
-                       transition-colors flex items-center justify-between gap-4
+            <div
+              key={result.symbol}
+              className={`w-full px-4 py-3 flex items-center justify-between gap-4
                        ${index === selectedIndex ? 'bg-gray-50 dark:bg-gray-700' : ''}
                        ${index === 0 ? 'rounded-t-lg' : ''}
                        ${index === results.length - 1 ? 'rounded-b-lg' : ''}`}
             >
-              <div className="flex-1 min-w-0">
+              <button
+                onClick={() => handleSelectStock(result.symbol)}
+                className="flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+              >
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    {result.ticker}
+                    {result.symbol}
                   </span>
                   <span className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                    {result.companyName}
+                    {result.name}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 mt-1">
                   <span className="text-xs text-gray-500 dark:text-gray-400">{result.sector}</span>
-                  {result.marketCap && (
+                  {result.market_cap && (
                     <>
                       <span className="text-xs text-gray-400">•</span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatMarketCap(result.marketCap)}
+                        {formatMarketCap(result.market_cap)}
                       </span>
                     </>
                   )}
                 </div>
-              </div>
-              <TrendingUp className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            </button>
+              </button>
+              <button
+                onClick={(e) => handleAddToWatchlist(result.symbol, e)}
+                disabled={addingSymbol === result.symbol}
+                className="ml-2 p-2 rounded-lg hover:bg-blue-500 hover:text-white
+                         transition-colors disabled:opacity-50 flex-shrink-0"
+                title="Add to watchlist"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
           ))}
         </div>
       )}

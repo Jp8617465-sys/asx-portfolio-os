@@ -10,6 +10,7 @@ import { api } from '@/lib/api-client';
 import { WatchlistItem, Signal } from '@/lib/types';
 import { TrendingUp, TrendingDown, Activity, AlertCircle } from 'lucide-react';
 import { designTokens } from '@/lib/design-tokens';
+import { useAutoRefresh } from '@/lib/hooks/useAutoRefresh';
 
 interface DashboardStats {
   totalStocks: number;
@@ -31,10 +32,6 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
   const loadDashboardData = async () => {
     setIsLoading(true);
     setError(null);
@@ -47,71 +44,78 @@ export default function DashboardPage() {
       // Transform backend response to component format
       const transformedWatchlist: WatchlistItem[] = watchlistData.map((item: any) => ({
         ticker: item.ticker,
-        name: item.name || item.ticker,
+        companyName: item.name || item.ticker, // Map to companyName
         signal: item.current_signal || 'HOLD',
-        confidence: (item.signal_confidence || 50) * 100,
+        confidence: (item.signal_confidence || 0.5) * 100, // Convert 0-1 to 0-100
         lastPrice: item.current_price || 0,
         priceChange: item.price_change_pct || 0,
         priceChangeAmount: 0, // Calculate if needed
+        lastUpdated: item.added_at || new Date().toISOString(),
+        addedAt: item.added_at || new Date().toISOString(),
       }));
 
       setWatchlist(transformedWatchlist);
 
-      // Calculate stats
-      const strongSignals = watchlistData.filter(
+      // Calculate stats from TRANSFORMED data
+      const strongSignals = transformedWatchlist.filter(
         (item: WatchlistItem) => item.signal === 'STRONG_BUY' || item.signal === 'STRONG_SELL'
       ).length;
 
       const avgConf =
-        watchlistData.length > 0
-          ? watchlistData.reduce((sum: number, item: WatchlistItem) => sum + item.confidence, 0) /
-            watchlistData.length
+        transformedWatchlist.length > 0
+          ? transformedWatchlist.reduce(
+              (sum: number, item: WatchlistItem) => sum + item.confidence,
+              0
+            ) / transformedWatchlist.length
           : 0;
 
-      const todayChanges = watchlistData.filter(
+      const todayChanges = transformedWatchlist.filter(
         (item: WatchlistItem) => Math.abs(item.priceChange) > 2
       ).length;
 
       setStats({
-        totalStocks: watchlistData.length,
+        totalStocks: transformedWatchlist.length,
         strongSignals,
         avgConfidence: Math.round(avgConf),
         todayChanges,
       });
 
-      // Mock top signals data (replace with real API call later)
-      setTopSignals([
-        {
-          ticker: 'BHP.AX',
-          companyName: 'BHP Group',
-          signal: 'STRONG_BUY',
-          confidence: 87,
-          lastPrice: 45.32,
-          priceChange: 3.2,
-          priceChangeAmount: 1.45,
-          lastUpdated: new Date().toISOString(),
-        },
-        {
-          ticker: 'CBA.AX',
-          companyName: 'Commonwealth Bank',
-          signal: 'BUY',
-          confidence: 78,
-          lastPrice: 102.45,
-          priceChange: 1.5,
-          priceChangeAmount: 1.52,
-          lastUpdated: new Date().toISOString(),
-        },
-        {
-          ticker: 'FMG.AX',
-          companyName: 'Fortescue Metals',
-          signal: 'STRONG_BUY',
-          confidence: 82,
-          lastPrice: 19.87,
-          priceChange: 4.1,
-          priceChangeAmount: 0.78,
-          lastUpdated: new Date().toISOString(),
-        },
-      ]);
+      // Load top signals from real API
+      try {
+        const topSignalsResponse = await api.getTopSignals({ limit: 5 });
+        const topSignalsData = topSignalsResponse.data;
+
+        if (topSignalsData?.signals && Array.isArray(topSignalsData.signals)) {
+          // Transform backend response to frontend format
+          const transformedTopSignals: Signal[] = topSignalsData.signals.map((signal: any) => {
+            // Convert ml_prob (0-1) to confidence (0-100)
+            const confidence = Math.round((signal.ml_prob || 0) * 100);
+
+            // Determine signal type based on confidence
+            let signalType = 'HOLD';
+            if (confidence >= 80) signalType = 'STRONG_BUY';
+            else if (confidence >= 60) signalType = 'BUY';
+            else if (confidence <= 20) signalType = 'STRONG_SELL';
+            else if (confidence <= 40) signalType = 'SELL';
+
+            return {
+              ticker: signal.symbol,
+              companyName: signal.symbol.replace('.AU', '').replace('.AX', ''), // Use ticker as name for now
+              signal: signalType,
+              confidence,
+              lastPrice: 0, // Price data will come from separate endpoint if needed
+              priceChange: 0,
+              priceChangeAmount: 0,
+              lastUpdated: topSignalsData.as_of || new Date().toISOString(),
+            };
+          });
+
+          setTopSignals(transformedTopSignals);
+        }
+      } catch (topSignalsError) {
+        console.error('Failed to load top signals, using empty array:', topSignalsError);
+        setTopSignals([]);
+      }
     } catch (err) {
       console.error('Error loading dashboard:', err);
       setError('Failed to load dashboard data. Please try again.');
@@ -119,6 +123,17 @@ export default function DashboardPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  // Auto-refresh every 60 seconds
+  useAutoRefresh({
+    onRefresh: loadDashboardData,
+    intervalMs: 60000, // 60 seconds
+    enabled: !isLoading, // Don't refresh while loading
+  });
 
   const handleRemoveFromWatchlist = async (ticker: string) => {
     try {

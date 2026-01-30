@@ -153,10 +153,42 @@ export default function EnsembleSignalsTable({ data, isLoading }: EnsembleSignal
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getSignalColor(signal.signal)}>{signal.signal}</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getSignalColor(signal.signal)}>{signal.signal}</Badge>
+                        {signal.agreement?.conflict && (
+                          <span
+                            className="text-xs text-red-600 dark:text-red-400"
+                            title="Models disagree"
+                          >
+                            ⚠️
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {signal.ensemble_score?.toFixed(3) || 'n/a'}
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-mono text-xs">
+                          {signal.ensemble_score?.toFixed(3) || 'n/a'}
+                        </span>
+                        {/* Confidence Breakdown: 60% A + 40% B */}
+                        {signal.component_signals?.model_a && signal.component_signals?.model_b && (
+                          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                            <span title="60% Model A">
+                              A:{' '}
+                              {((signal.component_signals.model_a.confidence || 0) * 0.6).toFixed(
+                                2
+                              )}
+                            </span>
+                            <span>+</span>
+                            <span title="40% Model B">
+                              B:{' '}
+                              {((signal.component_signals.model_b.confidence || 0) * 0.4).toFixed(
+                                2
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {signal.agreement?.conflict ? (

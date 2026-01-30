@@ -2,12 +2,25 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity, LayoutGrid, ListChecks, MessageCircle, Settings, Sparkles } from 'lucide-react';
+import {
+  Activity,
+  LayoutGrid,
+  ListChecks,
+  MessageCircle,
+  Settings,
+  Sparkles,
+  Bookmark,
+  Briefcase,
+  Bell,
+} from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/app/dashboard', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/app/watchlist', label: 'Watchlist', icon: Bookmark },
+  { href: '/app/portfolio', label: 'Portfolio', icon: Briefcase },
+  { href: '/app/alerts', label: 'Alerts', icon: Bell },
   { href: '/app/models', label: 'Models', icon: Sparkles },
   { href: '/app/jobs', label: 'Jobs', icon: ListChecks },
   { href: '/app/insights', label: 'Insights', icon: Activity },

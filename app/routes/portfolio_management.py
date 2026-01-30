@@ -13,7 +13,7 @@ import numpy as np
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Query, Depends
 from pydantic import BaseModel, Field
 
-from app.core import db, require_key, logger
+from app.core import db_context, require_key, logger
 from app.auth import get_current_user_id
 
 router = APIRouter()
@@ -157,7 +157,7 @@ async def upload_portfolio(
             raise HTTPException(status_code=400, detail="No valid holdings found in CSV")
 
         # Create portfolio in database
-        with db() as con, con.cursor() as cur:
+        with db_context() as con, con.cursor() as cur:
             # Check if user already has a portfolio
             cur.execute(
                 """
@@ -253,7 +253,7 @@ def get_portfolio(
     """
     # No API key check needed - JWT authentication required via dependency
 
-    with db() as con, con.cursor() as cur:
+    with db_context() as con, con.cursor() as cur:
         # Get portfolio
         cur.execute(
             """
@@ -346,7 +346,7 @@ def analyze_portfolio(
     """
     # No API key check needed - JWT authentication required via dependency
 
-    with db() as con, con.cursor() as cur:
+    with db_context() as con, con.cursor() as cur:
         # Get portfolio
         cur.execute(
             """
@@ -401,7 +401,7 @@ def get_rebalancing_suggestions(
     """
     # No API key check needed - JWT authentication required via dependency
 
-    with db() as con, con.cursor() as cur:
+    with db_context() as con, con.cursor() as cur:
         # Get portfolio
         cur.execute(
             """
@@ -639,7 +639,7 @@ def get_risk_metrics(
     """
     # No API key check needed - JWT authentication required via dependency
 
-    with db() as con, con.cursor() as cur:
+    with db_context() as con, con.cursor() as cur:
         # Get portfolio
         cur.execute(
             """

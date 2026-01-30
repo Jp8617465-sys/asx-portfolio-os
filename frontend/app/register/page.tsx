@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import apiClient from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -84,12 +84,12 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post('/auth/register', {
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        full_name: formData.fullName || null,
-      });
+      const response = await api.register(
+        formData.username,
+        formData.email,
+        formData.password,
+        formData.fullName || undefined
+      );
 
       const { access_token, user } = response.data;
 
@@ -100,7 +100,8 @@ export default function RegisterPage() {
       localStorage.setItem('user', JSON.stringify(user));
 
       // Also set cookie for middleware authentication check
-      document.cookie = `access_token=${access_token}; path=/; max-age=3600; SameSite=Strict`;
+      // 7 days expiration, using Lax for better compatibility
+      document.cookie = `access_token=${access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 
       // Redirect to dashboard
       router.push('/app/dashboard');
@@ -128,7 +129,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-white dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
       <Card className="w-full max-w-md shadow-2xl border-slate-700">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
@@ -154,7 +155,7 @@ export default function RegisterPage() {
                 type="text"
                 value={formData.username}
                 onChange={(e) => handleChange('username', e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Choose a username"
                 required
                 autoComplete="username"
@@ -176,7 +177,7 @@ export default function RegisterPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="your@email.com"
                 required
                 autoComplete="email"
@@ -193,7 +194,7 @@ export default function RegisterPage() {
                 type="text"
                 value={formData.fullName}
                 onChange={(e) => handleChange('fullName', e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="John Smith"
                 autoComplete="name"
                 disabled={isLoading}
@@ -209,7 +210,7 @@ export default function RegisterPage() {
                 type="password"
                 value={formData.password}
                 onChange={(e) => handleChange('password', e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Create a strong password"
                 required
                 autoComplete="new-password"
@@ -245,7 +246,7 @@ export default function RegisterPage() {
                 type="password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Re-enter your password"
                 required
                 autoComplete="new-password"
@@ -260,10 +261,10 @@ export default function RegisterPage() {
               <label className="flex items-start space-x-2 cursor-pointer text-sm">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 mt-0.5 rounded border-slate-600 bg-slate-800"
+                  className="w-4 h-4 mt-0.5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
                   required
                 />
-                <span className="text-slate-300">
+                <span className="text-gray-700 dark:text-slate-300">
                   I agree to the{' '}
                   <Link href="/terms" className="text-blue-400 hover:text-blue-300">
                     Terms of Service

@@ -51,13 +51,13 @@ export default function StockDetailPage() {
     try {
       // Load signal data
       const signalResponse = await api.getSignal(ticker);
-      const signalData = signalResponse.data.data;
+      const signalData = signalResponse.data;
       setSignal(signalData);
 
       // Load reasoning
       try {
         const reasoningResponse = await api.getSignalReasoning(ticker);
-        setReasoning(reasoningResponse.data.data);
+        setReasoning(reasoningResponse.data);
       } catch (err) {
         console.warn('Reasoning not available:', err);
       }
@@ -152,7 +152,7 @@ export default function StockDetailPage() {
   const checkWatchlistStatus = async () => {
     try {
       const response = await api.getWatchlist();
-      const watchlist = response.data.data || [];
+      const watchlist = response.data || [];
       setIsInWatchlist(watchlist.some((item: WatchlistItem) => item.ticker === ticker));
     } catch (err) {
       console.error('Error checking watchlist:', err);

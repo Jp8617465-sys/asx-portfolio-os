@@ -1,0 +1,155 @@
+name: E2E Authentication Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: asx_portfolio_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Install Node dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Apply database schema
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asx_portfolio_test
+        run: |
+          python scripts/apply_user_schema.py || true
+          python scripts/apply_notification_schema.py || true
+
+      - name: Create demo user
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asx_portfolio_test
+        run: |
+          python -c "
+          import psycopg2
+          from passlib.context import CryptContext
+          pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+          conn = psycopg2.connect('postgresql://postgres:postgres@localhost:5432/asx_portfolio_test')
+          cur = conn.cursor()
+          hashed = pwd_context.hash('testpass123')
+          cur.execute(
+              'INSERT INTO user_accounts (username, email, hashed_password, full_name, is_active, is_verified) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (username) DO NOTHING',
+              ('demo_user', 'demo@test.com', hashed, 'Demo User', True, True)
+          )
+          conn.commit()
+          cur.close()
+          conn.close()
+          " || true
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:8788
+        run: npm run build
+
+      - name: Start backend server
+        env:
+          JWT_SECRET_KEY: test_secret_key_for_ci_only_do_not_use_in_production
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asx_portfolio_test
+          EODHD_API_KEY: dummy_key_for_testing
+          ALPHA_VANTAGE_API_KEY: dummy_key
+          FINNHUB_API_KEY: dummy_key
+          FMP_API_KEY: dummy_key
+        run: |
+          cd backend
+          uvicorn app.main:app --host 0.0.0.0 --port 8788 > backend.log 2>&1 &
+          echo $! > backend.pid
+          sleep 10
+
+          # Check if backend started
+          curl -f http://localhost:8788/health || (cat backend.log && exit 1)
+
+      - name: Start frontend server
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:8788
+          PORT: 3000
+        run: |
+          npm run start > frontend.log 2>&1 &
+          echo $! > frontend.pid
+          sleep 10
+
+          # Check if frontend started
+          curl -f http://localhost:3000 || (cat frontend.log && exit 1)
+
+      - name: Run Playwright E2E tests
+        working-directory: frontend
+        run: npx playwright test --project=chromium
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 30
+
+      - name: Upload test videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-videos
+          path: frontend/test-results/
+          retention-days: 7
+
+      - name: Upload server logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-logs
+          path: |
+            backend/backend.log
+            frontend/frontend.log
+          retention-days: 7
+
+      - name: Stop servers
+        if: always()
+        run: |
+          [ -f backend/backend.pid ] && kill $(cat backend/backend.pid) || true
+          [ -f frontend/frontend.pid ] && kill $(cat frontend/frontend.pid) || true

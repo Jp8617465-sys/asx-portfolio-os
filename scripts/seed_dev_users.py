@@ -7,6 +7,7 @@ Creates demo users with known passwords for local testing only.
 """
 
 import sys
+import json
 from app.core import db_context
 from app.auth import get_password_hash
 
@@ -52,18 +53,19 @@ def seed_dev_users():
             user_id = cur.fetchone()[0]
 
             # Create default settings
+            settings_data = {
+                "theme": "dark",
+                "notifications_enabled": True,
+                "default_portfolio": None,
+                "risk_tolerance": "moderate"
+            }
             cur.execute(
                 """
                 INSERT INTO user_settings (user_id, settings)
-                VALUES (%s, %s)
+                VALUES (%s, %s::jsonb)
                 ON CONFLICT (user_id) DO NOTHING
                 """,
-                (user_id, {
-                    "theme": "dark",
-                    "notifications_enabled": True,
-                    "default_portfolio": None,
-                    "risk_tolerance": "moderate"
-                })
+                (user_id, json.dumps(settings_data))
             )
 
             print(f"✅ Created/updated user: {user['username']} (ID: {user_id})")

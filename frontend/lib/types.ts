@@ -41,10 +41,11 @@ export interface SignalReasoning {
 
 // Stock search types
 export interface SearchResult {
-  ticker: string;
-  companyName: string;
-  sector: string;
-  marketCap: number;
+  symbol: string; // Backend returns 'symbol' not 'ticker'
+  name: string; // Backend returns 'name' not 'companyName'
+  sector: string | null;
+  market_cap: number | null; // Backend returns 'market_cap' not 'marketCap'
+  exchange: string; // Backend also returns exchange
 }
 
 // Historical accuracy types

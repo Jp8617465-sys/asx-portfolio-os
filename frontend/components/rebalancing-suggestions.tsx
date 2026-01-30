@@ -15,76 +15,20 @@ import {
 
 interface RebalancingSuggestionsProps {
   portfolio: Portfolio;
+  suggestions?: RebalancingSuggestion[];
+  isLoading?: boolean;
   onApply?: (suggestionId: string) => void;
   onApplyAll?: () => void;
 }
 
 export default function RebalancingSuggestions({
   portfolio,
+  suggestions = [],
+  isLoading = false,
   onApply,
   onApplyAll,
 }: RebalancingSuggestionsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  // Mock suggestions (would come from API in production)
-  const suggestions: RebalancingSuggestion[] = React.useMemo(() => {
-    // Generate suggestions based on holdings
-    const mockSuggestions: RebalancingSuggestion[] = [];
-
-    // Example: Suggest selling HOLD positions
-    portfolio.holdings
-      .filter((h) => h.signal === 'HOLD' && h.confidence < 60)
-      .slice(0, 2)
-      .forEach((holding) => {
-        const sellAmount = Math.floor(holding.shares * 0.5); // Suggest selling 50%
-        mockSuggestions.push({
-          id: `sell-${holding.ticker}`,
-          action: 'SELL',
-          ticker: holding.ticker,
-          companyName: holding.companyName,
-          quantity: sellAmount,
-          currentSignal: holding.signal,
-          currentConfidence: holding.confidence,
-          reason: 'Reduce exposure to low-confidence position',
-          impact: {
-            expectedReturn: 0.5,
-            volatilityChange: -2.0,
-            newAllocation: ((holding.totalValue * 0.5) / portfolio.totalValue) * 100,
-          },
-          priority: 'medium',
-        });
-      });
-
-    // Example: Suggest buying STRONG_BUY positions
-    portfolio.holdings
-      .filter((h) => h.signal === 'STRONG_BUY' && h.confidence > 80)
-      .slice(0, 2)
-      .forEach((holding) => {
-        const buyAmount = Math.floor(holding.shares * 0.3); // Suggest buying 30% more
-        mockSuggestions.push({
-          id: `buy-${holding.ticker}`,
-          action: 'BUY',
-          ticker: holding.ticker,
-          companyName: holding.companyName,
-          quantity: buyAmount,
-          currentSignal: holding.signal,
-          currentConfidence: holding.confidence,
-          reason: 'Increase exposure to high-confidence opportunity',
-          impact: {
-            expectedReturn: 1.2,
-            volatilityChange: 0.8,
-            newAllocation: ((holding.totalValue * 1.3) / portfolio.totalValue) * 100,
-          },
-          priority: 'high',
-        });
-      });
-
-    // Sort by priority
-    return mockSuggestions.sort((a, b) => {
-      const priorityOrder = { high: 0, medium: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
-    });
-  }, [portfolio]);
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
