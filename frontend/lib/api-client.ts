@@ -186,7 +186,7 @@ export const api = {
 
   getFeatureDrift: () => apiClient.get('/api/drift/features'),
 
-  getDriftHistory: (params?: { days?: number }) => apiClient.get('/api/drift/history', { params }),
+  getDriftHistory: (params?: { feature_name?: string; days?: number }) => apiClient.get('/api/drift/history', { params }),
 
   // News & Sentiment (via proxy)
   getTickerNews: (ticker: string, params?: { days?: number; limit?: number }) =>
@@ -200,6 +200,12 @@ export const api = {
 
   // Portfolio Fusion (via proxy)
   getPortfolioFusion: () => apiClient.get('/api/portfolio/fusion'),
+
+  getPortfolioRisk: () => apiClient.get('/api/portfolio/fusion/risk'),
+
+  getPortfolioAllocation: () => apiClient.get('/api/portfolio/fusion/allocation'),
+
+  refreshPortfolioFusion: () => apiClient.post('/api/portfolio/fusion'),
 
   // Direct axios access for additional endpoints
   get: apiClient.get,

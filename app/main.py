@@ -18,7 +18,7 @@ from app.core import logger
 from app.routes import (
     health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift,
     portfolio_management, fundamentals, ensemble, auth_routes, user_routes,
-    notification_routes, search, watchlist, prices, sentiment
+    notification_routes, search, watchlist, prices, sentiment, news
 )
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 
@@ -114,6 +114,7 @@ app.include_router(drift.router)
 app.include_router(fundamentals.router)  # V2: Fundamental analysis endpoints
 app.include_router(ensemble.router)  # V2: Ensemble signals (Model A + Model B)
 app.include_router(sentiment.router)  # V2: Sentiment analysis (Model C)
+app.include_router(news.router)  # V2: News scraping and sentiment
 
 
 @app.get("/openapi-actions.json", include_in_schema=False)
