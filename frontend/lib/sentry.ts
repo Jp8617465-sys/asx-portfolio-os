@@ -3,6 +3,8 @@
  * Initializes Sentry for frontend error monitoring
  */
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - @sentry/nextjs is optional dependency
 import * as Sentry from '@sentry/nextjs';
 
 const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
@@ -32,7 +34,7 @@ if (SENTRY_DSN && typeof window !== 'undefined') {
     ],
 
     // Filter out sensitive data
-    beforeSend(event, hint) {
+    beforeSend(event: any, hint: any) {
       // Don't send errors in development
       if (ENVIRONMENT === 'development') {
         console.log('Sentry event (not sent in dev):', event);
@@ -44,7 +46,10 @@ if (SENTRY_DSN && typeof window !== 'undefined') {
         const error = hint.originalException;
         if (error instanceof Error) {
           // Ignore network errors (user offline, etc.)
-          if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
+          if (
+            error.message.includes('Network Error') ||
+            error.message.includes('Failed to fetch')
+          ) {
             return null;
           }
 
@@ -57,7 +62,7 @@ if (SENTRY_DSN && typeof window !== 'undefined') {
 
       // Remove sensitive data from breadcrumbs
       if (event.breadcrumbs) {
-        event.breadcrumbs = event.breadcrumbs.map((breadcrumb) => {
+        event.breadcrumbs = event.breadcrumbs.map((breadcrumb: any) => {
           if (breadcrumb.category === 'xhr' || breadcrumb.category === 'fetch') {
             if (breadcrumb.data?.url) {
               // Remove query parameters that might contain sensitive data
