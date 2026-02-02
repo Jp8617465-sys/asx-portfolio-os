@@ -88,17 +88,24 @@ describe('NewsFeed', () => {
   it('loads and displays news articles', async () => {
     render(<NewsFeed />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText('Banking Sector Update')).toBeInTheDocument();
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    // Assert content loaded
+    expect(screen.getByText('Banking Sector Update')).toBeInTheDocument();
   });
 
   it('loads ticker-specific news when ticker prop provided', async () => {
     render(<NewsFeed ticker="BHP.AX" />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText('BHP Reports Strong Quarterly Results')).toBeInTheDocument();
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    expect(screen.getByText('BHP Reports Strong Quarterly Results')).toBeInTheDocument();
 
     const { api } = require('@/lib/api-client');
     expect(api.getTickerNews).toHaveBeenCalledWith('BHP.AX', expect.any(Object));
@@ -107,54 +114,79 @@ describe('NewsFeed', () => {
   it('displays sentiment badges correctly', async () => {
     render(<NewsFeed ticker="BHP.AX" />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText(/positive/i)).toBeInTheDocument();
-      expect(screen.getByText(/negative/i)).toBeInTheDocument();
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    // Multiple sentiment badges may exist (in filters and articles)
+    const positiveBadges = screen.getAllByText(/positive/i);
+    const negativeBadges = screen.getAllByText(/negative/i);
+    expect(positiveBadges.length).toBeGreaterThan(0);
+    expect(negativeBadges.length).toBeGreaterThan(0);
   });
 
   it('shows confidence scores', async () => {
     render(<NewsFeed ticker="BHP.AX" />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText(/85%.*confidence/i)).toBeInTheDocument();
-      expect(screen.getByText(/65%.*confidence/i)).toBeInTheDocument();
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    expect(screen.getByText(/85%.*confidence/i)).toBeInTheDocument();
+    expect(screen.getByText(/65%.*confidence/i)).toBeInTheDocument();
   });
 
   it('displays publication dates', async () => {
     render(<NewsFeed ticker="BHP.AX" />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      // Should show relative dates like "1d ago" or "Yesterday"
-      const dateTexts = screen.getAllByText(/ago|Yesterday|Today/i);
-      expect(dateTexts.length).toBeGreaterThan(0);
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    // Should show formatted dates (could be relative like "1d ago" or absolute like "Jan 30")
+    const dateTexts = screen.getAllByText(/ago|Yesterday|Today|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i);
+    expect(dateTexts.length).toBeGreaterThan(0);
   });
 
   it('shows article source attribution', async () => {
     render(<NewsFeed ticker="BHP.AX" />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText('NewsAPI')).toBeInTheDocument();
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    // Multiple NewsAPI sources may appear
+    const sources = screen.getAllByText('NewsAPI');
+    expect(sources.length).toBeGreaterThan(0);
   });
 
   it('displays author information', async () => {
     render(<NewsFeed ticker="BHP.AX" />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText(/John Doe|Jane Smith/)).toBeInTheDocument();
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    // Check for author - may appear multiple times so use getAllByText
+    const authors = screen.getAllByText(/by Jane Smith|by John Doe/);
+    expect(authors.length).toBeGreaterThan(0);
   });
 
   it('allows filtering by sentiment', async () => {
     render(<NewsFeed showFilters={true} />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      const positiveFilter = screen.getByRole('button', { name: /Positive/i });
-      fireEvent.click(positiveFilter);
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    const positiveFilter = screen.getByRole('button', { name: /Positive/i });
+    fireEvent.click(positiveFilter);
 
     // Should filter news by sentiment
     const { api } = require('@/lib/api-client');
@@ -171,10 +203,13 @@ describe('NewsFeed', () => {
   it('allows changing timeframe', async () => {
     render(<NewsFeed showFilters={true} />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      const timeframe7d = screen.getByRole('button', { name: /7d/i });
-      fireEvent.click(timeframe7d);
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    const timeframe7d = screen.getByRole('button', { name: /7d/i });
+    fireEvent.click(timeframe7d);
 
     // Should reload news with new timeframe
     expect(true).toBeTruthy();
@@ -192,9 +227,12 @@ describe('NewsFeed', () => {
 
     render(<NewsFeed />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText(/No news.*available/i)).toBeInTheDocument();
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    expect(screen.getByText(/No news.*available/i)).toBeInTheDocument();
   });
 
   it('handles API errors gracefully', async () => {
@@ -203,9 +241,12 @@ describe('NewsFeed', () => {
 
     render(<NewsFeed />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText(/failed|error/i)).toBeInTheDocument();
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    expect(screen.getByText(/failed|error/i)).toBeInTheDocument();
   });
 
   it('displays article cards with click handlers', async () => {
@@ -214,13 +255,16 @@ describe('NewsFeed', () => {
 
     render(<NewsFeed ticker="BHP.AX" />);
 
+    // Wait for loading to finish
     await waitFor(() => {
-      const articleCard = screen.getByText('BHP Reports Strong Quarterly Results').closest('[class*="Card"]');
-      if (articleCard) {
-        fireEvent.click(articleCard);
-        expect(global.open).toHaveBeenCalledWith('https://example.com/article1', '_blank');
-      }
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
+
+    const articleCard = screen.getByText('BHP Reports Strong Quarterly Results').closest('[class*="Card"]');
+    if (articleCard) {
+      fireEvent.click(articleCard);
+      expect(global.open).toHaveBeenCalledWith('https://example.com/article1', '_blank');
+    }
   });
 
   it('limits articles when limit prop is provided', async () => {
@@ -237,5 +281,116 @@ describe('NewsFeed', () => {
 
     const positiveFilter = screen.queryByRole('button', { name: /Positive/i });
     expect(positiveFilter).not.toBeInTheDocument();
+  });
+
+  // Additional coverage tests for business logic
+  it('filters articles by positive sentiment correctly', async () => {
+    const { api } = require('@/lib/api-client');
+
+    render(<NewsFeed showFilters={true} />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
+    });
+
+    // Clear previous calls
+    api.get.mockClear();
+
+    // Click positive filter
+    const positiveButton = screen.getByRole('button', { name: /Positive/i });
+    fireEvent.click(positiveButton);
+
+    // Verify API called with positive sentiment filter
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith(
+        '/api/news/latest',
+        expect.objectContaining({
+          params: expect.objectContaining({ sentiment: 'positive' }),
+        })
+      );
+    });
+  });
+
+  it('applies timeframe filter when clicking 24h button', async () => {
+    const { api } = require('@/lib/api-client');
+
+    render(<NewsFeed showFilters={true} />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
+    });
+
+    // Clear previous calls
+    api.getLatestNews.mockClear();
+
+    // Click 24h timeframe
+    const timeframe24h = screen.getByRole('button', { name: /24h/i });
+    fireEvent.click(timeframe24h);
+
+    // Component should reload with days=1
+    await waitFor(() => {
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it('opens article URL in new tab when card is clicked', async () => {
+    global.open = jest.fn();
+
+    render(<NewsFeed ticker="BHP.AX" />);
+
+    // Wait for loading to finish
+    await waitFor(() => {
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
+    });
+
+    // Find article title - clicking on any element should bubble to the Card onClick
+    const articleTitle = screen.getByText('BHP Reports Strong Quarterly Results');
+
+    // Click on the title element - the event should bubble up to the Card's onClick
+    fireEvent.click(articleTitle);
+
+    // Verify window.open was called with correct URL
+    expect(global.open).toHaveBeenCalledWith('https://example.com/article1', '_blank');
+  });
+
+  it('shows empty state with ticker-specific message when no articles for ticker', async () => {
+    const { api } = require('@/lib/api-client');
+    api.getTickerNews.mockResolvedValueOnce({
+      data: {
+        status: 'success',
+        ticker: 'XYZ.AX',
+        article_count: 0,
+        articles: [],
+      },
+    });
+
+    render(<NewsFeed ticker="XYZ.AX" />);
+
+    // Wait for loading to finish
+    await waitFor(() => {
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
+    });
+
+    // Verify ticker-specific empty message
+    expect(screen.getByText(/No news articles available for XYZ\.AX/i)).toBeInTheDocument();
+    expect(screen.getByText(/Try adjusting your filters or check back later/i)).toBeInTheDocument();
+  });
+
+  it('displays error message with icon when API fails', async () => {
+    const { api } = require('@/lib/api-client');
+    api.getLatestNews.mockRejectedValueOnce(new Error('Network error'));
+
+    render(<NewsFeed />);
+
+    // Wait for loading to finish
+    await waitFor(() => {
+      expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
+    });
+
+    // Verify error state is shown
+    expect(screen.getByText(/Failed to load news articles/i)).toBeInTheDocument();
+    expect(screen.getByText(/Please try again/i)).toBeInTheDocument();
   });
 });

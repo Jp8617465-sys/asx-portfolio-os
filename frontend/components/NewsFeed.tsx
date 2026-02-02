@@ -140,7 +140,7 @@ export default function NewsFeed({ ticker, limit = 20, showFilters = true }: New
               {[1, 7, 30].map((d) => (
                 <Button
                   key={d}
-                  variant={days === d ? 'default' : 'outline'}
+                  variant={days === d ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setDays(d)}
                 >
@@ -154,14 +154,14 @@ export default function NewsFeed({ ticker, limit = 20, showFilters = true }: New
             <span className="text-sm text-gray-600 dark:text-gray-400">Sentiment:</span>
             <div className="flex gap-1">
               <Button
-                variant={sentimentFilter === null ? 'default' : 'outline'}
+                variant={sentimentFilter === null ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => setSentimentFilter(null)}
               >
                 All
               </Button>
               <Button
-                variant={sentimentFilter === 'positive' ? 'default' : 'outline'}
+                variant={sentimentFilter === 'positive' ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => setSentimentFilter('positive')}
               >
@@ -169,7 +169,7 @@ export default function NewsFeed({ ticker, limit = 20, showFilters = true }: New
                 Positive
               </Button>
               <Button
-                variant={sentimentFilter === 'negative' ? 'default' : 'outline'}
+                variant={sentimentFilter === 'negative' ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => setSentimentFilter('negative')}
               >
@@ -177,7 +177,7 @@ export default function NewsFeed({ ticker, limit = 20, showFilters = true }: New
                 Negative
               </Button>
               <Button
-                variant={sentimentFilter === 'neutral' ? 'default' : 'outline'}
+                variant={sentimentFilter === 'neutral' ? 'primary' : 'outline'}
                 size="sm"
                 onClick={() => setSentimentFilter('neutral')}
               >

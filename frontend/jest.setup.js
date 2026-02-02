@@ -74,6 +74,8 @@ jest.mock('lucide-react', () => ({
   Target: () => 'Target',
   Activity: () => 'Activity',
   BarChart3: () => 'BarChart3',
+  Home: () => 'Home',
+  CreditCard: () => 'CreditCard',
 
   // File & Data Icons
   Download: () => 'Download',
@@ -98,6 +100,7 @@ jest.mock('lucide-react', () => ({
   Zap: () => 'Zap',
   Shield: () => 'Shield',
   Clock: () => 'Clock',
+  Calendar: () => 'Calendar',
   Loader2: () => 'Loader2',
 
   // Social Icons
@@ -107,3 +110,24 @@ jest.mock('lucide-react', () => ({
 
 // Mock environment variables
 process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000/api/v1';
+
+// Mock recharts globally to avoid duplication in test files
+const React = require('react');
+jest.mock('recharts', () => ({
+  ResponsiveContainer: ({ children }) => React.createElement('div', {}, children),
+  PieChart: ({ children }) => React.createElement('div', { 'data-testid': 'pie-chart' }, children),
+  BarChart: ({ children }) => React.createElement('div', { 'data-testid': 'bar-chart' }, children),
+  LineChart: ({ children }) => React.createElement('div', { 'data-testid': 'line-chart' }, children),
+  ScatterChart: ({ children }) => React.createElement('div', { 'data-testid': 'scatter-chart' }, children),
+  Pie: () => null,
+  Bar: () => null,
+  Line: () => null,
+  Scatter: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
+  ZAxis: () => null,
+  CartesianGrid: () => null,
+  Tooltip: () => null,
+  Legend: () => null,
+  Cell: () => null,
+}));
