@@ -1,10 +1,14 @@
 /**
  * Sentry Error Tracking Configuration
- * Initializes Sentry for frontend error monitoring
+ * Currently disabled - @sentry/nextjs package not installed
+ *
+ * To enable:
+ * 1. Run: npm install @sentry/nextjs
+ * 2. Set NEXT_PUBLIC_SENTRY_DSN environment variable
+ * 3. Uncomment code below
  */
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - @sentry/nextjs is optional dependency
+/*
 import * as Sentry from '@sentry/nextjs';
 
 const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
@@ -14,38 +18,23 @@ if (SENTRY_DSN && typeof window !== 'undefined') {
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: ENVIRONMENT,
-
-    // Set tracesSampleRate to capture a percentage of transactions for performance monitoring
-    // 0.1 = 10% of transactions
     tracesSampleRate: ENVIRONMENT === 'production' ? 0.1 : 1.0,
-
-    // Capture 100% of errors
     sampleRate: 1.0,
-
-    // Enable automatic session tracking
     autoSessionTracking: true,
-
-    // Integrations
     integrations: [
-      // Automatic breadcrumbs for console, fetch, XHR, DOM events
       new Sentry.BrowserTracing({
         tracingOrigins: ['localhost', /^\//],
       }),
     ],
-
-    // Filter out sensitive data
     beforeSend(event: any, hint: any) {
-      // Don't send errors in development
       if (ENVIRONMENT === 'development') {
         console.log('Sentry event (not sent in dev):', event);
         return null;
       }
 
-      // Filter out noisy errors
       if (event.exception) {
         const error = hint.originalException;
         if (error instanceof Error) {
-          // Ignore network errors (user offline, etc.)
           if (
             error.message.includes('Network Error') ||
             error.message.includes('Failed to fetch')
@@ -53,19 +42,16 @@ if (SENTRY_DSN && typeof window !== 'undefined') {
             return null;
           }
 
-          // Ignore cancelled requests
           if (error.message.includes('cancel') || error.message.includes('abort')) {
             return null;
           }
         }
       }
 
-      // Remove sensitive data from breadcrumbs
       if (event.breadcrumbs) {
         event.breadcrumbs = event.breadcrumbs.map((breadcrumb: any) => {
           if (breadcrumb.category === 'xhr' || breadcrumb.category === 'fetch') {
             if (breadcrumb.data?.url) {
-              // Remove query parameters that might contain sensitive data
               breadcrumb.data.url = breadcrumb.data.url.split('?')[0];
             }
           }
@@ -75,16 +61,11 @@ if (SENTRY_DSN && typeof window !== 'undefined') {
 
       return event;
     },
-
-    // Ignore certain errors
     ignoreErrors: [
-      // Browser extensions
       'top.GLOBALS',
-      // Random plugins/extensions
       'originalCreateNotification',
       'canvas.contentDocument',
       'MyApp_RemoveAllHighlights',
-      // React hydration mismatches (common in Next.js)
       'Hydration failed',
       'There was an error while hydrating',
     ],
@@ -95,10 +76,8 @@ if (SENTRY_DSN && typeof window !== 'undefined') {
   console.warn('⚠️ NEXT_PUBLIC_SENTRY_DSN not set - error tracking disabled');
 }
 
-// Custom event tracking helpers
 export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
   if (typeof window === 'undefined') return;
-
   Sentry.addBreadcrumb({
     category: 'custom',
     message: eventName,
@@ -109,7 +88,6 @@ export const trackEvent = (eventName: string, properties?: Record<string, any>) 
 
 export const trackError = (error: Error, context?: Record<string, any>) => {
   if (typeof window === 'undefined') return;
-
   Sentry.captureException(error, {
     extra: context,
   });
@@ -117,7 +95,6 @@ export const trackError = (error: Error, context?: Record<string, any>) => {
 
 export const setUser = (userId: string, email?: string, username?: string) => {
   if (typeof window === 'undefined') return;
-
   Sentry.setUser({
     id: userId,
     email,
@@ -127,6 +104,23 @@ export const setUser = (userId: string, email?: string, username?: string) => {
 
 export const clearUser = () => {
   if (typeof window === 'undefined') return;
-
   Sentry.setUser(null);
+};
+*/
+
+// Stub exports to prevent import errors
+export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
+  // No-op
+};
+
+export const trackError = (error: Error, context?: Record<string, any>) => {
+  // No-op
+};
+
+export const setUser = (userId: string, email?: string, username?: string) => {
+  // No-op
+};
+
+export const clearUser = () => {
+  // No-op
 };
