@@ -57,11 +57,13 @@ app = FastAPI(title="ASX Portfolio OS", version="0.4.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Local development
         "http://localhost:3000",
-        "http://localhost:3001",  # Allow port 3001 for dev server
+        "http://localhost:3001",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
-        "https://asx-portfolio-os.onrender.com",
+        # Production frontend (Vercel)
+        "https://asx-portfolio-os.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
