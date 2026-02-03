@@ -32,6 +32,23 @@ DROP INDEX IF EXISTS idx_model_a_rank;
 DROP INDEX IF EXISTS idx_model_c_symbol_date;
 DROP INDEX IF EXISTS idx_model_c_signal_confidence;
 
+-- Drop model B signal indexes
+DROP INDEX IF EXISTS idx_model_b_symbol_date;
+DROP INDEX IF EXISTS idx_model_b_quality;
+
+-- Drop ensemble signal indexes
+DROP INDEX IF EXISTS idx_ensemble_symbol_date;
+DROP INDEX IF EXISTS idx_ensemble_confidence;
+
+-- Drop user watchlist indexes
+DROP INDEX IF EXISTS idx_watchlist_user_ticker;
+
+-- Drop model A features indexes
+DROP INDEX IF EXISTS idx_model_a_features_symbol_date;
+
+-- Drop portfolio attribution indexes
+DROP INDEX IF EXISTS idx_portfolio_attr_model_date;
+
 -- Drop portfolio risk metrics indexes
 DROP INDEX IF EXISTS idx_risk_metrics_portfolio_date;
 

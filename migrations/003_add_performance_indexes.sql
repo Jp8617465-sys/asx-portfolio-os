@@ -64,6 +64,36 @@ CREATE INDEX IF NOT EXISTS idx_model_c_signal_confidence
     ON model_c_sentiment_signals(signal, confidence DESC) 
     WHERE confidence IS NOT NULL;
 
+-- Model B signals - composite index for symbol and date lookups
+CREATE INDEX IF NOT EXISTS idx_model_b_symbol_date 
+    ON model_b_ml_signals(symbol, as_of DESC);
+
+-- Model B signals - index for quality score filtering
+CREATE INDEX IF NOT EXISTS idx_model_b_quality 
+    ON model_b_ml_signals(quality_score, as_of DESC) 
+    WHERE quality_score IN ('A', 'B');
+
+-- Ensemble signals - composite index for symbol and date lookups
+CREATE INDEX IF NOT EXISTS idx_ensemble_symbol_date 
+    ON ensemble_signals(symbol, as_of DESC);
+
+-- Ensemble signals - index for high-confidence signals
+CREATE INDEX IF NOT EXISTS idx_ensemble_confidence 
+    ON ensemble_signals(confidence DESC, signal) 
+    WHERE confidence IS NOT NULL;
+
+-- User watchlist - composite index for user and ticker
+CREATE INDEX IF NOT EXISTS idx_watchlist_user_ticker 
+    ON user_watchlist(user_id, ticker);
+
+-- Model A features - composite index for symbol and date
+CREATE INDEX IF NOT EXISTS idx_model_a_features_symbol_date 
+    ON model_a_features_extended(symbol, as_of DESC);
+
+-- Portfolio attribution - composite index for model, date, and symbol
+CREATE INDEX IF NOT EXISTS idx_portfolio_attr_model_date 
+    ON portfolio_attribution(model, as_of DESC, symbol);
+
 -- Portfolio risk metrics - index for latest metrics queries
 CREATE INDEX IF NOT EXISTS idx_risk_metrics_portfolio_date 
     ON portfolio_risk_metrics(portfolio_id, as_of DESC);
@@ -92,6 +122,11 @@ BEGIN
         'idx_notifications_user_type_unread',
         'idx_model_a_symbol_date',
         'idx_model_c_symbol_date',
+        'idx_model_b_symbol_date',
+        'idx_ensemble_symbol_date',
+        'idx_watchlist_user_ticker',
+        'idx_model_a_features_symbol_date',
+        'idx_portfolio_attr_model_date',
         'idx_risk_metrics_portfolio_date',
         'idx_user_preferences_key'
     );

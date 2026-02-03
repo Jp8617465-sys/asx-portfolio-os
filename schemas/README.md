@@ -160,7 +160,12 @@ All ticker/symbol references now have foreign key constraints to `stock_universe
 - ✅ `user_holdings.ticker` → `stock_universe.ticker`
 - ✅ `portfolio_rebalancing_suggestions.ticker` → `stock_universe.ticker`
 - ✅ `model_a_ml_signals.symbol` → `stock_universe.ticker`
+- ✅ `model_b_ml_signals.symbol` → `stock_universe.ticker`
 - ✅ `model_c_sentiment_signals.symbol` → `stock_universe.ticker`
+- ✅ `ensemble_signals.symbol` → `stock_universe.ticker`
+- ✅ `user_watchlist.ticker` → `stock_universe.ticker`
+- ✅ `model_a_features_extended.symbol` → `stock_universe.ticker`
+- ✅ `portfolio_attribution.symbol` → `stock_universe.ticker`
 
 This prevents orphaned records and ensures data consistency.
 
