@@ -40,7 +40,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
           cache: 'pip'
 
       - name: Install Python dependencies
@@ -97,7 +97,6 @@ jobs:
           FINNHUB_API_KEY: dummy_key
           FMP_API_KEY: dummy_key
         run: |
-          cd backend
           uvicorn app.main:app --host 0.0.0.0 --port 8788 > backend.log 2>&1 &
           echo $! > backend.pid
           sleep 10
@@ -144,12 +143,12 @@ jobs:
         with:
           name: server-logs
           path: |
-            backend/backend.log
+            backend.log
             frontend/frontend.log
           retention-days: 7
 
       - name: Stop servers
         if: always()
         run: |
-          [ -f backend/backend.pid ] && kill $(cat backend/backend.pid) || true
+          [ -f backend.pid ] && kill $(cat backend.pid) || true
           [ -f frontend/frontend.pid ] && kill $(cat frontend/frontend.pid) || true

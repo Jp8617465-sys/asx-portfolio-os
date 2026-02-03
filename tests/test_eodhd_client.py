@@ -5,7 +5,6 @@ Tests API integration, error handling, and data parsing.
 
 import os
 from unittest.mock import Mock, patch
-import pytest
 import requests
 from api_clients.eodhd_client import fetch_fundamentals_eodhd, fetch_fundamentals_batch
 

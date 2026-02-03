@@ -7,7 +7,6 @@ Validates that ensemble (60% Model A + 40% Model B) performs as expected.
 
 import pytest
 import numpy as np
-from datetime import datetime
 
 
 class TestEnsembleWeighting:

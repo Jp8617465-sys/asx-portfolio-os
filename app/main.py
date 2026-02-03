@@ -7,7 +7,6 @@ in separate modules under app/routes/.
 """
 
 import os
-from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware

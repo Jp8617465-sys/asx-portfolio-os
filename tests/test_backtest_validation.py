@@ -6,8 +6,6 @@ Validates that backtesting logic produces accurate and reliable results.
 """
 
 import pytest
-import numpy as np
-from datetime import datetime, timedelta
 from jobs.backtest_model_a_ml import (
     run_rolling_backtest,
     _compute_max_drawdown,

@@ -5,7 +5,6 @@ Unit tests for feature derivation functions.
 
 import numpy as np
 import pandas as pd
-import pytest
 
 
 def test_derive_fundamentals_features_calculates_scores():

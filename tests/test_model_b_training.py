@@ -5,7 +5,6 @@ Tests data preparation, quintile classification, and cross-validation.
 
 import pandas as pd
 import numpy as np
-import pytest
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 

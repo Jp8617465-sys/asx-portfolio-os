@@ -3,8 +3,6 @@ Unit tests for ensemble signal generation logic.
 Tests weighted scoring, conflict detection, and agreement logic.
 """
 
-import pandas as pd
-import numpy as np
 import pytest
 
 

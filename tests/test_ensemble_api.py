@@ -4,7 +4,7 @@ Tests /signals/ensemble/latest, /signals/ensemble/{ticker}, and /signals/compare
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 import pandas as pd
 from datetime import datetime
 

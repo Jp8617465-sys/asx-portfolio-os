@@ -3,7 +3,6 @@ app/routes/fusion.py
 Portfolio Fusion API - Unified portfolio view across all asset classes.
 """
 
-from datetime import datetime
 from typing import Optional
 
 from psycopg2.extras import RealDictCursor

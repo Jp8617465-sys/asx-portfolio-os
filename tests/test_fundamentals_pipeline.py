@@ -3,8 +3,6 @@ tests/test_fundamentals_pipeline.py
 Unit tests for fundamentals pipeline functions.
 """
 
-import pandas as pd
-import pytest
 
 
 def test_parse_fundamentals_extracts_fields():

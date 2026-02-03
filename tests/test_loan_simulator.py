@@ -4,8 +4,6 @@ Unit tests for loan simulation functions.
 """
 
 import numpy as np
-import pandas as pd
-import pytest
 
 
 def test_amortization_schedule_monthly_payment():

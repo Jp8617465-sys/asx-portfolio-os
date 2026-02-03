@@ -340,7 +340,9 @@ def build_features(start_date, end_date):
             try:
                 a, b = np.polyfit(x, y, 1)
                 return a
-            except:
+            except (np.linalg.LinAlgError, ValueError):
+                # LinAlgError: Singular matrix (insufficient data points)
+                # ValueError: x and y arrays must have the same length
                 return np.nan
 
         df["sma200_slope"] = df.groupby("symbol")["sma_200"].transform(
@@ -409,7 +411,7 @@ def build_features(start_date, end_date):
             )
             con.commit()
         logger.info("✅ Features successfully written to database")
-        print(f"✅ Features written to database: model_a_features_extended")
+        print("✅ Features written to database: model_a_features_extended")
     except Exception as e:
         logger.error(f"Failed to write features to database: {e}")
         print(f"⚠️ Database write failed (features still in parquet): {e}")
@@ -417,7 +419,7 @@ def build_features(start_date, end_date):
     print(f"✅ Extended features saved: {len(df)} rows.")
     print(f"📦 Dated parquet: {dated_path}")
     print(f"📌 Latest parquet: {latest_path}")
-    print(f"💾 Database table: model_a_features_extended")
+    print("💾 Database table: model_a_features_extended")
     return df
 
 if __name__ == "__main__":

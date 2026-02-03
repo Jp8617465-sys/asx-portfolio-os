@@ -3,7 +3,6 @@ app/routes/ensemble.py
 Ensemble signal endpoints combining Model A (momentum) and Model B (fundamentals).
 """
 
-from datetime import datetime
 from typing import Optional
 
 import pandas as pd

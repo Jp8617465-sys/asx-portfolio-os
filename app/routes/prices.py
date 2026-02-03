@@ -3,7 +3,7 @@ app/routes/prices.py
 Stock price data endpoints for historical OHLC data and charts.
 """
 
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Query, HTTPException

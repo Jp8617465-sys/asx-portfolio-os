@@ -13,6 +13,7 @@ Tests:
 import os
 import sys
 import pytest
+from datetime import datetime
 from fastapi.testclient import TestClient
 
 # Add parent directory to path
@@ -65,7 +66,8 @@ class TestUserRegistrationJourney:
         assert "user" in data
 
         token = data["access_token"]
-        user_id = data["user"]["user_id"]
+        # Verify user data is present
+        assert "user_id" in data["user"]
 
         # Step 2: Verify token works for protected endpoints
         headers = {"Authorization": f"Bearer {token}"}

@@ -6,7 +6,6 @@ Tests quality score classification and signal logic.
 import pandas as pd
 import numpy as np
 import pytest
-from unittest.mock import Mock, patch
 
 
 class TestModelBSignalClassification:
@@ -15,7 +14,6 @@ class TestModelBSignalClassification:
     def test_classify_signal_buy_a_grade_high_prob(self):
         """A-grade with high probability should be BUY."""
         # Import the classify_signal function
-        from jobs.generate_signals_model_b import generate_signals
 
         # Mock the classification logic directly
         def classify_signal(row):
