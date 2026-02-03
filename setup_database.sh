@@ -43,6 +43,11 @@ python3 scripts/apply_notification_schema.py
 echo "   ✅ Notification schema applied"
 echo ""
 
+echo "   → Creating stock universe reference table..."
+psql "$DATABASE_URL" < schemas/stock_universe.sql
+echo "   ✅ Stock universe schema applied"
+echo ""
+
 echo "   → Creating portfolio management schema..."
 psql "$DATABASE_URL" < schemas/portfolio_management.sql
 echo "   ✅ Portfolio management schema applied"
@@ -53,20 +58,44 @@ psql "$DATABASE_URL" < schemas/watchlist.sql
 echo "   ✅ Watchlist schema applied"
 echo ""
 
+# Apply migrations
+echo "3. Applying database migrations..."
+echo ""
+
+echo "   → Adding foreign key constraints..."
+psql "$DATABASE_URL" < schemas/migrations/001_add_foreign_keys.sql
+echo "   ✅ Foreign keys added"
+echo ""
+
+echo "   → Standardizing timestamps..."
+psql "$DATABASE_URL" < schemas/migrations/002_standardize_timestamps.sql
+echo "   ✅ Timestamps standardized"
+echo ""
+
+echo "   → Adding performance indexes..."
+psql "$DATABASE_URL" < schemas/migrations/003_add_performance_indexes.sql
+echo "   ✅ Indexes added"
+echo ""
+
+echo "   → Adding update triggers..."
+psql "$DATABASE_URL" < schemas/migrations/004_add_update_triggers.sql
+echo "   ✅ Triggers added"
+echo ""
+
 # Verify tables created
-echo "3. Verifying tables..."
+echo "4. Verifying tables..."
 echo ""
 
 TABLES=$(psql "$DATABASE_URL" -tAc "
 SELECT table_name 
 FROM information_schema.tables 
 WHERE table_schema = 'public' 
-  AND table_name LIKE 'user_%'
+  AND table_type = 'BASE TABLE'
 ORDER BY table_name;
 ")
 
 if [ -z "$TABLES" ]; then
-    echo "❌ No user tables found"
+    echo "❌ No tables found"
     exit 1
 fi
 
@@ -78,7 +107,7 @@ echo ""
 
 # Count total tables
 TABLE_COUNT=$(echo "$TABLES" | wc -l | tr -d ' ')
-echo "Total user tables: $TABLE_COUNT"
+echo "Total tables: $TABLE_COUNT"
 echo ""
 
 echo "========================================="

@@ -41,6 +41,7 @@ CREATE TRIGGER update_news_sentiment_timestamp
 
 -- Comments
 COMMENT ON TABLE news_sentiment IS 'News articles with sentiment analysis for Model C';
+COMMENT ON COLUMN news_sentiment.ticker IS 'Stock ticker symbol - references stock_universe.symbol (FK added in migration 001)';
 COMMENT ON COLUMN news_sentiment.sentiment_label IS 'Sentiment classification: positive, negative, neutral';
 COMMENT ON COLUMN news_sentiment.sentiment_score IS 'Confidence score from sentiment model (0-1)';
 COMMENT ON COLUMN news_sentiment.source IS 'Source of the news article (NewsAPI, ASX, etc.)';

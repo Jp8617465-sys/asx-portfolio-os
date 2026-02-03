@@ -1,32 +1,32 @@
-create table if not exists fundamentals (
-    id bigserial primary key,
-    symbol text not null,
-    sector text,
-    industry text,
-    pe_ratio numeric,
-    pb_ratio numeric,
-    eps numeric,
-    roe numeric,
-    debt_to_equity numeric,
-    market_cap numeric,
-    div_yield numeric,
-    period_end date,
-    updated_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS fundamentals (
+    id BIGSERIAL PRIMARY KEY,
+    symbol TEXT NOT NULL,
+    sector TEXT,
+    industry TEXT,
+    pe_ratio NUMERIC,
+    pb_ratio NUMERIC,
+    eps NUMERIC,
+    roe NUMERIC,
+    debt_to_equity NUMERIC,
+    market_cap NUMERIC,
+    div_yield NUMERIC,
+    period_end DATE,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-alter table fundamentals
-    add column if not exists sector text,
-    add column if not exists industry text,
-    add column if not exists pb_ratio numeric,
-    add column if not exists div_yield numeric,
-    add column if not exists period_end date,
+ALTER TABLE fundamentals
+    ADD COLUMN IF NOT EXISTS sector TEXT,
+    ADD COLUMN IF NOT EXISTS industry TEXT,
+    ADD COLUMN IF NOT EXISTS pb_ratio NUMERIC,
+    ADD COLUMN IF NOT EXISTS div_yield NUMERIC,
+    ADD COLUMN IF NOT EXISTS period_end DATE,
     -- V2 additions for Model B
-    add column if not exists revenue_growth_yoy numeric,
-    add column if not exists profit_margin numeric,
-    add column if not exists current_ratio numeric,
-    add column if not exists quick_ratio numeric,
-    add column if not exists eps_growth numeric,
-    add column if not exists free_cash_flow numeric;
+    ADD COLUMN IF NOT EXISTS revenue_growth_yoy NUMERIC,
+    ADD COLUMN IF NOT EXISTS profit_margin NUMERIC,
+    ADD COLUMN IF NOT EXISTS current_ratio NUMERIC,
+    ADD COLUMN IF NOT EXISTS quick_ratio NUMERIC,
+    ADD COLUMN IF NOT EXISTS eps_growth NUMERIC,
+    ADD COLUMN IF NOT EXISTS free_cash_flow NUMERIC;
 
-create unique index if not exists fundamentals_symbol_updated_at_uidx
-    on fundamentals (symbol, updated_at);
+CREATE UNIQUE INDEX IF NOT EXISTS fundamentals_symbol_updated_at_uidx
+    ON fundamentals (symbol, updated_at);
