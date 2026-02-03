@@ -1,4 +1,6 @@
 -- Migration: Convert TIMESTAMP to TIMESTAMPTZ for timezone awareness
+-- IMPORTANT: This migration assumes all existing TIMESTAMP values are stored in UTC.
+-- If your timestamps are in a different timezone, adjust the AT TIME ZONE clause accordingly.
 
 -- Update user_accounts table
 ALTER TABLE user_accounts 

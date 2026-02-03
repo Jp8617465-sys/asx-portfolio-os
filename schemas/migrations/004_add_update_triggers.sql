@@ -24,18 +24,10 @@ SELECT create_trigger_if_not_exists();
 DROP FUNCTION create_trigger_if_not_exists();
 
 -- Add trigger to fundamentals
-CREATE OR REPLACE FUNCTION update_fundamentals_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Drop trigger if exists before creating
+-- Note: Reusing the existing update_updated_at_column() function for consistency
 DROP TRIGGER IF EXISTS update_fundamentals_updated_at ON fundamentals;
 
 CREATE TRIGGER update_fundamentals_updated_at
     BEFORE UPDATE ON fundamentals
     FOR EACH ROW
-    EXECUTE FUNCTION update_fundamentals_timestamp();
+    EXECUTE FUNCTION update_updated_at_column();
