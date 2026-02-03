@@ -9,7 +9,8 @@ CREATE INDEX IF NOT EXISTS idx_news_sentiment_ticker_label ON news_sentiment(tic
 CREATE INDEX IF NOT EXISTS idx_news_sentiment_ticker_published ON news_sentiment(ticker, published_at DESC);
 
 -- Portfolio tables - composite indexes
-CREATE INDEX IF NOT EXISTS idx_user_portfolios_user_active ON user_portfolios(user_id, is_active) WHERE is_active = TRUE;
+-- Note: idx_user_portfolios_active already exists in portfolio_management.sql
+-- Note: idx_user_holdings_portfolio_id already exists in portfolio_management.sql
 CREATE INDEX IF NOT EXISTS idx_user_holdings_portfolio_ticker ON user_holdings(portfolio_id, ticker);
 
 -- Model signals - date range queries

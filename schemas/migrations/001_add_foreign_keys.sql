@@ -36,6 +36,13 @@ ALTER TABLE model_a_ml_signals
     REFERENCES stock_universe(symbol) 
     ON DELETE CASCADE;
 
+-- Add FK to model_b_ml_signals table
+ALTER TABLE model_b_ml_signals 
+    ADD CONSTRAINT fk_model_b_signals_symbol 
+    FOREIGN KEY (symbol) 
+    REFERENCES stock_universe(symbol) 
+    ON DELETE CASCADE;
+
 -- Add FK to model_c_sentiment_signals table
 ALTER TABLE model_c_sentiment_signals 
     ADD CONSTRAINT fk_model_c_signals_symbol 
