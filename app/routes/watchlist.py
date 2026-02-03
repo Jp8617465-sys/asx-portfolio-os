@@ -72,7 +72,7 @@ async def get_watchlist(user_id: int = Depends(get_current_user_id)):
                 LEFT JOIN LATERAL (
                     SELECT close
                     FROM prices
-                    WHERE ticker = w.ticker
+                    WHERE symbol = w.ticker
                     ORDER BY dt DESC
                     LIMIT 1
                 ) p ON true

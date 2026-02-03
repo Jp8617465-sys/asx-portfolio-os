@@ -123,6 +123,24 @@ services:
         sync: false
 
   # ---------------------------------------------------------------------------
+  # Weekly Universe Refresh (captures new listings, removes delisted stocks)
+  # ---------------------------------------------------------------------------
+  - type: cron
+    name: asx-weekly-universe
+    env: python
+    plan: free
+    schedule: "0 16 * * 1"  # Monday 16:00 UTC = 2:00 AM AEST Tuesday (before fundamentals)
+    buildCommand: |
+      # OPTIMIZED: Use base requirements only
+      pip install -r requirements-base.txt
+    startCommand: python scripts/cron_weekly_universe.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: EODHD_API_KEY
+        sync: false
+
+  # ---------------------------------------------------------------------------
   # Weekly Fundamentals (No ML needed - just API calls + DB writes)
   # ---------------------------------------------------------------------------
   - type: cron

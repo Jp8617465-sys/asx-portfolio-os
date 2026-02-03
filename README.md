@@ -47,10 +47,43 @@ OPENAI_API_KEY=your_openai_key
 ENABLE_ASSISTANT=true
 ```
 
-Run the API:
+### Seed Initial Data (Required for First Run)
+
+Before starting the app, populate the database with live market data:
+
+```bash
+# Run the initial data seeding script
+python scripts/seed_initial_data.py
+```
+
+This will:
+1. Fetch ASX stock universe from EODHD (all tradable symbols)
+2. Sync latest prices (last trading day)
+3. Load fundamentals for major stocks
+4. Generate ML signals (if models are available)
+
+To check current data status without seeding:
+```bash
+python scripts/seed_initial_data.py --check-only
+```
+
+### Run the API:
 ```bash
 uvicorn app.main:app --reload --port 8788
 ```
+
+### Scheduled Jobs for Continuous Updates
+
+The app uses scheduled cron jobs to continuously fetch and update data:
+
+| Job | Schedule | Description |
+|-----|----------|-------------|
+| `asx-weekly-universe` | Monday 16:00 UTC | Refresh stock list (new listings) |
+| `asx-daily-prices` | Daily 11:00 UTC | Sync latest prices |
+| `asx-daily-signals` | Daily 11:30 UTC | Generate ML signals |
+| `asx-weekly-fundamentals` | Monday 17:00 UTC | Fetch fundamentals data |
+
+See `render.yaml` for full cron job configuration.
 
 ## Core Endpoints
 - `GET /health` - Service health check and database connectivity
