@@ -43,6 +43,16 @@ python3 scripts/apply_notification_schema.py
 echo "   ✅ Notification schema applied"
 echo ""
 
+echo "   → Creating stock universe schema..."
+psql "$DATABASE_URL" < schemas/stock_universe.sql
+echo "   ✅ Stock universe schema applied"
+echo ""
+
+echo "   → Seeding stock universe with sample data..."
+psql "$DATABASE_URL" < migrations/seed_stock_universe.sql
+echo "   ✅ Stock universe seeded"
+echo ""
+
 echo "   → Creating portfolio management schema..."
 psql "$DATABASE_URL" < schemas/portfolio_management.sql
 echo "   ✅ Portfolio management schema applied"
@@ -52,6 +62,25 @@ echo "   → Creating watchlist schema..."
 psql "$DATABASE_URL" < schemas/watchlist.sql
 echo "   ✅ Watchlist schema applied"
 echo ""
+
+# Apply migrations in order
+echo "   → Applying database migrations..."
+echo ""
+
+if [ -d "migrations" ]; then
+    for migration in migrations/00*.sql; do
+        if [ -f "$migration" ] && [[ ! "$migration" =~ _rollback\.sql$ ]]; then
+            migration_name=$(basename "$migration")
+            echo "      → Applying $migration_name..."
+            psql "$DATABASE_URL" < "$migration"
+            echo "      ✅ $migration_name applied"
+        fi
+    done
+    echo ""
+else
+    echo "   ⚠️  No migrations directory found, skipping migrations"
+    echo ""
+fi
 
 # Verify tables created
 echo "3. Verifying tables..."
@@ -89,4 +118,6 @@ echo "Next steps:"
 echo "1. Install dependencies: pip install -r requirements.txt"
 echo "2. Run verification: bash scripts/verify_production_ready.sh"
 echo "3. Start backend: uvicorn app.main:app --reload"
+echo ""
+echo "📚 For schema documentation, see: schemas/README.md"
 echo ""

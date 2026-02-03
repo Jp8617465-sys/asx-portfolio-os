@@ -100,9 +100,20 @@ uvicorn app.main:app --reload --port 8788
 
 ## Database Schema
 
+**Schema Refactoring (2026-02-03)**:
+- ✅ **Foreign Key Constraints**: All ticker/symbol references now enforce referential integrity via `stock_universe` table
+- ✅ **Timezone-Aware Timestamps**: All `TIMESTAMP` columns converted to `TIMESTAMPTZ`
+- ✅ **Performance Indexes**: Composite indexes for common query patterns (15+ new indexes)
+- ✅ **Update Triggers**: Auto-update `updated_at` columns on all tables
+- 📚 **Documentation**: See `schemas/README.md` for full migration guide
+- 🚀 **Migration Scripts**: Use `scripts/run_migrations.sh` to apply changes
+
 **Production Tables (Active)**:
+- `stock_universe` - **NEW** Canonical reference table for all ASX tickers
+- `user_accounts`, `user_portfolios`, `user_holdings` - Portfolio management
 - `prices` - Historical ASX price data (1.2M rows)
-- `model_a_ml_signals` - Daily signal generation output
+- `model_a_ml_signals`, `model_b_ml_signals`, `model_c_sentiment_signals` - AI signals
+- `ensemble_signals` - Combined multi-model signals
 - `model_a_features_extended` - Pre-computed features for optimization
 - `model_a_drift_audit` - Feature drift monitoring
 - `portfolio_fusion` - Portfolio tracking
@@ -110,10 +121,26 @@ uvicorn app.main:app --reload --port 8788
 - `job_history` - Pipeline execution tracking
 - `model_feature_importance` - SHAP feature importance
 - `fundamentals` - Fundamentals data (prepared for Phase 2)
+- `news_sentiment` - News sentiment analysis
+- `notifications`, `alert_preferences` - User notifications
+- `user_watchlist` - User stock watchlists
 
 **Archived Tables**: 17 unused tables moved to `schemas/archive/` (RL experiments, property assets, unused model tables)
 
-To clean up unused tables in database: `psql $DATABASE_URL -f schemas/cleanup_unused_tables.sql`
+**Schema Management**:
+```bash
+# Apply all schemas and migrations
+bash setup_database.sh
+
+# Or apply migrations individually
+bash scripts/run_migrations.sh
+
+# Test migrations without applying
+bash scripts/run_migrations.sh --dry-run
+
+# Clean up unused tables
+psql $DATABASE_URL -f schemas/cleanup_unused_tables.sql
+```
 
 ## Deployment Notes
 - Render uses `Dockerfile` with `requirements.txt`
