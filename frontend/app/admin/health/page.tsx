@@ -182,9 +182,7 @@ export default function AdminHealthPage() {
                 {health?.database?.toUpperCase() || 'UNKNOWN'}
               </Badge>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              PostgreSQL/Supabase
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">PostgreSQL/Supabase</p>
           </CardContent>
         </Card>
 
@@ -199,9 +197,7 @@ export default function AdminHealthPage() {
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {health?.uptime_seconds ? formatUptime(health.uptime_seconds) : 'N/A'}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Since last restart
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Since last restart</p>
           </CardContent>
         </Card>
 
@@ -216,9 +212,7 @@ export default function AdminHealthPage() {
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {jobs.filter((j) => j.status === 'success').length}/{jobs.length}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Successful jobs
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Successful jobs</p>
           </CardContent>
         </Card>
       </div>

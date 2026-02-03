@@ -24,13 +24,12 @@ test.describe('Stock Detail Page', () => {
     await page.waitForTimeout(2000);
 
     // Look for signal badge (BUY/SELL/HOLD)
-    const signalBadge = page.locator('text=BUY').or(
-      page.locator('text=SELL')
-    ).or(
-      page.locator('text=HOLD')
-    );
+    const signalBadge = page
+      .locator('text=BUY')
+      .or(page.locator('text=SELL'))
+      .or(page.locator('text=HOLD'));
 
-    if (await signalBadge.count() > 0) {
+    if ((await signalBadge.count()) > 0) {
       await expect(signalBadge.first()).toBeVisible({ timeout: 5000 });
 
       // Badge should have color styling
@@ -46,7 +45,7 @@ test.describe('Stock Detail Page', () => {
     // Look for confidence percentage
     const confidenceDisplay = page.locator('text=/Confidence|\\d+%/i');
 
-    if (await confidenceDisplay.count() > 0) {
+    if ((await confidenceDisplay.count()) > 0) {
       const confText = await confidenceDisplay.first().textContent();
 
       // Should contain percentage
@@ -63,7 +62,7 @@ test.describe('Stock Detail Page', () => {
     // Look for chart container
     const chart = page.locator('.recharts-wrapper, canvas');
 
-    if (await chart.count() > 0) {
+    if ((await chart.count()) > 0) {
       await expect(chart.first()).toBeVisible({ timeout: 5000 });
     }
   });
@@ -75,17 +74,17 @@ test.describe('Stock Detail Page', () => {
     // Look for timeframe buttons (3M, 6M, 1Y, ALL)
     const timeframeButtons = page.locator('button').filter({ hasText: /3M|6M|1Y|ALL/ });
 
-    if (await timeframeButtons.count() > 0) {
+    if ((await timeframeButtons.count()) > 0) {
       // Click a timeframe
       const button6M = timeframeButtons.filter({ hasText: /6M/ });
 
-      if (await button6M.count() > 0) {
+      if ((await button6M.count()) > 0) {
         await button6M.first().click();
         await page.waitForTimeout(1000);
 
         // Chart should update (still visible)
         const chart = page.locator('.recharts-wrapper, canvas');
-        if (await chart.count() > 0) {
+        if ((await chart.count()) > 0) {
           await expect(chart.first()).toBeVisible({ timeout: 5000 });
         }
       }
@@ -99,7 +98,7 @@ test.describe('Stock Detail Page', () => {
     // Look for reasoning section
     const reasoningSection = page.locator('text=/Reasoning|Explanation|Why/i');
 
-    if (await reasoningSection.count() > 0) {
+    if ((await reasoningSection.count()) > 0) {
       await expect(reasoningSection.first()).toBeVisible({ timeout: 5000 });
 
       // Should have some explanatory text
@@ -115,7 +114,7 @@ test.describe('Stock Detail Page', () => {
     // Look for accuracy section
     const accuracySection = page.locator('text=/Accuracy|Historical/i');
 
-    if (await accuracySection.count() > 0) {
+    if ((await accuracySection.count()) > 0) {
       await expect(accuracySection.first()).toBeVisible({ timeout: 5000 });
 
       // Should show percentage or metric
@@ -131,7 +130,7 @@ test.describe('Stock Detail Page', () => {
     // Look for fundamental metrics (P/E, ROE, etc.)
     const fundamentals = page.locator('text=/P\\/E|ROE|Debt|Market Cap/i');
 
-    if (await fundamentals.count() > 0) {
+    if ((await fundamentals.count()) > 0) {
       await expect(fundamentals.first()).toBeVisible({ timeout: 5000 });
     }
   });
@@ -143,7 +142,7 @@ test.describe('Stock Detail Page', () => {
     // Look for watchlist button
     const watchlistButton = page.locator('button').filter({ hasText: /Watchlist|Watch|Star/i });
 
-    if (await watchlistButton.count() > 0) {
+    if ((await watchlistButton.count()) > 0) {
       await expect(watchlistButton.first()).toBeVisible({ timeout: 5000 });
 
       // Click to add/remove from watchlist
@@ -162,12 +161,12 @@ test.describe('Stock Detail Page', () => {
     // Look for price display (should be dollar amount)
     const priceDisplay = page.locator('text=/\\$\\d+\\.\\d+/');
 
-    if (await priceDisplay.count() > 0) {
+    if ((await priceDisplay.count()) > 0) {
       await expect(priceDisplay.first()).toBeVisible({ timeout: 5000 });
 
       // Look for price change (percentage or absolute)
       const changeDisplay = page.locator('text=/[\\+\\-]\\d+\\.\\d+%?/');
-      if (await changeDisplay.count() > 0) {
+      if ((await changeDisplay.count()) > 0) {
         await expect(changeDisplay.first()).toBeVisible({ timeout: 5000 });
       }
     }
@@ -194,7 +193,7 @@ test.describe('Stock Detail Page', () => {
     // Look for model comparison section (Model A vs Model B vs Ensemble)
     const comparisonSection = page.locator('text=/Model A|Model B|Ensemble|Compare/i');
 
-    if (await comparisonSection.count() > 0) {
+    if ((await comparisonSection.count()) > 0) {
       // Should show multiple models
       const modelLabels = page.locator('text=/Model/i');
       await expect(modelLabels.first()).toBeVisible({ timeout: 5000 });

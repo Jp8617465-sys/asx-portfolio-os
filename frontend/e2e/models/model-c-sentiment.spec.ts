@@ -33,9 +33,9 @@ test.describe('Model C - Sentiment Analysis', () => {
     await page.waitForTimeout(2000);
 
     // Look for sentiment distribution section
-    const distributionSection = page.locator('text=Sentiment Distribution').or(
-      page.locator('text=Distribution')
-    );
+    const distributionSection = page
+      .locator('text=Sentiment Distribution')
+      .or(page.locator('text=Distribution'));
     await expect(distributionSection.first()).toBeVisible({ timeout: 10000 });
 
     // Verify pie chart renders
@@ -54,7 +54,7 @@ test.describe('Model C - Sentiment Analysis', () => {
     // Look for sentiment badges (positive/negative/neutral)
     const badges = page.locator('.bg-green-500, .bg-red-500, .bg-gray-500');
 
-    if (await badges.count() > 0) {
+    if ((await badges.count()) > 0) {
       await expect(badges.first()).toBeVisible({ timeout: 5000 });
     } else {
       // If no signals, check for empty state
@@ -70,13 +70,14 @@ test.describe('Model C - Sentiment Analysis', () => {
     await page.waitForTimeout(2000);
 
     // Look for bullish/bearish terminology
-    const sentimentTerms = page.locator('text=bullish').or(
-      page.locator('text=bearish')
-    );
+    const sentimentTerms = page.locator('text=bullish').or(page.locator('text=bearish'));
 
     // Should show sentiment counts or empty state
     const hasSentiment = await sentimentTerms.isVisible().catch(() => false);
-    const hasEmptyState = await page.locator('text=No sentiment').isVisible().catch(() => false);
+    const hasEmptyState = await page
+      .locator('text=No sentiment')
+      .isVisible()
+      .catch(() => false);
 
     expect(hasSentiment || hasEmptyState).toBeTruthy();
   });
@@ -88,14 +89,15 @@ test.describe('Model C - Sentiment Analysis', () => {
     await page.waitForTimeout(2000);
 
     // Look for event type badges or labels
-    const eventTypes = page.locator('text=Event').or(
-      page.locator('text=announcement')
-    );
+    const eventTypes = page.locator('text=Event').or(page.locator('text=announcement'));
 
     await page.waitForTimeout(1000);
 
     // Should have some content visible
-    const contentVisible = await page.locator('table, .recharts-wrapper').isVisible().catch(() => false);
+    const contentVisible = await page
+      .locator('table, .recharts-wrapper')
+      .isVisible()
+      .catch(() => false);
     expect(contentVisible).toBeTruthy();
   });
 
@@ -108,7 +110,7 @@ test.describe('Model C - Sentiment Analysis', () => {
     // Find table rows (if any)
     const tableRows = page.locator('tbody tr');
 
-    if (await tableRows.count() > 0) {
+    if ((await tableRows.count()) > 0) {
       // Click first row
       await tableRows.first().click();
       await page.waitForTimeout(1000);
@@ -128,7 +130,7 @@ test.describe('Model C - Sentiment Analysis', () => {
     // Look for percentage displays
     const percentages = page.locator('text=/%/');
 
-    if (await percentages.count() > 0) {
+    if ((await percentages.count()) > 0) {
       const firstPercent = await percentages.first().textContent();
       // Should contain a number followed by %
       expect(firstPercent).toMatch(/\d+\.?\d*%/);

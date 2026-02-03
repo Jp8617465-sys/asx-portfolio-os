@@ -82,7 +82,7 @@ test.describe('Multi-Asset Portfolio Fusion', () => {
 
       // Should show risk badge (LOW/MEDIUM/HIGH)
       const riskBadge = page.locator('.bg-green-500, .bg-yellow-500, .bg-red-500');
-      if (await riskBadge.count() > 0) {
+      if ((await riskBadge.count()) > 0) {
         await expect(riskBadge.first()).toBeVisible({ timeout: 5000 });
       }
     }
@@ -118,7 +118,7 @@ test.describe('Multi-Asset Portfolio Fusion', () => {
 
       // Should show metrics like DSR, leverage, etc.
       const metricLabels = page.locator('text=/Debt.*Service|Leverage|Volatility/i');
-      if (await metricLabels.count() > 0) {
+      if ((await metricLabels.count()) > 0) {
         await expect(metricLabels.first()).toBeVisible({ timeout: 5000 });
       }
     }
@@ -136,7 +136,7 @@ test.describe('Multi-Asset Portfolio Fusion', () => {
 
       // Should show percentage
       const percentage = page.locator('text=/%/');
-      if (await percentage.count() > 0) {
+      if ((await percentage.count()) > 0) {
         await expect(percentage.first()).toBeVisible({ timeout: 5000 });
       }
     }
@@ -165,8 +165,14 @@ test.describe('Multi-Asset Portfolio Fusion', () => {
     await page.waitForTimeout(2000);
 
     // Either data is shown OR empty state message
-    const hasData = await page.locator('.recharts-pie').isVisible().catch(() => false);
-    const hasEmptyState = await page.locator('text=/No.*data|No.*portfolio/i').isVisible().catch(() => false);
+    const hasData = await page
+      .locator('.recharts-pie')
+      .isVisible()
+      .catch(() => false);
+    const hasEmptyState = await page
+      .locator('text=/No.*data|No.*portfolio/i')
+      .isVisible()
+      .catch(() => false);
 
     // Page should show something (not crash)
     const hasContent = await page.locator('h1, h2').isVisible();
@@ -180,12 +186,12 @@ test.describe('Multi-Asset Portfolio Fusion', () => {
     // Look for allocation percentages
     const percentages = page.locator('text=/%/');
 
-    if (await percentages.count() >= 2) {
+    if ((await percentages.count()) >= 2) {
       // Get all percentage values
       const percentTexts = await percentages.allTextContents();
 
       // Should have valid percentages
-      const validPercentages = percentTexts.filter(text => text.match(/\d+\.?\d*%/));
+      const validPercentages = percentTexts.filter((text) => text.match(/\d+\.?\d*%/));
       expect(validPercentages.length).toBeGreaterThan(0);
     }
   });

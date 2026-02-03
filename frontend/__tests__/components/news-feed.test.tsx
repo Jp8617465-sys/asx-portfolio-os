@@ -58,7 +58,7 @@ jest.mock('@/lib/api-client', () => ({
               url: 'https://example.com/article3',
               published_at: '2024-01-31T09:00:00Z',
               sentiment_label: 'neutral',
-              sentiment_score: 0.50,
+              sentiment_score: 0.5,
               source: 'NewsAPI',
               author: 'News Team',
             },
@@ -147,7 +147,9 @@ describe('NewsFeed', () => {
     });
 
     // Should show formatted dates (could be relative like "1d ago" or absolute like "Jan 30")
-    const dateTexts = screen.getAllByText(/ago|Yesterday|Today|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i);
+    const dateTexts = screen.getAllByText(
+      /ago|Yesterday|Today|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i
+    );
     expect(dateTexts.length).toBeGreaterThan(0);
   });
 
@@ -260,7 +262,9 @@ describe('NewsFeed', () => {
       expect(screen.queryByText(/loading.*news/i)).not.toBeInTheDocument();
     });
 
-    const articleCard = screen.getByText('BHP Reports Strong Quarterly Results').closest('[class*="Card"]');
+    const articleCard = screen
+      .getByText('BHP Reports Strong Quarterly Results')
+      .closest('[class*="Card"]');
     if (articleCard) {
       fireEvent.click(articleCard);
       expect(global.open).toHaveBeenCalledWith('https://example.com/article1', '_blank');
@@ -271,9 +275,7 @@ describe('NewsFeed', () => {
     render(<NewsFeed limit={1} />);
 
     const { api } = require('@/lib/api-client');
-    expect(api.getLatestNews).toHaveBeenCalledWith(
-      expect.objectContaining({ limit: 1 })
-    );
+    expect(api.getLatestNews).toHaveBeenCalledWith(expect.objectContaining({ limit: 1 }));
   });
 
   it('hides filters when showFilters is false', () => {

@@ -22,9 +22,9 @@ test.describe('Model B Dashboard - Fundamentals', () => {
     await page.waitForTimeout(2000);
 
     // Verify quality grade chart section is visible
-    const qualitySection = page.locator('text=Quality Score Distribution').or(
-      page.locator('text=Quality Grade')
-    );
+    const qualitySection = page
+      .locator('text=Quality Score Distribution')
+      .or(page.locator('text=Quality Grade'));
     await expect(qualitySection.first()).toBeVisible({ timeout: 10000 });
 
     // Check for chart rendering (recharts container)
@@ -40,9 +40,9 @@ test.describe('Model B Dashboard - Fundamentals', () => {
     await page.waitForTimeout(2000);
 
     // Look for scatter plot section
-    const scatterPlot = page.locator('text=P/E vs ROE').or(
-      page.locator('text=Fundamental Metrics')
-    );
+    const scatterPlot = page
+      .locator('text=P/E vs ROE')
+      .or(page.locator('text=Fundamental Metrics'));
     await expect(scatterPlot.first()).toBeVisible({ timeout: 10000 });
 
     // Verify chart exists
@@ -57,9 +57,7 @@ test.describe('Model B Dashboard - Fundamentals', () => {
     await page.waitForTimeout(2000);
 
     // Look for quality stocks table
-    const table = page.locator('table').or(
-      page.locator('text=Top Quality Stocks')
-    );
+    const table = page.locator('table').or(page.locator('text=Top Quality Stocks'));
     await expect(table.first()).toBeVisible({ timeout: 10000 });
 
     // Check for table headers
@@ -76,7 +74,7 @@ test.describe('Model B Dashboard - Fundamentals', () => {
     // Look for grade filter buttons (A, B, C, D, F)
     const gradeButtons = page.locator('button').filter({ hasText: /^[ABCDF]$/ });
 
-    if (await gradeButtons.count() > 0) {
+    if ((await gradeButtons.count()) > 0) {
       // Click grade A filter
       const gradeAButton = gradeButtons.first();
       await gradeAButton.click();
@@ -114,12 +112,13 @@ test.describe('Model B Dashboard - Fundamentals', () => {
     await page.waitForTimeout(2000);
 
     // If no data, should show empty state message
-    const emptyState = page.locator('text=No data').or(
-      page.locator('text=No quality scores')
-    );
+    const emptyState = page.locator('text=No data').or(page.locator('text=No quality scores'));
 
     // Either data is shown OR empty state is shown
-    const hasData = await page.locator('.recharts-wrapper').isVisible().catch(() => false);
+    const hasData = await page
+      .locator('.recharts-wrapper')
+      .isVisible()
+      .catch(() => false);
     const hasEmptyState = await emptyState.isVisible().catch(() => false);
 
     expect(hasData || hasEmptyState).toBeTruthy();

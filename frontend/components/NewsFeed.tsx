@@ -248,9 +248,7 @@ export default function NewsFeed({ ticker, limit = 20, showFilters = true }: New
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-500 dark:text-gray-400">
-              {ticker
-                ? `No news articles available for ${ticker}`
-                : 'No news articles available'}
+              {ticker ? `No news articles available for ${ticker}` : 'No news articles available'}
             </p>
             <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
               Try adjusting your filters or check back later

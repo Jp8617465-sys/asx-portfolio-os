@@ -62,7 +62,7 @@ jest.mock('@/lib/api-client', () => ({
             {
               date: '2024-01-01',
               feature_name: 'momentum_20d',
-              psi_score: 0.10,
+              psi_score: 0.1,
             },
             {
               date: '2024-01-15',
@@ -162,10 +162,13 @@ describe('DriftMonitoringDashboard', () => {
     });
 
     // Wait for chart to render with longer timeout
-    await waitFor(() => {
-      const lineChart = screen.queryByTestId('line-chart');
-      expect(lineChart).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        const lineChart = screen.queryByTestId('line-chart');
+        expect(lineChart).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
   });
 
   it('shows feature drift table', async () => {
