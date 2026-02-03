@@ -16,7 +16,7 @@ export const safeStorage = {
     try {
       localStorage.setItem(key, value);
     } catch (error) {
-      console.error('localStorage.setItem failed:', error);
+      console.error(`localStorage.setItem failed for key '${key}':`, error);
     }
   },
 
@@ -25,7 +25,7 @@ export const safeStorage = {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.error('localStorage.removeItem failed:', error);
+      console.error(`localStorage.removeItem failed for key '${key}':`, error);
     }
   },
 };

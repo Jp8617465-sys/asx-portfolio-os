@@ -30,6 +30,8 @@ const customJestConfig = {
     },
     // Per-directory thresholds removed temporarily to unblock CI
     // TODO: Re-enable and incrementally increase as test coverage improves
+    // Timeline: Q1 2026 - Add critical path tests and raise to 40%
+    //           Q2 2026 - Comprehensive coverage and raise to 60%+
     // './app/**/*.{ts,tsx}': { branches: 70, functions: 70, lines: 70, statements: 70 },
     // './components/**/*.{ts,tsx}': { branches: 80, functions: 80, lines: 80, statements: 80 },
     // './lib/**/*.{ts,tsx}': { branches: 75, functions: 75, lines: 75, statements: 75 },
