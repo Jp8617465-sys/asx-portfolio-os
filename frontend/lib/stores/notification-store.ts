@@ -102,25 +102,28 @@ export const useNotificationStore = create<NotificationStore>()(
           return daysSinceCreation < 7;
         }),
       }),
-      storage: createJSONStorage(() => {
-        // Only use localStorage on client side
-        if (typeof window === 'undefined') {
-          return {
-            getItem: () => null,
-            setItem: () => {},
-            removeItem: () => {},
-          };
-        }
-        return localStorage;
-      }, {
-        reviver: (key, value) => {
-          // Convert timestamp strings back to Date objects
-          if (key === 'timestamp' && typeof value === 'string') {
-            return new Date(value);
+      storage: createJSONStorage(
+        () => {
+          // Only use localStorage on client side
+          if (typeof window === 'undefined') {
+            return {
+              getItem: (_key: string) => null,
+              setItem: (_key: string, _value: string) => {},
+              removeItem: (_key: string) => {},
+            };
           }
-          return value;
+          return localStorage;
         },
-      }),
+        {
+          reviver: (key, value) => {
+            // Convert timestamp strings back to Date objects
+            if (key === 'timestamp' && typeof value === 'string') {
+              return new Date(value);
+            }
+            return value;
+          },
+        }
+      ),
     }
   )
 );
