@@ -65,13 +65,32 @@ To apply migrations safely:
 # 1. Backup database first
 pg_dump $DATABASE_URL > backup.sql
 
-# 2. Apply migrations in order
+# 2. Populate stock_universe table before applying foreign key migration
+# You must insert all existing tickers from your database into stock_universe first
+# Example:
+psql $DATABASE_URL -c "
+INSERT INTO stock_universe (symbol, is_active)
+SELECT DISTINCT symbol, TRUE
+FROM fundamentals
+WHERE symbol IS NOT NULL
+ON CONFLICT (symbol) DO NOTHING;
+
+INSERT INTO stock_universe (symbol, is_active)
+SELECT DISTINCT ticker, TRUE
+FROM news_sentiment
+WHERE ticker IS NOT NULL
+ON CONFLICT (symbol) DO NOTHING;
+
+-- Repeat for other tables with ticker/symbol columns
+"
+
+# 3. Apply migrations in order
 psql $DATABASE_URL < schemas/migrations/001_add_foreign_keys.sql
 psql $DATABASE_URL < schemas/migrations/002_standardize_timestamps.sql
 psql $DATABASE_URL < schemas/migrations/003_add_performance_indexes.sql
 psql $DATABASE_URL < schemas/migrations/004_add_update_triggers.sql
 
-# 3. Verify migrations
+# 4. Verify migrations
 psql $DATABASE_URL -c "\d+ stock_universe"
 psql $DATABASE_URL -c "SELECT * FROM pg_constraint WHERE contype = 'f';"
 ```
