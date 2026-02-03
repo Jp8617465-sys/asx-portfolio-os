@@ -48,6 +48,11 @@ psql "$DATABASE_URL" < schemas/stock_universe.sql
 echo "   ✅ Stock universe schema applied"
 echo ""
 
+echo "   → Seeding stock universe with sample data..."
+psql "$DATABASE_URL" < migrations/seed_stock_universe.sql
+echo "   ✅ Stock universe seeded"
+echo ""
+
 echo "   → Creating portfolio management schema..."
 psql "$DATABASE_URL" < schemas/portfolio_management.sql
 echo "   ✅ Portfolio management schema applied"

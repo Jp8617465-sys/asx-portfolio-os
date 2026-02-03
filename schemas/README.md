@@ -107,6 +107,16 @@ psql "$DATABASE_URL" < migrations/001_add_foreign_keys.sql
 psql "$DATABASE_URL" < migrations/001_add_foreign_keys_rollback.sql
 ```
 
+### Seeding Stock Universe Data
+After creating the `stock_universe` table, you need to populate it with stock data. We provide a sample seed file:
+
+```bash
+# Seed with sample ASX stocks (for testing/development)
+psql "$DATABASE_URL" < migrations/seed_stock_universe.sql
+```
+
+**Production Note**: In production, populate `stock_universe` from your real data source (e.g., ASX listings, market data provider) before running migration 001 to avoid foreign key violations.
+
 ### Verifying Migrations
 ```bash
 # Check which tables exist
