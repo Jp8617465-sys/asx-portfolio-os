@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api-client';
+import { safeStorage } from '@/lib/safe-storage';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -94,17 +95,19 @@ export default function RegisterPage() {
       const { access_token, user } = response.data;
 
       // Store token in localStorage
-      localStorage.setItem('access_token', access_token);
+      safeStorage.setItem('access_token', access_token);
 
       // Store user info
-      localStorage.setItem('user', JSON.stringify(user));
+      safeStorage.setItem('user', JSON.stringify(user));
 
       // Also set cookie for middleware authentication check
       // 7 days expiration, using Lax for better compatibility
-      document.cookie = `access_token=${access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      if (typeof window !== 'undefined') {
+        document.cookie = `access_token=${access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 
-      // Redirect to dashboard
-      router.push('/app/dashboard');
+        // Redirect to dashboard
+        router.push('/app/dashboard');
+      }
     } catch (err: any) {
       console.error('Registration failed:', err);
 

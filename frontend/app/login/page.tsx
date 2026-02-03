@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api-client';
+import { safeStorage } from '@/lib/safe-storage';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,19 +33,21 @@ export default function LoginPage() {
       const { access_token, user } = response.data;
 
       // Store token in localStorage
-      localStorage.setItem('access_token', access_token);
+      safeStorage.setItem('access_token', access_token);
 
       // Store user info
-      localStorage.setItem('user', JSON.stringify(user));
+      safeStorage.setItem('user', JSON.stringify(user));
 
       // Set cookie for middleware authentication check
       // Using SameSite=Lax to allow the cookie to be sent with navigation
       // 7 days expiration
-      document.cookie = `access_token=${access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      if (typeof window !== 'undefined') {
+        document.cookie = `access_token=${access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 
-      // Use window.location instead of router.push to ensure cookie is sent
-      // This triggers a full page navigation which includes the cookie
-      window.location.href = '/app/dashboard';
+        // Use window.location instead of router.push to ensure cookie is sent
+        // This triggers a full page navigation which includes the cookie
+        window.location.href = '/app/dashboard';
+      }
     } catch (err: any) {
       console.error('Login failed:', err);
 

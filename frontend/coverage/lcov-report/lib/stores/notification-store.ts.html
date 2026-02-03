@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">16.21% </span>
+                <span class="strong">17.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/37</span>
+                <span class='fraction'>7/40</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>0/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">8.69% </span>
+                <span class="strong">7.69% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/23</span>
+                <span class='fraction'>2/26</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">19.35% </span>
+                <span class="strong">20.58% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/31</span>
+                <span class='fraction'>7/34</span>
             </div>
         
             
@@ -222,7 +222,20 @@
 <a name='L157'></a><a href='#L157'>157</a>
 <a name='L158'></a><a href='#L158'>158</a>
 <a name='L159'></a><a href='#L159'>159</a>
-<a name='L160'></a><a href='#L160'>160</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -326,13 +339,26 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -485,15 +511,28 @@ export const <span class="cstat-no" title="statement not covered" >useNotificati
 <span class="cstat-no" title="statement not covered" >          return daysSinceCreation &lt; 7;</span>
         }),
       }),
-      storage: createJSONStorage(() =&gt; localStorage, {
-        reviver: <span class="fstat-no" title="function not covered" >(k</span>ey, value) =&gt; {
-          // Convert timestamp strings back to Date objects
-<span class="cstat-no" title="statement not covered" >          <span class="missing-if-branch" title="if path not taken" >I</span>if (key === 'timestamp' &amp;&amp; typeof value === 'string') {</span>
-<span class="cstat-no" title="statement not covered" >            return new Date(value);</span>
+      storage: createJSONStorage(
+        () =&gt; {
+          // SSR-safe storage: return no-op storage during SSR
+          <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof window === 'undefined') {
+<span class="cstat-no" title="statement not covered" >            return {</span>
+              getItem: <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >n</span>ull,</span>
+              setItem: <span class="fstat-no" title="function not covered" >() =&gt; {}</span>,
+              removeItem: <span class="fstat-no" title="function not covered" >() =&gt; {}</span>,
+            };
           }
-<span class="cstat-no" title="statement not covered" >          return value;</span>
+          return localStorage;
         },
-      }),
+        {
+          reviver: <span class="fstat-no" title="function not covered" >(k</span>ey, value) =&gt; {
+            // Convert timestamp strings back to Date objects
+<span class="cstat-no" title="statement not covered" >            <span class="missing-if-branch" title="if path not taken" >I</span>if (key === 'timestamp' &amp;&amp; typeof value === 'string') {</span>
+<span class="cstat-no" title="statement not covered" >              return new Date(value);</span>
+            }
+<span class="cstat-no" title="statement not covered" >            return value;</span>
+          },
+        }
+      ),
     }
   )
 );
@@ -547,7 +586,7 @@ export const <span class="cstat-no" title="statement not covered" >notify </span
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-03T10:51:43.209Z
+                at 2026-02-03T10:58:04.783Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
