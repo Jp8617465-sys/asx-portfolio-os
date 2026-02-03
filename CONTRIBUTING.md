@@ -385,8 +385,8 @@ uvicorn app.main:app --reload --port 8788
 
 ## ❓ Questions or Issues?
 
-- Check existing issues: https://github.com/Jp8617465-sys/asx-portfolio-os/issues
-- Create new issue with `question` label
+- Check existing issues in the GitHub repository
+- Create new issue with `question` label using the appropriate issue template
 - Contact: Project maintainers
 
 ---
