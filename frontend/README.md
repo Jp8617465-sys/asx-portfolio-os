@@ -14,17 +14,54 @@ Modern Next.js 14 frontend for the ASX Portfolio OS platform, featuring AI-power
 - **UI Components**: Radix UI primitives
 - **State Management**: React hooks + Zustand (planned)
 
+## Design System
+
+**NEW**: We have implemented a comprehensive design system! See [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) for complete documentation.
+
+### Quick Start with Design System
+
+```tsx
+import { StockCard, Button, Badge, DataTable } from '@/components/ui';
+import { DashboardLayout } from '@/components/layouts';
+
+// Use pre-built components
+<StockCard
+  ticker="CBA"
+  price={104.50}
+  signal="BUY"
+  confidence={0.85}
+/>
+
+<Button variant="signal-buy">Buy</Button>
+<Badge variant="success">Active</Badge>
+```
+
+### Live Showcase
+
+Visit `/design-system` in your development server to see all components in action with interactive examples.
+
+### Key Features
+
+- 🎨 **Unified Color System**: CSS variables for dark/light modes
+- 🎯 **Trading-Specific Components**: StockCard, signal badges, model metrics
+- 📊 **Data Tables**: Sortable, responsive tables with financial data support
+- 📱 **Responsive Layouts**: User-facing and internal dashboard layouts
+- ♿ **Accessible**: WCAG AA compliant, keyboard navigation
+- 🔢 **Tabular Numerals**: Proper alignment for financial data
+
 ## Architecture
 
-### Design System
+### Design System (Updated)
 
-Central design token system (`lib/design-tokens.ts`) provides:
+The new design system (`styles/variables.css`) provides:
 
-- Brand colors and signal colors (Strong Buy → Strong Sell)
-- Typography scale with Inter font family
-- Spacing, border radius, shadows
-- Animation timings and easing functions
-- Component-specific configurations
+- **Color Variables**: Dark/light mode themes with CSS custom properties
+- **Signal Colors**: Trading-specific colors (Strong Buy → Strong Sell)
+- **Typography**: System fonts with tabular numerals for financial data
+- **Components**: Pre-built React components for common patterns
+- **Layouts**: Reusable layout shells for dashboards
+
+Legacy design tokens (`lib/design-tokens.ts`) are still available for backward compatibility.
 
 ### API Integration
 

@@ -117,8 +117,10 @@ jest.mock('recharts', () => ({
   ResponsiveContainer: ({ children }) => React.createElement('div', {}, children),
   PieChart: ({ children }) => React.createElement('div', { 'data-testid': 'pie-chart' }, children),
   BarChart: ({ children }) => React.createElement('div', { 'data-testid': 'bar-chart' }, children),
-  LineChart: ({ children }) => React.createElement('div', { 'data-testid': 'line-chart' }, children),
-  ScatterChart: ({ children }) => React.createElement('div', { 'data-testid': 'scatter-chart' }, children),
+  LineChart: ({ children }) =>
+    React.createElement('div', { 'data-testid': 'line-chart' }, children),
+  ScatterChart: ({ children }) =>
+    React.createElement('div', { 'data-testid': 'scatter-chart' }, children),
   Pie: () => null,
   Bar: () => null,
   Line: () => null,

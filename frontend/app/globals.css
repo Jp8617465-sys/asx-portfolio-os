@@ -1,21 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import '../styles/variables.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
+  /* Chart variables for compatibility */
   --chart-grid: #e5e7eb;
   --chart-axis: #9ca3af;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  @apply bg-paper text-ink font-sans antialiased;
+  @apply font-sans antialiased;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  line-height: var(--leading-normal);
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+/* Legacy compatibility */
+body {
+  @apply bg-paper text-ink;
 }
 
 .dark body {
   @apply bg-graphite text-mist;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .dark {
@@ -23,7 +51,52 @@ body {
   --chart-axis: #6b7280;
 }
 
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Tabular numerals for financial data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-numeric);
+}
+
+/* Gradient background */
 .gradient-shell {
   background: radial-gradient(circle at 10% 20%, rgba(47, 111, 237, 0.12), transparent 45%),
     radial-gradient(circle at 90% 0%, rgba(15, 23, 42, 0.05), transparent 45%);
+}
+
+/* Focus ring for accessibility */
+.focus-ring {
+  @apply outline-none ring-2 ring-offset-2;
+  ring-color: var(--accent-primary);
+}
+
+/* Card elevation */
+.card-elevated {
+  box-shadow: var(--shadow-card);
+}
+
+/* ========================================
+   COMPONENT BASE STYLES
+   ======================================== */
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }

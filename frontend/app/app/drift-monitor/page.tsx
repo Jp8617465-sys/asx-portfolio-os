@@ -13,7 +13,8 @@ export default function DriftMonitorPage() {
           Model Drift Monitoring
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Track Population Stability Index (PSI) and feature drift to ensure model performance remains optimal
+          Track Population Stability Index (PSI) and feature drift to ensure model performance
+          remains optimal
         </p>
       </div>
 

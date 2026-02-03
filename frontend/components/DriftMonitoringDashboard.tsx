@@ -4,7 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, TrendingUp, Activity, AlertTriangle } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 import { Badge } from './ui/badge';
 
 interface DriftSummary {
@@ -202,9 +211,7 @@ export default function DriftMonitoringDashboard() {
             <AlertCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {summary?.features_drifting || 0}
-            </div>
+            <div className="text-2xl font-bold text-red-600">{summary?.features_drifting || 0}</div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               of {summary?.total_features || 0} total
             </p>
@@ -219,9 +226,7 @@ export default function DriftMonitoringDashboard() {
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {summary?.alerts?.length || 0}
-            </div>
+            <div className="text-2xl font-bold text-yellow-600">{summary?.alerts?.length || 0}</div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               PSI &gt; {summary?.psi_threshold || 0.2}
             </p>
@@ -248,7 +253,12 @@ export default function DriftMonitoringDashboard() {
                   <XAxis
                     dataKey="date"
                     tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    tickFormatter={(value) =>
+                      new Date(value).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      })
+                    }
                   />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip
@@ -366,7 +376,9 @@ export default function DriftMonitoringDashboard() {
                     <tr
                       key={idx}
                       className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer ${
-                        selectedFeature === feature.feature_name ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                        selectedFeature === feature.feature_name
+                          ? 'bg-blue-50 dark:bg-blue-900/20'
+                          : ''
                       }`}
                       onClick={() => setSelectedFeature(feature.feature_name)}
                     >
@@ -374,9 +386,7 @@ export default function DriftMonitoringDashboard() {
                         {feature.feature_name}
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <Badge className={getStatusColor(feature.status)}>
-                          {feature.status}
-                        </Badge>
+                        <Badge className={getStatusColor(feature.status)}>{feature.status}</Badge>
                       </td>
                       <td className="py-3 px-4 text-right">
                         <span
@@ -384,8 +394,8 @@ export default function DriftMonitoringDashboard() {
                             feature.psi_score > 0.2
                               ? 'text-red-600'
                               : feature.psi_score > 0.1
-                              ? 'text-yellow-600'
-                              : 'text-green-600'
+                                ? 'text-yellow-600'
+                                : 'text-green-600'
                           }`}
                         >
                           {feature.psi_score.toFixed(3)}

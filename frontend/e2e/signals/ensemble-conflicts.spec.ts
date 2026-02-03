@@ -33,13 +33,16 @@ test.describe('Ensemble Signals - Conflict Detection', () => {
     await page.waitForTimeout(2000);
 
     // Look for conflict warning icons (⚠️ or red text)
-    const conflictIndicators = page.locator('text=⚠️').or(
-      page.locator('.text-red-600').filter({ hasText: /conflict|disagree/i })
-    );
+    const conflictIndicators = page
+      .locator('text=⚠️')
+      .or(page.locator('.text-red-600').filter({ hasText: /conflict|disagree/i }));
 
     // Either conflicts exist OR table is empty
-    const hasConflicts = await conflictIndicators.count() > 0;
-    const hasEmptyState = await page.locator('text=No ensemble signals').isVisible().catch(() => false);
+    const hasConflicts = (await conflictIndicators.count()) > 0;
+    const hasEmptyState = await page
+      .locator('text=No ensemble signals')
+      .isVisible()
+      .catch(() => false);
 
     // At minimum, table should be visible
     const tableVisible = await page.locator('table').isVisible();
@@ -53,13 +56,16 @@ test.describe('Ensemble Signals - Conflict Detection', () => {
     await page.waitForTimeout(2000);
 
     // Look for weighting information (60%, 40%, or confidence breakdown)
-    const weightingInfo = page.locator('text=/60|40/').or(
-      page.locator('text=Model A').and(page.locator('text=Model B'))
-    );
+    const weightingInfo = page
+      .locator('text=/60|40/')
+      .or(page.locator('text=Model A').and(page.locator('text=Model B')));
 
     // Weighting info may be in tooltips or column headers
-    const hasWeighting = await weightingInfo.count() > 0;
-    const hasConfidence = await page.locator('text=Confidence').isVisible().catch(() => false);
+    const hasWeighting = (await weightingInfo.count()) > 0;
+    const hasConfidence = await page
+      .locator('text=Confidence')
+      .isVisible()
+      .catch(() => false);
 
     // Should show either weighting or confidence
     expect(hasWeighting || hasConfidence).toBeTruthy();
@@ -90,11 +96,11 @@ test.describe('Ensemble Signals - Conflict Detection', () => {
     await page.waitForTimeout(2000);
 
     // Look for agreement filter toggle/button
-    const agreementFilter = page.locator('button:has-text("Agreement")').or(
-      page.locator('input[type="checkbox"]').filter({ hasText: /agreement/i })
-    );
+    const agreementFilter = page
+      .locator('button:has-text("Agreement")')
+      .or(page.locator('input[type="checkbox"]').filter({ hasText: /agreement/i }));
 
-    if (await agreementFilter.count() > 0) {
+    if ((await agreementFilter.count()) > 0) {
       // Click the filter
       await agreementFilter.first().click();
       await page.waitForTimeout(1000);
@@ -112,13 +118,12 @@ test.describe('Ensemble Signals - Conflict Detection', () => {
     await page.waitForTimeout(2000);
 
     // Look for signal badges
-    const signalBadges = page.locator('text=BUY').or(
-      page.locator('text=SELL')
-    ).or(
-      page.locator('text=HOLD')
-    );
+    const signalBadges = page
+      .locator('text=BUY')
+      .or(page.locator('text=SELL'))
+      .or(page.locator('text=HOLD'));
 
-    if (await signalBadges.count() > 0) {
+    if ((await signalBadges.count()) > 0) {
       await expect(signalBadges.first()).toBeVisible({ timeout: 5000 });
 
       // Badges should have color styling
@@ -136,7 +141,7 @@ test.describe('Ensemble Signals - Conflict Detection', () => {
     // Find first ticker in table
     const tableRows = page.locator('tbody tr');
 
-    if (await tableRows.count() > 0) {
+    if ((await tableRows.count()) > 0) {
       // Get ticker symbol from first row
       const firstRow = tableRows.first();
       await firstRow.click();
@@ -155,12 +160,10 @@ test.describe('Ensemble Signals - Conflict Detection', () => {
     await page.waitForTimeout(2000);
 
     // Look for individual model signals (Model A, Model B labels or columns)
-    const modelLabels = page.locator('text=Model A').or(
-      page.locator('text=Model B')
-    );
+    const modelLabels = page.locator('text=Model A').or(page.locator('text=Model B'));
 
     // Should show component model information
-    const hasLabels = await modelLabels.count() > 0;
+    const hasLabels = (await modelLabels.count()) > 0;
     const hasTable = await page.locator('table').isVisible();
 
     expect(hasLabels || hasTable).toBeTruthy();

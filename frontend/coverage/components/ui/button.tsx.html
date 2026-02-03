@@ -106,8 +106,18 @@
 <a name='L41'></a><a href='#L41'>41</a>
 <a name='L42'></a><a href='#L42'>42</a>
 <a name='L43'></a><a href='#L43'>43</a>
-<a name='L44'></a><a href='#L44'>44</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -117,23 +127,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -146,13 +140,39 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">186x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { ButtonHTMLAttributes, forwardRef } from 'react';
 import { cn } from '../../lib/utils';
 &nbsp;
-type ButtonVariant = 'primary' | 'outline' | 'ghost';
+type ButtonVariant = 'primary' | 'outline' | 'ghost' | 'signal-buy' | 'signal-sell' | 'signal-hold';
 type ButtonSize = 'sm' | 'md' | 'lg';
 &nbsp;
 interface ButtonProps extends ButtonHTMLAttributes&lt;HTMLButtonElement&gt; {
@@ -161,17 +181,24 @@ interface ButtonProps extends ButtonHTMLAttributes&lt;HTMLButtonElement&gt; {
 }
 &nbsp;
 const variantStyles: Record&lt;ButtonVariant, string&gt; = {
-  primary: 'bg-accent text-white hover:bg-accent/90',
+  primary:
+    'bg-accent text-white hover:bg-accent/90 dark:bg-accent-primary dark:hover:bg-accent-hover',
   outline:
-    'border border-slate-200 text-slate-700 hover:border-slate-300 dark:border-white/10 dark:text-slate-200',
+    'border border-slate-200 text-slate-700 hover:border-slate-300 dark:border-white/10 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5',
   ghost:
     'bg-transparent text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10',
+  'signal-buy':
+    'bg-signal-buy text-white hover:bg-signal-buy/90 dark:bg-signal-dark-buy dark:hover:bg-signal-dark-buy/90',
+  'signal-sell':
+    'bg-signal-sell text-white hover:bg-signal-sell/90 dark:bg-signal-dark-sell dark:hover:bg-signal-dark-sell/90',
+  'signal-hold':
+    'bg-signal-hold text-white hover:bg-signal-hold/90 dark:bg-signal-dark-hold dark:hover:bg-signal-dark-hold/90',
 };
 &nbsp;
 const sizeStyles: Record&lt;ButtonSize, string&gt; = {
   sm: 'px-3 py-1.5 text-xs',
   md: 'px-4 py-2 text-sm',
-  lg: 'px-5 py-2.5 text-sm',
+  lg: 'px-5 py-2.5 text-base',
 };
 &nbsp;
 const Button = forwardRef&lt;HTMLButtonElement, ButtonProps&gt;(
@@ -179,7 +206,9 @@ const Button = forwardRef&lt;HTMLButtonElement, ButtonProps&gt;(
     &lt;button
       ref={ref}
       className={cn(
-        'rounded-full font-semibold uppercase tracking-[0.2em] transition disabled:cursor-not-allowed disabled:opacity-50',
+        'rounded-lg font-semibold transition-all duration-200',
+        'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-primary',
+        'disabled:cursor-not-allowed disabled:opacity-50',
         variantStyles[variant],
         sizeStyles[size],
         className
@@ -192,6 +221,7 @@ const Button = forwardRef&lt;HTMLButtonElement, ButtonProps&gt;(
 Button.displayName = 'Button';
 &nbsp;
 export { Button };
+export type { ButtonProps, ButtonVariant, ButtonSize };
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -199,7 +229,7 @@ export { Button };
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-30T20:10:24.404Z
+                at 2026-02-03T10:58:09.464Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

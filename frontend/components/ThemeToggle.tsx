@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
 
 const storageKey = 'asx-portfolio-theme';
 
@@ -11,9 +12,11 @@ export default function ThemeToggle() {
   useEffect(() => {
     const stored = localStorage.getItem(storageKey);
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const nextDark = stored ? stored === 'dark' : prefersDark;
+    // Default to dark mode
+    const nextDark = stored ? stored === 'dark' : prefersDark !== false;
     setIsDark(nextDark);
     document.documentElement.classList.toggle('dark', nextDark);
+    document.documentElement.setAttribute('data-theme', nextDark ? 'dark' : 'light');
     setMounted(true);
   }, []);
 
@@ -21,20 +24,30 @@ export default function ThemeToggle() {
     const nextDark = !isDark;
     setIsDark(nextDark);
     document.documentElement.classList.toggle('dark', nextDark);
+    document.documentElement.setAttribute('data-theme', nextDark ? 'dark' : 'light');
     localStorage.setItem(storageKey, nextDark ? 'dark' : 'light');
   };
 
   if (!mounted) {
-    return null;
+    return <div className="h-9 w-9 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse" />;
   }
 
   return (
     <button
       type="button"
       onClick={toggleTheme}
-      className="rounded-full border border-slate-300/60 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600 shadow-sm transition hover:border-slate-400 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200"
+      className="rounded-lg p-2 transition-colors duration-200 
+        bg-gray-100 hover:bg-gray-200 dark:bg-dark-tertiary dark:hover:bg-dark-elevated
+        text-gray-700 dark:text-gray-300
+        focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {isDark ? 'Dark' : 'Light'}
+      {isDark ? (
+        <Sun className="h-5 w-5 transition-transform duration-200 rotate-0 hover:rotate-12" />
+      ) : (
+        <Moon className="h-5 w-5 transition-transform duration-200 rotate-0 hover:-rotate-12" />
+      )}
     </button>
   );
 }
