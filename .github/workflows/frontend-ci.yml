@@ -27,7 +27,7 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Type check
-        run: npm run type-check || true
+        run: npm run type-check
       - name: Run tests with coverage
         run: npm run test:ci
       - name: Upload coverage to Codecov
