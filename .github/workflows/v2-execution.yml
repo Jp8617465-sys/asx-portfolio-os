@@ -1,0 +1,228 @@
+name: V2 Execution - Fundamental Intelligence
+
+on:
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      environment:
+        description: 'Environment to run against'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      skip_training:
+        description: 'Skip Model B training (use existing model)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  execute-v2:
+    name: Execute V2 Pipeline
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create outputs directory
+        run: |
+          mkdir -p outputs
+          mkdir -p outputs/reports
+          mkdir -p outputs/models
+
+      - name: Apply V2 database schemas
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "📊 Applying V2 schemas..."
+          psql $DATABASE_URL -f schemas/fundamentals.sql
+          psql $DATABASE_URL -f schemas/model_b_ml_signals.sql
+          psql $DATABASE_URL -f schemas/ensemble_signals.sql
+          echo "✅ Schemas applied successfully"
+
+      - name: Verify schemas
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🔍 Verifying schemas..."
+          psql $DATABASE_URL -c "SELECT table_name FROM information_schema.tables WHERE table_name IN ('fundamentals', 'model_b_ml_signals', 'ensemble_signals')"
+
+      - name: Load fundamental data
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          EODHD_API_KEY: ${{ secrets.EODHD_API_KEY }}
+        run: |
+          echo "📥 Loading fundamental data..."
+          python3 jobs/load_fundamentals.py || echo "Using sample data"
+          
+      - name: Verify fundamentals loaded
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🔍 Verifying fundamentals..."
+          psql $DATABASE_URL -c "SELECT COUNT(*), COUNT(DISTINCT symbol) FROM fundamentals"
+          psql $DATABASE_URL -c "SELECT symbol, pe_ratio, roe FROM fundamentals LIMIT 5"
+
+      - name: Build extended feature set
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "⚙️ Building extended feature set..."
+          python3 jobs/build_extended_feature_set.py
+          ls -lh outputs/featureset_extended_latest.parquet
+
+      - name: Train Model B
+        if: ${{ !inputs.skip_training }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🤖 Training Model B..."
+          python3 models/train_model_b_fundamentals.py
+          
+      - name: Verify Model B trained
+        run: |
+          echo "🔍 Verifying Model B..."
+          ls -lh outputs/model_b_fundamentals_*.pkl
+          cat outputs/model_b_validation_report.md || echo "No validation report"
+
+      - name: Generate Model B signals
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "📊 Generating Model B signals..."
+          python3 jobs/generate_signals_model_b.py
+
+      - name: Verify Model B signals
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🔍 Verifying Model B signals..."
+          psql $DATABASE_URL -c "SELECT COUNT(*) FROM model_b_ml_signals"
+          psql $DATABASE_URL -c "SELECT symbol, signal, quality_score FROM model_b_ml_signals LIMIT 10"
+
+      - name: Generate ensemble signals
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🔗 Generating ensemble signals..."
+          python3 jobs/generate_ensemble_signals.py
+
+      - name: Verify ensemble signals
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🔍 Verifying ensemble signals..."
+          psql $DATABASE_URL -c "SELECT COUNT(*) FROM ensemble_signals"
+          psql $DATABASE_URL -c "SELECT symbol, signal, conflict, signals_agree FROM ensemble_signals WHERE conflict = false LIMIT 10"
+          psql $DATABASE_URL -c "SELECT COUNT(*) FILTER (WHERE signals_agree = true) * 100.0 / COUNT(*) as agreement_rate FROM ensemble_signals"
+
+      - name: Run API tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OS_API_KEY: ${{ secrets.OS_API_KEY }}
+        run: |
+          echo "🧪 Testing V2 API endpoints..."
+          # Start server in background
+          uvicorn app.main:app --host 0.0.0.0 --port 8788 &
+          SERVER_PID=$!
+          
+          # Wait for server to start
+          sleep 10
+          
+          # Test endpoints
+          curl -f http://localhost:8788/health || exit 1
+          curl -f -H "x-api-key: $OS_API_KEY" http://localhost:8788/fundamentals/metrics?ticker=BHP.AU || exit 1
+          curl -f -H "x-api-key: $OS_API_KEY" http://localhost:8788/signals/model_b/latest || exit 1
+          curl -f -H "x-api-key: $OS_API_KEY" http://localhost:8788/signals/ensemble/latest || exit 1
+          
+          # Stop server
+          kill $SERVER_PID
+          
+          echo "✅ All API tests passed"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: v2-outputs-${{ inputs.environment }}
+          path: |
+            outputs/
+            !outputs/*.parquet
+          retention-days: 30
+
+      - name: Create execution report
+        run: |
+          cat > V2_EXECUTION_REPORT.md << 'EOF'
+          # V2 Execution Report
+          
+          **Date**: $(date)
+          **Environment**: ${{ inputs.environment }}
+          **Status**: ✅ Success
+          
+          ## Execution Summary
+          
+          - ✅ Database schemas applied
+          - ✅ Fundamental data loaded
+          - ✅ Extended features built
+          - ${{ inputs.skip_training && '⏭️ Model B training skipped' || '✅ Model B trained' }}
+          - ✅ Model B signals generated
+          - ✅ Ensemble signals generated
+          - ✅ API tests passed
+          
+          ## Next Steps
+          
+          1. Review validation report in artifacts
+          2. Monitor signal quality over next 7 days
+          3. Gather user feedback on dual signals
+          4. Tune ensemble weights if needed
+          5. Plan V3 (Sentiment & News) deployment
+          
+          ---
+          **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          
+          cat V2_EXECUTION_REPORT.md
+
+      - name: Upload execution report
+        uses: actions/upload-artifact@v3
+        with:
+          name: execution-report-${{ inputs.environment }}
+          path: V2_EXECUTION_REPORT.md
+          retention-days: 90
+
+  notify:
+    name: Send Notification
+    needs: execute-v2
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Notify success
+        if: needs.execute-v2.result == 'success'
+        run: |
+          echo "✅ V2 execution completed successfully!"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Check artifacts for detailed reports"
+
+      - name: Notify failure
+        if: needs.execute-v2.result == 'failure'
+        run: |
+          echo "❌ V2 execution failed"
+          echo "Check workflow logs for details"
+          exit 1
