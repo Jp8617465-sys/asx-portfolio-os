@@ -102,9 +102,9 @@ def run_job(script_path: str, description: str, timeout: int = 600) -> bool:
         else:
             log_error(f"Failed: {description}")
             if result.stderr:
-                print(result.stderr[-500:])
+                print(result.stderr[-500:] if len(result.stderr) > 500 else result.stderr)
             if result.stdout:
-                print(result.stdout[-500:])
+                print(result.stdout[-500:] if len(result.stdout) > 500 else result.stdout)
             return False
             
     except subprocess.TimeoutExpired:
@@ -118,6 +118,7 @@ def run_job(script_path: str, description: str, timeout: int = 600) -> bool:
 def check_database_tables():
     """Check which tables exist and their row counts."""
     import psycopg2
+    from psycopg2 import sql
     
     db_url = os.getenv("DATABASE_URL")
     tables = ["universe", "prices", "fundamentals", "model_a_ml_signals", "user_watchlist"]
@@ -128,7 +129,8 @@ def check_database_tables():
         with psycopg2.connect(db_url) as conn, conn.cursor() as cur:
             for table in tables:
                 try:
-                    cur.execute(f"SELECT COUNT(*) FROM {table}")
+                    # Use parameterized query with identifier quoting for safety
+                    cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table)))
                     count = cur.fetchone()[0]
                     status = "✓" if count > 0 else "○"
                     print(f"  {status} {table}: {count:,} rows")
@@ -228,7 +230,7 @@ def main():
             else:
                 log_warning("Fundamentals fetch had issues (non-critical)")
                 if result.stderr:
-                    print(result.stderr[-300:])
+                    print(result.stderr[-300:] if len(result.stderr) > 300 else result.stderr)
         except Exception as e:
             log_warning(f"Fundamentals fetch failed (non-critical): {e}")
     

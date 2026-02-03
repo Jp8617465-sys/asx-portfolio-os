@@ -10,7 +10,7 @@ Usage:
 import io
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pandas as pd
 import psycopg2
@@ -65,7 +65,7 @@ def refresh_universe():
         "exchange": "AU",
         "type": df[type_col] if type_col else None,
         "currency": df[ccy_col] if ccy_col else "AUD",
-        "updated_at": datetime.utcnow(),
+        "updated_at": datetime.now(timezone.utc),
     }).dropna(subset=["symbol"])
 
     if out.empty:
