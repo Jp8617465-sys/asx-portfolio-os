@@ -340,7 +340,9 @@ def build_features(start_date, end_date):
             try:
                 a, b = np.polyfit(x, y, 1)
                 return a
-            except (ValueError, TypeError, np.linalg.LinAlgError):
+            except (np.linalg.LinAlgError, ValueError):
+                # LinAlgError: Singular matrix (insufficient data points)
+                # ValueError: x and y arrays must have the same length
                 return np.nan
 
         df["sma200_slope"] = df.groupby("symbol")["sma_200"].transform(

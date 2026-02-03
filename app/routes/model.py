@@ -136,7 +136,7 @@ def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(defaul
     mask_notna = latest[required_cols].notna().all(axis=1)
     mask_adv = latest["adv_20_median"] >= req.adv_floor
     mask_price = latest["close"] >= req.min_price
-    mask_trend = latest["trend_quality"]
+    mask_trend = latest["trend_quality"]  # Boolean column from feature engineering
 
     latest = latest[mask_notna & mask_adv & mask_price & mask_trend]
 
@@ -230,7 +230,6 @@ def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(defaul
 def run_model_a_v1_1_persist(req: ModelAV11Req, x_api_key: Optional[str] = Header(default=None)):
     """Run Model A v1.1 and persist results to database."""
     require_key(x_api_key)
-    datetime.utcnow()
     as_of_date = parse_as_of(req.as_of)
     logger.info("🚀 Starting Model A persist run for %s", as_of_date)
 
