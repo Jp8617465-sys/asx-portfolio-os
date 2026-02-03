@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { safeStorage } from '@/lib/safe-storage';
 
 const storageKey = 'asx-portfolio-theme';
 
@@ -9,19 +10,23 @@ export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(storageKey);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const nextDark = stored ? stored === 'dark' : prefersDark;
-    setIsDark(nextDark);
-    document.documentElement.classList.toggle('dark', nextDark);
+    const stored = safeStorage.getItem(storageKey);
+    if (typeof window !== 'undefined') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const nextDark = stored ? stored === 'dark' : prefersDark;
+      setIsDark(nextDark);
+      document.documentElement.classList.toggle('dark', nextDark);
+    }
     setMounted(true);
   }, []);
 
   const toggleTheme = () => {
     const nextDark = !isDark;
     setIsDark(nextDark);
-    document.documentElement.classList.toggle('dark', nextDark);
-    localStorage.setItem(storageKey, nextDark ? 'dark' : 'light');
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.toggle('dark', nextDark);
+    }
+    safeStorage.setItem(storageKey, nextDark ? 'dark' : 'light');
   };
 
   if (!mounted) {

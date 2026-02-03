@@ -102,7 +102,17 @@ export const useNotificationStore = create<NotificationStore>()(
           return daysSinceCreation < 7;
         }),
       }),
-      storage: createJSONStorage(() => localStorage, {
+      storage: createJSONStorage(() => {
+        // Only use localStorage on client side
+        if (typeof window === 'undefined') {
+          return {
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {},
+          };
+        }
+        return localStorage;
+      }, {
         reviver: (key, value) => {
           // Convert timestamp strings back to Date objects
           if (key === 'timestamp' && typeof value === 'string') {
