@@ -26,9 +26,9 @@ test.describe('Portfolio P&L Calculation', () => {
     await page.waitForTimeout(2000);
 
     // Look for total value display
-    const totalValue = page.locator('text=/Total.*Value/i').or(
-      page.locator('text=/Portfolio.*Value/i')
-    );
+    const totalValue = page
+      .locator('text=/Total.*Value/i')
+      .or(page.locator('text=/Portfolio.*Value/i'));
 
     if (await totalValue.isVisible().catch(() => false)) {
       await expect(totalValue).toBeVisible({ timeout: 5000 });
@@ -46,12 +46,12 @@ test.describe('Portfolio P&L Calculation', () => {
     // Look for P&L indicators
     const plIndicators = page.locator('text=/P&L|Profit|Loss|Gain/i');
 
-    if (await plIndicators.count() > 0) {
+    if ((await plIndicators.count()) > 0) {
       await expect(plIndicators.first()).toBeVisible({ timeout: 5000 });
 
       // Should show positive (green) or negative (red) values
       const coloredValues = page.locator('.text-green-600, .text-red-600');
-      if (await coloredValues.count() > 0) {
+      if ((await coloredValues.count()) > 0) {
         await expect(coloredValues.first()).toBeVisible({ timeout: 5000 });
       }
     }
@@ -72,9 +72,9 @@ test.describe('Portfolio P&L Calculation', () => {
       await expect(headers.first()).toBeVisible({ timeout: 5000 });
 
       // Look for price columns (Current Price, Avg Cost, etc.)
-      const priceHeaders = page.locator('th:has-text("Price")').or(
-        page.locator('th:has-text("Cost")')
-      );
+      const priceHeaders = page
+        .locator('th:has-text("Price")')
+        .or(page.locator('th:has-text("Cost")'));
 
       await expect(priceHeaders.first()).toBeVisible({ timeout: 5000 });
     }
@@ -110,7 +110,7 @@ test.describe('Portfolio P&L Calculation', () => {
     // Look for percentage displays
     const percentages = page.locator('text=/%/');
 
-    if (await percentages.count() > 0) {
+    if ((await percentages.count()) > 0) {
       const firstPercent = await percentages.first().textContent();
 
       // Should be a valid percentage
@@ -123,9 +123,9 @@ test.describe('Portfolio P&L Calculation', () => {
     await page.waitForTimeout(2000);
 
     // Look for refresh button
-    const refreshButton = page.locator('button:has-text("Refresh")').or(
-      page.locator('button:has-text("Sync")')
-    );
+    const refreshButton = page
+      .locator('button:has-text("Refresh")')
+      .or(page.locator('button:has-text("Sync")'));
 
     if (await refreshButton.isVisible().catch(() => false)) {
       // Click refresh
@@ -133,7 +133,10 @@ test.describe('Portfolio P&L Calculation', () => {
       await page.waitForTimeout(2000);
 
       // Should show loading state or updated timestamp
-      const loadingOrUpdated = await page.locator('text=/Loading|Updated|Syncing/i').isVisible().catch(() => false);
+      const loadingOrUpdated = await page
+        .locator('text=/Loading|Updated|Syncing/i')
+        .isVisible()
+        .catch(() => false);
 
       // Page should still be functional
       const table = page.locator('table');
@@ -147,7 +150,7 @@ test.describe('Portfolio P&L Calculation', () => {
 
     const rows = page.locator('tbody tr');
 
-    if (await rows.count() > 0) {
+    if ((await rows.count()) > 0) {
       // Each row should have ticker, shares, current price, P&L
       const firstRow = rows.first();
       const cells = firstRow.locator('td');
@@ -167,8 +170,11 @@ test.describe('Portfolio P&L Calculation', () => {
     await page.waitForTimeout(2000);
 
     // Either portfolio has holdings OR shows empty state
-    const hasHoldings = await page.locator('tbody tr').count() > 0;
-    const hasEmptyState = await page.locator('text=/No holdings|empty portfolio/i').isVisible().catch(() => false);
+    const hasHoldings = (await page.locator('tbody tr').count()) > 0;
+    const hasEmptyState = await page
+      .locator('text=/No holdings|empty portfolio/i')
+      .isVisible()
+      .catch(() => false);
 
     expect(hasHoldings || hasEmptyState).toBeTruthy();
   });

@@ -4,7 +4,19 @@ import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, TrendingUp, DollarSign, Home, CreditCard, RefreshCw } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 
@@ -178,15 +190,11 @@ export default function FusionDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Last updated: {overview?.computed_at ? new Date(overview.computed_at).toLocaleString() : 'N/A'}
+            Last updated:{' '}
+            {overview?.computed_at ? new Date(overview.computed_at).toLocaleString() : 'N/A'}
           </p>
         </div>
-        <Button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          variant="outline"
-          size="sm"
-        >
+        <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" size="sm">
           <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Refreshing...' : 'Refresh'}
         </Button>
@@ -205,9 +213,7 @@ export default function FusionDashboard() {
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {formatCurrency(overview?.summary.net_worth || 0)}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Assets - Liabilities
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Assets - Liabilities</p>
           </CardContent>
         </Card>
 
@@ -222,9 +228,7 @@ export default function FusionDashboard() {
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {formatCurrency(overview?.summary.total_assets || 0)}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Equities + Property
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Equities + Property</p>
           </CardContent>
         </Card>
 
@@ -239,9 +243,7 @@ export default function FusionDashboard() {
             <div className="text-2xl font-bold text-red-600">
               {formatCurrency(overview?.summary.total_liabilities || 0)}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Loan balances
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Loan balances</p>
           </CardContent>
         </Card>
 
@@ -292,7 +294,10 @@ export default function FusionDashboard() {
                     dataKey="value"
                   >
                     {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS] || '#6b7280'} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[entry.name as keyof typeof COLORS] || '#6b7280'}
+                      />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value: any) => formatCurrency(value)} />
@@ -311,9 +316,7 @@ export default function FusionDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Risk Metrics</CardTitle>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Portfolio risk analysis
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Portfolio risk analysis</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -336,7 +339,9 @@ export default function FusionDashboard() {
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Portfolio Volatility</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Portfolio Volatility
+                </span>
                 <span className="font-semibold text-gray-900 dark:text-white">
                   {riskData?.metrics.portfolio_volatility
                     ? `${(riskData.metrics.portfolio_volatility * 100).toFixed(2)}%`

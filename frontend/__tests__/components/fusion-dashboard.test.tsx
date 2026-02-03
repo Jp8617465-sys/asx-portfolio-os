@@ -85,7 +85,7 @@ describe('FusionDashboard', () => {
   });
 
   it('renders without crashing', () => {
-    const { container} = render(<FusionDashboard />);
+    const { container } = render(<FusionDashboard />);
     expect(container).toBeInTheDocument();
   });
 
@@ -299,7 +299,7 @@ describe('FusionDashboard', () => {
         risk_level: 'high',
         debt_service_ratio: 0.65,
         leverage_ratio: 66.67,
-        metrics: { portfolio_volatility: 0.25, max_drawdown: 0.20 },
+        metrics: { portfolio_volatility: 0.25, max_drawdown: 0.2 },
       },
     });
 

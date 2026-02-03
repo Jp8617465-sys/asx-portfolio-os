@@ -186,7 +186,8 @@ export const api = {
 
   getFeatureDrift: () => apiClient.get('/api/drift/features'),
 
-  getDriftHistory: (params?: { feature_name?: string; days?: number }) => apiClient.get('/api/drift/history', { params }),
+  getDriftHistory: (params?: { feature_name?: string; days?: number }) =>
+    apiClient.get('/api/drift/history', { params }),
 
   // News & Sentiment (via proxy)
   getTickerNews: (ticker: string, params?: { days?: number; limit?: number }) =>

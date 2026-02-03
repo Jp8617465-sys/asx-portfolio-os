@@ -3,10 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8788';
 const API_KEY = process.env.OS_API_KEY || '';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { ticker: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { ticker: string } }) {
   const { ticker } = params;
   const { searchParams } = new URL(request.url);
   const days = searchParams.get('days') ?? '7';

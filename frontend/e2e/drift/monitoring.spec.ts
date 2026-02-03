@@ -68,7 +68,7 @@ test.describe('Drift Monitoring Dashboard', () => {
       // Should have status badges (STABLE/WARNING/DRIFT)
       const statusBadges = page.locator('.bg-green-500, .bg-yellow-500, .bg-red-500');
 
-      if (await statusBadges.count() > 0) {
+      if ((await statusBadges.count()) > 0) {
         await expect(statusBadges.first()).toBeVisible({ timeout: 5000 });
       }
     }
@@ -99,9 +99,9 @@ test.describe('Drift Monitoring Dashboard', () => {
     await page.waitForTimeout(2000);
 
     // Look for retraining recommendation banner (orange/warning)
-    const retrainingBanner = page.locator('text=/Retraining.*Recommended/i').or(
-      page.locator('.bg-orange-50, .bg-orange-900')
-    );
+    const retrainingBanner = page
+      .locator('text=/Retraining.*Recommended/i')
+      .or(page.locator('.bg-orange-50, .bg-orange-900'));
 
     // Either banner is shown (high drift) OR not shown (low drift)
     const hasBanner = await retrainingBanner.isVisible().catch(() => false);
@@ -136,7 +136,7 @@ test.describe('Drift Monitoring Dashboard', () => {
 
     const rows = page.locator('tbody tr');
 
-    if (await rows.count() > 0) {
+    if ((await rows.count()) > 0) {
       // Click first feature row
       await rows.first().click();
       await page.waitForTimeout(1000);
@@ -158,10 +158,11 @@ test.describe('Drift Monitoring Dashboard', () => {
       const headers = page.locator('th');
       const headerText = await headers.allTextContents();
 
-      const hasBaselineOrCurrent = headerText.some(h =>
-        h.toLowerCase().includes('baseline') ||
-        h.toLowerCase().includes('current') ||
-        h.toLowerCase().includes('mean')
+      const hasBaselineOrCurrent = headerText.some(
+        (h) =>
+          h.toLowerCase().includes('baseline') ||
+          h.toLowerCase().includes('current') ||
+          h.toLowerCase().includes('mean')
       );
 
       expect(hasBaselineOrCurrent || headerText.length > 0).toBeTruthy();
@@ -179,8 +180,11 @@ test.describe('Drift Monitoring Dashboard', () => {
       await expect(alertsSection.first()).toBeVisible({ timeout: 5000 });
 
       // Should show alert cards or empty state
-      const hasAlerts = await page.locator('.border-gray-200, .border-gray-700').count() > 0;
-      const hasEmptyState = await page.locator('text=/No.*alert|stable/i').isVisible().catch(() => false);
+      const hasAlerts = (await page.locator('.border-gray-200, .border-gray-700').count()) > 0;
+      const hasEmptyState = await page
+        .locator('text=/No.*alert|stable/i')
+        .isVisible()
+        .catch(() => false);
 
       expect(hasAlerts || hasEmptyState).toBeTruthy();
     }
@@ -191,13 +195,15 @@ test.describe('Drift Monitoring Dashboard', () => {
     await page.waitForTimeout(2000);
 
     // Look for summary stat cards
-    const statCards = page.locator('[class*="grid"]').filter({ has: page.locator('text=/PSI|Drift|Feature/i') });
+    const statCards = page
+      .locator('[class*="grid"]')
+      .filter({ has: page.locator('text=/PSI|Drift|Feature/i') });
 
-    if (await statCards.count() > 0) {
+    if ((await statCards.count()) > 0) {
       // Should have multiple stat cards
       const cardElements = page.locator('.text-2xl, .text-3xl').filter({ hasText: /\\d+/ });
 
-      if (await cardElements.count() > 0) {
+      if ((await cardElements.count()) > 0) {
         await expect(cardElements.first()).toBeVisible({ timeout: 5000 });
       }
     }
