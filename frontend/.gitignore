@@ -2,3 +2,8 @@
 .env*.local
 node_modules/
 .next/
+coverage/
+test-results/
+playwright-report/
+.DS_Store
+.swc/
