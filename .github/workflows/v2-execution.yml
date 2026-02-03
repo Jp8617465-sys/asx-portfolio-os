@@ -18,7 +18,7 @@ on:
         type: boolean
 
 env:
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.10'
 
 jobs:
   execute-v2:
@@ -28,10 +28,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -158,7 +158,7 @@ jobs:
           echo "✅ All API tests passed"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: v2-outputs-${{ inputs.environment }}
           path: |
@@ -200,7 +200,7 @@ jobs:
           cat V2_EXECUTION_REPORT.md
 
       - name: Upload execution report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: execution-report-${{ inputs.environment }}
           path: V2_EXECUTION_REPORT.md

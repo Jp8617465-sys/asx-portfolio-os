@@ -3,8 +3,6 @@ jobs/loan_simulator.py
 Loan amortization, refinancing, and repayment optimization engine.
 """
 
-import math
-from datetime import datetime
 import pandas as pd
 
 def loan_amortization(principal, annual_rate, years, extra_payment=0.0):

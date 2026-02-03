@@ -1,0 +1,13 @@
+# Ruff configuration for ASX Portfolio OS
+
+[lint]
+# Allow imports after sys.path modifications (E402)
+# Allow unused variables in tests for documentation (F841)
+ignore = [
+    "E402",  # Module level import not at top of file (needed for sys.path modifications)
+]
+
+[lint.per-file-ignores]
+"tests/**/*.py" = [
+    "F841",  # Local variable assigned but never used (common in test setup)
+]

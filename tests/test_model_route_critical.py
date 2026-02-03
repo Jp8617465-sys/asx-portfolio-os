@@ -6,10 +6,9 @@ Tests the /dashboard/model_a_v1_1 endpoint which is the core signal generation A
 import pytest
 import os
 import sys
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 import pandas as pd
 import numpy as np
-from datetime import datetime, date
 
 # Add project root to path
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

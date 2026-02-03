@@ -3,7 +3,6 @@ tests/test_api_endpoints.py
 Unit tests for API endpoint validation and response handling.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 
 

@@ -7,13 +7,12 @@ import csv
 import io
 from datetime import date, datetime, timedelta
 from typing import Optional, List
-import pandas as pd
 import numpy as np
 
-from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Query, Depends
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, UploadFile, File, Query, Depends
+from pydantic import BaseModel
 
-from app.core import db_context, require_key, logger
+from app.core import db_context, logger
 from app.auth import get_current_user_id
 
 router = APIRouter()

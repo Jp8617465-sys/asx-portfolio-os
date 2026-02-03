@@ -44,8 +44,8 @@ def load_models():
         features_config = json.load(f)
         feature_names = features_config['features']
 
-    print(f"   ✅ Classifier loaded")
-    print(f"   ✅ Regressor loaded")
+    print("   ✅ Classifier loaded")
+    print("   ✅ Regressor loaded")
     print(f"   ✅ Features: {len(feature_names)}")
 
     return classifier, regressor, feature_names
@@ -160,7 +160,7 @@ def generate_signals(df, classifier, regressor, feature_names):
 
     # Signal distribution
     signal_counts = signals['signal'].value_counts()
-    print(f"\n   📊 Signal Distribution:")
+    print("\n   📊 Signal Distribution:")
     for signal, count in signal_counts.items():
         pct = count / len(signals) * 100
         print(f"      {signal:15s}: {count:4d} ({pct:5.1f}%)")
@@ -272,10 +272,10 @@ def main():
         print("\n" + "="*60)
         print("✅ Signal Generation Complete!")
         print("="*60)
-        print(f"\n📊 Summary:")
+        print("\n📊 Summary:")
         print(f"   Total signals: {len(signals)}")
         print(f"   Date: {datetime.now().date()}")
-        print(f"   Model: model_a_v1_2")
+        print("   Model: model_a_v1_2")
         print("\n🚀 Signals are now available via API:")
         print("   curl https://asx-portfolio-os.onrender.com/api/v1/signals/live/CBA.AX")
 

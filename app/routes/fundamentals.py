@@ -3,13 +3,12 @@ app/routes/fundamentals.py
 Fundamentals data and Model B (fundamental analysis) signal endpoints.
 """
 
-from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Optional
 
 import pandas as pd
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException
 
-from app.core import db, require_key, logger, parse_as_of
+from app.core import db, require_key, logger
 
 router = APIRouter()
 

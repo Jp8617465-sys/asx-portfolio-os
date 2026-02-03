@@ -260,7 +260,7 @@ def main():
     sell_count = sum(1 for s in ticker_signals if s['signal'] == 'SELL')
     hold_count = sum(1 for s in ticker_signals if s['signal'] == 'HOLD')
 
-    logger.info(f"✅ Model C signal generation complete!")
+    logger.info("✅ Model C signal generation complete!")
     logger.info(f"   - Total signals: {count}")
     logger.info(f"   - BUY: {buy_count}")
     logger.info(f"   - SELL: {sell_count}")

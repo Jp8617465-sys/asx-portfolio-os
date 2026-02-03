@@ -6,7 +6,7 @@ from datetime import date, timedelta
 from typing import Optional
 from fastapi import APIRouter, Header, HTTPException
 
-from app.core import db_context, require_key, logger
+from app.core import db_context, require_key
 
 router = APIRouter(prefix="/sentiment", tags=["sentiment"])
 

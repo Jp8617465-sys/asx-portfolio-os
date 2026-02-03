@@ -12,7 +12,6 @@ from datetime import datetime, date
 from typing import Optional
 from contextlib import contextmanager
 
-import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
 from fastapi import HTTPException
 from dotenv import load_dotenv

@@ -7,9 +7,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from psycopg2.extras import RealDictCursor
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, Header, Query
 
-from app.core import db_context, require_key, logger
+from app.core import db_context, require_key
 
 router = APIRouter(prefix="/news", tags=["News & Sentiment"])
 

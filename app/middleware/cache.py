@@ -7,7 +7,6 @@ For production, consider using Redis for distributed caching.
 
 import time
 import hashlib
-import json
 from functools import wraps
 from typing import Optional, Callable, Any
 from app.core import logger

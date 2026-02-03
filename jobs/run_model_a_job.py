@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
-import os, json, requests, subprocess, time
-from datetime import datetime, date
+import os
+import requests
+import subprocess
+import time
+from datetime import date
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 import psycopg2

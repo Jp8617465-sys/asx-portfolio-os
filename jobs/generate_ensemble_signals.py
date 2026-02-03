@@ -16,7 +16,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-import numpy as np
 import psycopg2
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv
@@ -207,7 +206,7 @@ def generate_ensemble_signals(df_a, df_b):
     df = pd.concat([df, ensemble_results], axis=1)
 
     # Summary statistics
-    logger.info(f"\n   Ensemble signal distribution:")
+    logger.info("\n   Ensemble signal distribution:")
     logger.info(f"   {df['signal'].value_counts().to_dict()}")
     logger.info(f"\n   Conflicts: {df['conflict'].sum()} ({df['conflict'].mean():.1%})")
     logger.info(f"   Agreement: {df['signals_agree'].sum()} ({df['signals_agree'].mean():.1%})")
@@ -312,12 +311,12 @@ def main():
                     logger.info(f"   SELL: {(df_ensemble['signal'] == 'SELL').sum()}")
                     logger.info(f"   STRONG_SELL: {(df_ensemble['signal'] == 'STRONG_SELL').sum()}")
 
-                    logger.info(f"\nAgreement metrics:")
+                    logger.info("\nAgreement metrics:")
                     logger.info(f"   Models agree: {df_ensemble['signals_agree'].sum()} ({df_ensemble['signals_agree'].mean():.1%})")
                     logger.info(f"   Conflicts: {df_ensemble['conflict'].sum()} ({df_ensemble['conflict'].mean():.1%})")
 
                     # Top signals
-                    logger.info(f"\nTop 10 STRONG_BUY/BUY signals (no conflict):")
+                    logger.info("\nTop 10 STRONG_BUY/BUY signals (no conflict):")
                     top_signals = df_ensemble[
                         (df_ensemble['signal'].isin(['STRONG_BUY', 'BUY'])) &
                         (~df_ensemble['conflict'])

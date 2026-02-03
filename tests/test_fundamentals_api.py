@@ -4,8 +4,7 @@ Tests /fundamentals/metrics, /fundamentals/quality, and Model B signal endpoints
 """
 
 import pytest
-from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 import pandas as pd
 from datetime import datetime
 
@@ -193,7 +192,6 @@ class TestModelBSignalsEndpoint:
         }])
 
         with patch('app.routes.fundamentals.pd.read_sql', return_value=sample_data):
-            from app.routes.fundamentals import router
             # Assuming there's a get_model_b_signal endpoint
             # This is a placeholder - adjust based on actual implementation
             pass

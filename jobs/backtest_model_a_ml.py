@@ -18,7 +18,6 @@ from typing import Optional, List, Dict, Any
 import pandas as pd
 import numpy as np
 import psycopg2
-from psycopg2.extras import execute_values
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=".env", override=True)

@@ -7,13 +7,11 @@ import pytest
 import os
 import sys
 import io
-from unittest.mock import Mock, patch, MagicMock
 import pandas as pd
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
-from fastapi.testclient import TestClient
 
 
 class TestPortfolioUpload:
@@ -75,14 +73,14 @@ BHP.AX,200,invalid
             'shares': [100, 200],
             'avg_cost': [95.50, 42.30]
         })
-        assert validate_portfolio_df(df) == True
+        assert validate_portfolio_df(df)
 
         # Missing required column
         df_missing = pd.DataFrame({
             'symbol': ['CBA.AX'],
             'shares': [100]
         })
-        assert validate_portfolio_df(df_missing) == False
+        assert not validate_portfolio_df(df_missing)
 
         # Negative shares
         df_negative = pd.DataFrame({
@@ -90,7 +88,7 @@ BHP.AX,200,invalid
             'shares': [-100],
             'avg_cost': [95.50]
         })
-        assert validate_portfolio_df(df_negative) == False
+        assert not validate_portfolio_df(df_negative)
 
         # Zero shares
         df_zero = pd.DataFrame({
@@ -98,20 +96,20 @@ BHP.AX,200,invalid
             'shares': [0],
             'avg_cost': [95.50]
         })
-        assert validate_portfolio_df(df_zero) == False
+        assert not validate_portfolio_df(df_zero)
 
     def test_asx_symbol_format_validation(self):
         """Test ASX symbol format validation"""
         # Valid ASX symbols
-        assert is_valid_asx_symbol('CBA.AX') == True
-        assert is_valid_asx_symbol('BHP.AX') == True
-        assert is_valid_asx_symbol('WES.AX') == True
+        assert is_valid_asx_symbol('CBA.AX')
+        assert is_valid_asx_symbol('BHP.AX')
+        assert is_valid_asx_symbol('WES.AX')
 
         # Invalid formats
-        assert is_valid_asx_symbol('CBA') == False  # Missing .AX
-        assert is_valid_asx_symbol('cba.ax') == False  # Lowercase
-        assert is_valid_asx_symbol('AAPL') == False  # Not ASX
-        assert is_valid_asx_symbol('') == False  # Empty
+        assert not is_valid_asx_symbol('CBA')  # Missing .AX
+        assert not is_valid_asx_symbol('cba.ax')  # Lowercase
+        assert not is_valid_asx_symbol('AAPL')  # Not ASX
+        assert not is_valid_asx_symbol('')  # Empty
 
     def test_portfolio_value_calculation(self):
         """Test portfolio total value calculation"""
@@ -174,7 +172,7 @@ BHP.AX,200,invalid
         df = pd.DataFrame(data)
 
         assert len(df) == 200
-        assert validate_portfolio_df(df) == True
+        assert validate_portfolio_df(df)
 
         # Test that processing doesn't fail
         total_shares = df['shares'].sum()
@@ -190,7 +188,7 @@ BHP.AX,200,42.30
         df = pd.read_csv(io.StringIO(csv_with_dupes))
 
         # Should detect duplicates
-        assert df['symbol'].duplicated().any() == True
+        assert df['symbol'].duplicated().any()
 
         # Aggregate duplicates
         df_aggregated = aggregate_duplicate_holdings(df)

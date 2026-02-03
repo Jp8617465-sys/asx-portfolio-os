@@ -9,7 +9,7 @@ using FinBERT or similar financial sentiment model.
 import os
 import sys
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 import requests
 from psycopg2.extras import execute_values

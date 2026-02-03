@@ -193,9 +193,9 @@ def generate_signals(df, classifier, feature_names):
     # Expected return (placeholder - could be enhanced)
     signals['ml_expected_return'] = (signals['prob_high_quality'] - 0.5) * 0.2  # Simple linear mapping
 
-    logger.info(f"\n   Signal distribution:")
+    logger.info("\n   Signal distribution:")
     logger.info(f"   {signals['signal'].value_counts().to_dict()}")
-    logger.info(f"\n   Quality score distribution:")
+    logger.info("\n   Quality score distribution:")
     logger.info(f"   {signals['quality_score'].value_counts().sort_index().to_dict()}")
 
     return signals
@@ -299,7 +299,7 @@ def main():
                 logger.info(f"   BUY: {(signals['signal'] == 'BUY').sum()}")
                 logger.info(f"   HOLD: {(signals['signal'] == 'HOLD').sum()}")
                 logger.info(f"   SELL: {(signals['signal'] == 'SELL').sum()}")
-                logger.info(f"\nTop 10 BUY signals:")
+                logger.info("\nTop 10 BUY signals:")
                 buy_signals = signals[signals['signal'] == 'BUY'].sort_values('rank').head(10)
                 for _, s in buy_signals.iterrows():
                     logger.info(f"   {s['symbol']:10s} | Quality: {s['quality_score']} | Conf: {s['confidence']:.2f} | P/E: {s['pe_ratio']:.1f}")

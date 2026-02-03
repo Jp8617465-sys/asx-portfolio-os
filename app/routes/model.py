@@ -10,12 +10,11 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from fastapi import APIRouter, Header, HTTPException, Query, Request
-from fastapi.openapi.utils import get_openapi
+from fastapi import APIRouter, Header, HTTPException, Query
 from psycopg2.extras import execute_values
 from pydantic import BaseModel
 
-from app.core import db, require_key, logger, parse_as_of, OUTPUT_DIR, PROJECT_ROOT
+from app.core import db, require_key, logger, parse_as_of, OUTPUT_DIR
 
 router = APIRouter()
 
@@ -137,7 +136,7 @@ def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(defaul
     mask_notna = latest[required_cols].notna().all(axis=1)
     mask_adv = latest["adv_20_median"] >= req.adv_floor
     mask_price = latest["close"] >= req.min_price
-    mask_trend = latest["trend_quality"] == True
+    mask_trend = latest["trend_quality"]
 
     latest = latest[mask_notna & mask_adv & mask_price & mask_trend]
 
@@ -231,7 +230,7 @@ def run_model_a_v1_1(req: ModelAV11Req, x_api_key: Optional[str] = Header(defaul
 def run_model_a_v1_1_persist(req: ModelAV11Req, x_api_key: Optional[str] = Header(default=None)):
     """Run Model A v1.1 and persist results to database."""
     require_key(x_api_key)
-    started = datetime.utcnow()
+    datetime.utcnow()
     as_of_date = parse_as_of(req.as_of)
     logger.info("🚀 Starting Model A persist run for %s", as_of_date)
 
