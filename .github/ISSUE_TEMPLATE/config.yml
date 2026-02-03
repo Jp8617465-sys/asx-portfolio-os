@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/Jp8617465-sys/asx-portfolio-os/blob/main/README.md
+    about: Check the documentation first for common questions
+  - name: 💬 Discussions
+    url: https://github.com/Jp8617465-sys/asx-portfolio-os/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🔒 Security Issue
+    url: https://github.com/Jp8617465-sys/asx-portfolio-os/security/advisories/new
+    about: Report security vulnerabilities privately

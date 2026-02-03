@@ -142,6 +142,15 @@ bash scripts/run_migrations.sh --dry-run
 psql $DATABASE_URL -f schemas/cleanup_unused_tables.sql
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
+- Branch naming conventions (`prefix/ticket-id_short-description`)
+- Commit message format (Conventional Commits)
+- Testing requirements for model/data/signal changes
+- Data integrity and security guidelines
+- Pull request process
+
 ## Deployment Notes
 - Render uses `Dockerfile` with `requirements.txt`
 - Vercel deploys the `frontend/` app

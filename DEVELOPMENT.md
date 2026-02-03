@@ -425,15 +425,36 @@ ALTER DATABASE asx_portfolio_os SET log_statement = 'all';
 
 ## GIT WORKFLOW
 
+> **📖 For complete workflow standards, see [CONTRIBUTING.md](./CONTRIBUTING.md)**
+
 ### Branch Naming
 
-- `feature/<name>` - New features
-- `fix/<name>` - Bug fixes
-- `docs/<name>` - Documentation updates
-- `test/<name>` - Test additions
-- `refactor/<name>` - Code refactoring
+We use a structured branch naming convention for the quantitative trading platform:
+
+**Format**: `prefix/ticket-id_short-description`
+
+**Branch Prefixes**:
+- `feature/` - New features or enhancements
+- `bugfix/` - Bug fixes for existing features  
+- `hotfix/` - Urgent production fixes
+- `model/` - ML model architecture or training changes
+- `data/` - Data pipeline or feature engineering changes
+- `signal/` - Trading signal generation logic changes
+- `refactor/` - Code restructuring without behavior changes
+- `experiment/` - Research experiments (may not merge to main)
+- `performance/` - Performance optimization
+
+**Examples**:
+```bash
+feature/PROJ-123_portfolio-upload
+model/PROJ-456_add-rsi-feature
+bugfix/PROJ-789_fix-leakage-daily-returns
+data/PROJ-234_enhance-momentum-features
+```
 
 ### Commit Messages
+
+We follow **Conventional Commits** format:
 
 ```
 <type>(<scope>): <subject>
@@ -446,31 +467,44 @@ ALTER DATABASE asx_portfolio_os SET log_statement = 'all';
 **Types**:
 - `feat`: New feature
 - `fix`: Bug fix
-- `docs`: Documentation
+- `model`: Model architecture or training changes
+- `data`: Data pipeline or feature engineering
+- `perf`: Performance improvements
+- `refactor`: Code restructuring
 - `test`: Tests
-- `refactor`: Refactoring
+- `docs`: Documentation
 - `chore`: Maintenance
+- `security`: Security fixes
+
+**Scopes**: `portfolio`, `signals`, `model`, `auth`, `api`, `data`, `features`, `db`, `frontend`, `jobs`
 
 **Example**:
 ```
-feat(auth): Add JWT token refresh endpoint
+feat(portfolio): add rebalancing suggestions endpoint
 
-Allows users to refresh their JWT tokens before expiration
-without re-entering credentials.
+Implements AI-powered portfolio rebalancing based on Model A signals.
+Includes risk-adjusted position sizing and tax-loss harvesting.
 
-Closes #123
+Closes #234
 ```
 
 ### Pull Request Process
 
-1. Create feature branch
-2. Make changes and commit
-3. Push to remote
-4. Create PR with description
-5. Wait for CI to pass
-6. Request review
-7. Address feedback
-8. Merge when approved
+1. **Create branch**: `git checkout -b feature/PROJ-XXX_description`
+2. **Make changes**: Write code, add tests, update docs
+3. **Commit**: Follow Conventional Commits format
+4. **Test locally**: `pytest tests/ -v`
+5. **Push**: `git push origin feature/PROJ-XXX_description`
+6. **Create PR**: Use the PR template provided
+7. **CI checks**: Ensure all automated checks pass
+8. **Code review**: Address reviewer feedback
+9. **Merge**: Squash and merge when approved
+
+**See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines on:**
+- Testing requirements for model/data/signal changes
+- Data integrity and security checklists
+- Performance impact assessment
+- Deployment considerations
 
 ---
 
@@ -771,11 +805,17 @@ import { Profiler } from 'react';
 
 ### Contributing
 
-1. Read CONTRIBUTING.md (if available)
-2. Follow code style guidelines
-3. Add tests for new features
-4. Update documentation
-5. Create detailed PR descriptions
+> **📖 See [CONTRIBUTING.md](./CONTRIBUTING.md) for complete contribution guidelines**
+
+**Quick checklist**:
+1. Read [CONTRIBUTING.md](./CONTRIBUTING.md) for workflow standards
+2. Follow branch naming: `prefix/ticket-id_short-description`
+3. Use Conventional Commits format
+4. Add tests for new features (see testing requirements by change type)
+5. Verify data integrity for model/data/signal changes
+6. Update documentation
+7. Use the provided PR template
+8. Get code review approval before merging
 
 ---
 
