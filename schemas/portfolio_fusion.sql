@@ -1,42 +1,42 @@
 -- Portfolio Fusion: Unified portfolio analytics across all asset classes
-create table if not exists portfolio_fusion (
-    id bigserial primary key,
-    computed_at timestamptz not null default now(),
+CREATE TABLE IF NOT EXISTS portfolio_fusion (
+    id BIGSERIAL PRIMARY KEY,
+    computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     -- Equity holdings
-    equity_value numeric,
-    equity_count integer,
-    equity_sharpe numeric,
-    equity_allocation_pct numeric,
+    equity_value NUMERIC,
+    equity_count INTEGER,
+    equity_sharpe NUMERIC,
+    equity_allocation_pct NUMERIC,
     
     -- Property holdings
-    property_value numeric,
-    property_count integer,
-    property_yield_avg numeric,
-    property_allocation_pct numeric,
+    property_value NUMERIC,
+    property_count INTEGER,
+    property_yield_avg NUMERIC,
+    property_allocation_pct NUMERIC,
     
     -- Loan obligations
-    loan_balance numeric,
-    loan_count integer,
-    loan_monthly_payment numeric,
-    loan_allocation_pct numeric,
+    loan_balance NUMERIC,
+    loan_count INTEGER,
+    loan_monthly_payment NUMERIC,
+    loan_allocation_pct NUMERIC,
     
     -- Aggregate portfolio metrics
-    total_assets numeric,
-    total_liabilities numeric,
-    net_worth numeric,
-    debt_service_ratio numeric,
+    total_assets NUMERIC,
+    total_liabilities NUMERIC,
+    net_worth NUMERIC,
+    debt_service_ratio NUMERIC,
     
     -- Risk metrics
-    portfolio_volatility numeric,
-    max_drawdown numeric,
-    risk_score numeric,
+    portfolio_volatility NUMERIC,
+    max_drawdown NUMERIC,
+    risk_score NUMERIC,
     
     -- Metadata
-    data_freshness_hours numeric,
-    confidence_score numeric,
+    data_freshness_hours NUMERIC,
+    confidence_score NUMERIC,
     
-    created_at timestamptz not null default now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-create index if not exists idx_portfolio_fusion_computed_at on portfolio_fusion(computed_at desc);
+CREATE INDEX IF NOT EXISTS idx_portfolio_fusion_computed_at ON portfolio_fusion(computed_at DESC);

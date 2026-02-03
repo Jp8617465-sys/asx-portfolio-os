@@ -63,3 +63,10 @@ ALTER TABLE portfolio_rebalancing_suggestions
     FOREIGN KEY (ticker) 
     REFERENCES stock_universe(symbol) 
     ON DELETE RESTRICT;
+
+-- Add FK to ensemble_signals table
+ALTER TABLE ensemble_signals 
+    ADD CONSTRAINT fk_ensemble_signals_symbol 
+    FOREIGN KEY (symbol) 
+    REFERENCES stock_universe(symbol) 
+    ON DELETE CASCADE;

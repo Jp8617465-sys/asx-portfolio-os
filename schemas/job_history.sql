@@ -1,25 +1,25 @@
 -- Job History: Track all pipeline job executions
-create table if not exists job_history (
-    id bigserial primary key,
-    job_name text not null,
-    job_type text not null, -- 'ingestion', 'training', 'prediction', 'analytics', 'fusion'
-    status text not null, -- 'running', 'success', 'failed'
-    started_at timestamptz not null default now(),
-    completed_at timestamptz,
-    duration_seconds numeric,
+CREATE TABLE IF NOT EXISTS job_history (
+    id BIGSERIAL PRIMARY KEY,
+    job_name TEXT NOT NULL,
+    job_type TEXT NOT NULL, -- 'ingestion', 'training', 'prediction', 'analytics', 'fusion'
+    status TEXT NOT NULL, -- 'running', 'success', 'failed'
+    started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    completed_at TIMESTAMPTZ,
+    duration_seconds NUMERIC,
     
     -- Job metadata
-    records_processed integer,
-    error_message text,
-    parameters jsonb,
+    records_processed INTEGER,
+    error_message TEXT,
+    parameters JSONB,
     
     -- Output metrics
-    output_summary jsonb,
+    output_summary JSONB,
     
-    created_at timestamptz not null default now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-create index if not exists idx_job_history_job_name on job_history(job_name);
-create index if not exists idx_job_history_status on job_history(status);
-create index if not exists idx_job_history_started_at on job_history(started_at desc);
-create index if not exists idx_job_history_job_type on job_history(job_type);
+CREATE INDEX IF NOT EXISTS idx_job_history_job_name ON job_history(job_name);
+CREATE INDEX IF NOT EXISTS idx_job_history_status ON job_history(status);
+CREATE INDEX IF NOT EXISTS idx_job_history_started_at ON job_history(started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_job_history_job_type ON job_history(job_type);

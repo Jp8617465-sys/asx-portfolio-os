@@ -1,8 +1,8 @@
-create table if not exists model_a_drift_audit (
-    id bigserial primary key,
-    model text not null,
-    baseline_label text not null,
-    current_label text not null,
-    metrics jsonb not null,
-    created_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS model_a_drift_audit (
+    id BIGSERIAL PRIMARY KEY,
+    model TEXT NOT NULL,
+    baseline_label TEXT NOT NULL,
+    current_label TEXT NOT NULL,
+    metrics JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

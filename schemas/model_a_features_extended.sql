@@ -1,8 +1,8 @@
-create table if not exists model_a_features_extended (
-    id bigserial primary key,
-    as_of date not null,
-    symbol text not null,
-    features jsonb not null,
-    created_at timestamptz not null default now(),
-    unique (as_of, symbol)
+CREATE TABLE IF NOT EXISTS model_a_features_extended (
+    id BIGSERIAL PRIMARY KEY,
+    as_of DATE NOT NULL,
+    symbol TEXT NOT NULL,
+    features JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (as_of, symbol)
 );
