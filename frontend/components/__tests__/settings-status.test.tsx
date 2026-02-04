@@ -344,7 +344,6 @@ describe('SettingsStatus', () => {
 
   describe('Toast Notifications', () => {
     it('shows success toast when API test succeeds', async () => {
-      
       mockUseSWR.mockReturnValue({
         data: { status: 'ok' },
         error: undefined,
@@ -368,7 +367,6 @@ describe('SettingsStatus', () => {
     });
 
     it('shows success toast with custom status', async () => {
-      
       mockUseSWR.mockReturnValue({
         data: { status: 'ok' },
         error: undefined,
@@ -392,7 +390,6 @@ describe('SettingsStatus', () => {
     });
 
     it('shows error toast when API test fails', async () => {
-      
       mockUseSWR.mockReturnValue({
         data: { status: 'ok' },
         error: undefined,
@@ -416,7 +413,6 @@ describe('SettingsStatus', () => {
     });
 
     it('shows success toast when response has no status field', async () => {
-      
       mockUseSWR.mockReturnValue({
         data: { status: 'ok' },
         error: undefined,

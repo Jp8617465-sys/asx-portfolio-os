@@ -5,32 +5,32 @@ import JobsPage from '../jobs/page';
 import ModelsPage from '../models/page';
 
 // Mock PageTransition
-jest.mock('../../components/PageTransition', () => {
+jest.mock('../../../components/PageTransition', () => {
   return function MockPageTransition({ children }: any) {
     return <div data-testid="page-transition">{children}</div>;
   };
 });
 
 // Mock client components
-jest.mock('../../components/AssistantClient', () => {
+jest.mock('../../../components/AssistantClient', () => {
   return function MockAssistantClient() {
     return <div data-testid="assistant-client">Assistant Client</div>;
   };
 });
 
-jest.mock('../../components/InsightsClient', () => {
+jest.mock('../../../components/InsightsClient', () => {
   return function MockInsightsClient() {
     return <div data-testid="insights-client">Insights Client</div>;
   };
 });
 
-jest.mock('../../components/JobsClient', () => {
+jest.mock('../../../components/JobsClient', () => {
   return function MockJobsClient() {
     return <div data-testid="jobs-client">Jobs Client</div>;
   };
 });
 
-jest.mock('../../components/ModelsClient', () => {
+jest.mock('../../../components/ModelsClient', () => {
   return function MockModelsClient() {
     return <div data-testid="models-client">Models Client</div>;
   };
