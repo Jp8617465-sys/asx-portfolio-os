@@ -31,6 +31,11 @@ export const designTokens = {
       sell: '#f87171',
       strongSell: '#ef4444',
     },
+    chart: {
+      bullish: '#10b981',
+      bearish: '#ef4444',
+      neutral: '#94a3b8',
+    },
     neutral: {
       50: '#f9fafb',
       100: '#f3f4f6',
@@ -59,20 +64,6 @@ export const designTokens = {
       border: '#e5e7eb',
       text: '#111827',
       textMuted: '#6b7280',
-    },
-    chart: {
-      primary: '#3b82f6',
-      secondary: '#8b5cf6',
-      tertiary: '#ec4899',
-      quaternary: '#f59e0b',
-      quinary: '#10b981',
-      senary: '#06b6d4',
-      bullish: '#10b981',
-      bearish: '#ef4444',
-      background: '#ffffff',
-      gridLines: '#e5e7eb',
-      text: '#6b7280',
-      crosshair: '#94a3b8',
     },
   },
   typography: {

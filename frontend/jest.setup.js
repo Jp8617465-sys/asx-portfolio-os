@@ -22,114 +22,79 @@ jest.mock('next/navigation', () => ({
   },
 }));
 
-/**
- * Mock all lucide-react icons used in the codebase
- *
- * Each icon is mocked as a simple functional component that returns its name.
- * This allows React Testing Library to render components with icons without
- * requiring the full lucide-react library in tests.
- *
- * If you add a new lucide-react icon to any component, add it here to prevent test failures.
- *
- * To find all icons in use:
- * grep -r "from 'lucide-react'" app components --include="*.tsx"
- */
-jest.mock('lucide-react', () => ({
-  // Trending & Direction Icons
-  TrendingUp: () => 'TrendingUp',
-  TrendingDown: () => 'TrendingDown',
-  ArrowLeft: () => 'ArrowLeft',
-  ArrowUp: () => 'ArrowUp',
-  ArrowDown: () => 'ArrowDown',
-  ArrowUpDown: () => 'ArrowUpDown',
-
-  // Alert & Status Icons
-  AlertCircle: () => 'AlertCircle',
-  AlertTriangle: () => 'AlertTriangle',
-  CheckCircle: () => 'CheckCircle',
-  XCircle: () => 'XCircle',
-  Info: () => 'Info',
-
-  // Navigation & Layout Icons
-  Menu: () => 'Menu',
-  X: () => 'X',
-  LayoutDashboard: () => 'LayoutDashboard',
-  LayoutGrid: () => 'LayoutGrid',
-  ChevronDown: () => 'ChevronDown',
-  ChevronUp: () => 'ChevronUp',
-  ExternalLink: () => 'ExternalLink',
-
-  // Feature Icons
-  Bell: () => 'Bell',
-  Bookmark: () => 'Bookmark',
-  BookmarkCheck: () => 'BookmarkCheck',
-  Search: () => 'Search',
-  User: () => 'User',
-  Settings: () => 'Settings',
-  Sparkles: () => 'Sparkles',
-
-  // Business & Finance Icons
-  DollarSign: () => 'DollarSign',
-  Briefcase: () => 'Briefcase',
-  Target: () => 'Target',
-  Activity: () => 'Activity',
-  BarChart3: () => 'BarChart3',
-  Home: () => 'Home',
-  CreditCard: () => 'CreditCard',
-
-  // File & Data Icons
-  Download: () => 'Download',
-  Upload: () => 'Upload',
-  FileText: () => 'FileText',
-  FileDown: () => 'FileDown',
-
-  // Communication Icons
-  Mail: () => 'Mail',
-  MessageCircle: () => 'MessageCircle',
-  MessageSquare: () => 'MessageSquare',
-  Smartphone: () => 'Smartphone',
-
-  // Action Icons
-  RefreshCw: () => 'RefreshCw',
-  Check: () => 'Check',
-  CheckCheck: () => 'CheckCheck',
-  Minus: () => 'Minus',
-  ListChecks: () => 'ListChecks',
-
-  // Feature/Marketing Icons
-  Zap: () => 'Zap',
-  Shield: () => 'Shield',
-  Clock: () => 'Clock',
-  Calendar: () => 'Calendar',
-  Loader2: () => 'Loader2',
-
-  // Social Icons
-  Github: () => 'Github',
-  Twitter: () => 'Twitter',
-}));
-
 // Mock environment variables
 process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000/api/v1';
+process.env.OS_API_KEY = 'test-api-key';
 
-// Mock recharts globally to avoid duplication in test files
-const React = require('react');
-jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }) => React.createElement('div', {}, children),
-  PieChart: ({ children }) => React.createElement('div', { 'data-testid': 'pie-chart' }, children),
-  BarChart: ({ children }) => React.createElement('div', { 'data-testid': 'bar-chart' }, children),
-  LineChart: ({ children }) =>
-    React.createElement('div', { 'data-testid': 'line-chart' }, children),
-  ScatterChart: ({ children }) =>
-    React.createElement('div', { 'data-testid': 'scatter-chart' }, children),
-  Pie: () => null,
-  Bar: () => null,
-  Line: () => null,
-  Scatter: () => null,
-  XAxis: () => null,
-  YAxis: () => null,
-  ZAxis: () => null,
-  CartesianGrid: () => null,
-  Tooltip: () => null,
-  Legend: () => null,
-  Cell: () => null,
-}));
+// Polyfill crypto.randomUUID (not available in jsdom)
+let _uuidCounter = 0;
+if (!globalThis.crypto) {
+  globalThis.crypto = {};
+}
+if (!globalThis.crypto.randomUUID) {
+  globalThis.crypto.randomUUID = () => `test-uuid-${++_uuidCounter}`;
+}
+
+// Polyfill URL.createObjectURL / revokeObjectURL (not available in jsdom)
+if (!URL.createObjectURL) {
+  URL.createObjectURL = jest.fn(() => 'blob:mock-url');
+}
+if (!URL.revokeObjectURL) {
+  URL.revokeObjectURL = jest.fn();
+}
+
+// Polyfill Request (not available in Node.js < 18 / jsdom)
+if (!globalThis.Request) {
+  globalThis.Request = class Request {
+    constructor(input, init = {}) {
+      const urlValue = typeof input === 'string' ? input : input.url;
+      Object.defineProperty(this, 'url', {
+        value: urlValue,
+        writable: false,
+        enumerable: true,
+        configurable: true,
+      });
+      this.method = init.method || 'GET';
+      this.headers = new Map(Object.entries(init.headers || {}));
+      this.body = init.body;
+      this._bodyUsed = false;
+    }
+
+    async json() {
+      if (this._bodyUsed) throw new Error('Body already consumed');
+      this._bodyUsed = true;
+      return typeof this.body === 'string' ? JSON.parse(this.body) : this.body;
+    }
+
+    async text() {
+      if (this._bodyUsed) throw new Error('Body already consumed');
+      this._bodyUsed = true;
+      return typeof this.body === 'string' ? this.body : JSON.stringify(this.body);
+    }
+  };
+}
+
+// Polyfill Response (not available in Node.js < 18 / jsdom)
+if (!globalThis.Response) {
+  globalThis.Response = class Response {
+    constructor(body, init = {}) {
+      this.body = body;
+      this.status = init.status || 200;
+      this.statusText = init.statusText || 'OK';
+      this.headers = new Map(Object.entries(init.headers || {}));
+      this._bodyUsed = false;
+    }
+
+    async json() {
+      if (this._bodyUsed) throw new Error('Body already consumed');
+      this._bodyUsed = true;
+      return typeof this.body === 'string' ? JSON.parse(this.body) : this.body;
+    }
+
+    async text() {
+      if (this._bodyUsed) throw new Error('Body already consumed');
+      this._bodyUsed = true;
+      return typeof this.body === 'string' ? this.body : JSON.stringify(this.body);
+    }
+  };
+}

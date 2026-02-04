@@ -11,14 +11,6 @@
     "test": "jest --watch",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "test:coverage": "jest --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:chromium": "playwright test --project=chromium",
-    "test:e2e:firefox": "playwright test --project=firefox",
-    "test:e2e:webkit": "playwright test --project=webkit",
-    "test:e2e:report": "playwright show-report",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "pre-commit": "npm run type-check && npm run lint && npm run test:ci",
@@ -44,7 +36,7 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.0",
+    "@eslint/eslintrc": "^3.3.3",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
