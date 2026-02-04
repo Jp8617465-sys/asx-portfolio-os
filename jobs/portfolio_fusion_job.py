@@ -21,6 +21,74 @@ def get_db_connection():
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 
+def fetch_portfolio_volatility(cursor):
+    """
+    Compute portfolio volatility from historical returns in portfolio_performance.
+
+    Returns:
+        float: Annualized volatility as percentage, or None if insufficient data
+    """
+    cursor.execute("""
+        SELECT portfolio_return
+        FROM portfolio_performance
+        WHERE portfolio_return IS NOT NULL
+        ORDER BY as_of DESC
+        LIMIT 252
+    """)
+    rows = cursor.fetchall()
+
+    if len(rows) < 2:
+        return None
+
+    returns = [r['portfolio_return'] for r in rows]
+    import statistics
+    try:
+        # Daily volatility * sqrt(252) for annualized
+        daily_std = statistics.stdev(returns)
+        annualized_vol = daily_std * (252 ** 0.5)
+        return round(annualized_vol * 100, 2)  # As percentage
+    except Exception:
+        return None
+
+
+def fetch_max_drawdown(cursor):
+    """
+    Compute maximum drawdown from portfolio_performance table.
+
+    Returns:
+        float: Maximum drawdown as percentage, or None if insufficient data
+    """
+    cursor.execute("""
+        SELECT as_of, portfolio_return
+        FROM portfolio_performance
+        WHERE portfolio_return IS NOT NULL
+        ORDER BY as_of ASC
+        LIMIT 252
+    """)
+    rows = cursor.fetchall()
+
+    if len(rows) < 2:
+        return None
+
+    # Compute cumulative returns and drawdowns
+    returns = [r['portfolio_return'] for r in rows]
+    cumulative = [1.0]
+    for ret in returns:
+        cumulative.append(cumulative[-1] * (1 + ret / 100))
+
+    # Calculate running maximum and drawdown
+    running_max = cumulative[0]
+    max_drawdown = 0.0
+    for value in cumulative[1:]:
+        if value > running_max:
+            running_max = value
+        drawdown = (running_max - value) / running_max * 100
+        if drawdown > max_drawdown:
+            max_drawdown = drawdown
+
+    return round(max_drawdown, 2)
+
+
 def fetch_equity_metrics(cursor):
     """Fetch equity portfolio metrics from model_a_ml_signals."""
     cursor.execute("""
@@ -98,6 +166,10 @@ def compute_portfolio_fusion():
         property_data = fetch_property_metrics(cursor)
         loans = fetch_loan_metrics(cursor)
         
+        # Compute volatility and max drawdown from historical returns
+        portfolio_volatility = fetch_portfolio_volatility(cursor)
+        max_drawdown = fetch_max_drawdown(cursor)
+        
         # Compute aggregates
         total_assets = equity['equity_value'] + property_data['property_value']
         total_liabilities = loans['loan_balance']
@@ -145,8 +217,8 @@ def compute_portfolio_fusion():
             'total_liabilities': total_liabilities,
             'net_worth': net_worth,
             'debt_service_ratio': debt_service_ratio,
-            'portfolio_volatility': None,  # TODO: Compute from historical returns
-            'max_drawdown': None,  # TODO: Compute from performance table
+            'portfolio_volatility': portfolio_volatility,
+            'max_drawdown': max_drawdown,
             'risk_score': risk_score,
             'data_freshness_hours': 0.0,
             'confidence_score': 85.0

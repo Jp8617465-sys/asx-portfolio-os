@@ -62,7 +62,11 @@ async def get_watchlist(user_id: int = Depends(get_current_user_id)):
                     w.ticker,
                     u.name,
                     p.close as current_price,
-                    NULL as price_change_pct,  -- TODO: Calculate from yesterday's close
+                    CASE
+                        WHEN p.close IS NOT NULL AND p.prev_close IS NOT NULL AND p.prev_close > 0
+                        THEN ((p.close - p.prev_close) / p.prev_close * 100)
+                        ELSE NULL
+                    END as price_change_pct,
                     a.signal_label as current_signal,
                     a.confidence as signal_confidence,
                     b.quality_score,
@@ -70,10 +74,14 @@ async def get_watchlist(user_id: int = Depends(get_current_user_id)):
                 FROM user_watchlist w
                 LEFT JOIN universe u ON u.symbol = w.ticker
                 LEFT JOIN LATERAL (
-                    SELECT close
-                    FROM prices
-                    WHERE symbol = w.ticker
-                    ORDER BY dt DESC
+                    SELECT
+                        p1.close,
+                        (SELECT p2.close FROM prices p2
+                         WHERE p2.symbol = w.ticker AND p2.dt < p1.dt
+                         ORDER BY p2.dt DESC LIMIT 1) as prev_close
+                    FROM prices p1
+                    WHERE p1.symbol = w.ticker
+                    ORDER BY p1.dt DESC
                     LIMIT 1
                 ) p ON true
                 LEFT JOIN LATERAL (

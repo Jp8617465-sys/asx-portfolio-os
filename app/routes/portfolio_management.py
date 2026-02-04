@@ -5,6 +5,7 @@ User portfolio management endpoints: upload, holdings, rebalancing, risk metrics
 
 import csv
 import io
+import json
 from datetime import date, datetime, timedelta
 from typing import Optional, List
 import numpy as np
@@ -685,14 +686,22 @@ def get_risk_metrics(
                     signal_distribution=existing[8],
                 )
 
-        # Calculate metrics
+        # Calculate metrics (include sector from fundamentals table)
         cur.execute(
             """
             select
                 h.ticker, h.current_value, h.unrealized_pl_pct, h.current_signal,
-                p.total_value
+                p.total_value,
+                f.sector
             from user_holdings h
             join user_portfolios p on p.id = h.portfolio_id
+            left join lateral (
+                select sector
+                from fundamentals
+                where symbol = h.ticker
+                order by updated_at desc
+                limit 1
+            ) f on true
             where h.portfolio_id = %s
               and h.current_value is not null
             order by h.current_value desc
@@ -724,6 +733,16 @@ def get_risk_metrics(
         for h in holdings:
             signal = h[3] or 'UNKNOWN'
             signal_dist[signal] = signal_dist.get(signal, 0) + 1
+
+        # Sector weights calculation
+        sector_weights = {}
+        for h in holdings:
+            sector = h[5] or 'Unknown'  # h[5] is sector from fundamentals
+            value = float(h[1]) if h[1] else 0
+            sector_weights[sector] = sector_weights.get(sector, 0.0) + value
+        # Convert to percentages
+        if total_value > 0:
+            sector_weights = {k: round(v / total_value * 100, 2) for k, v in sector_weights.items()}
 
         # Simple volatility estimate (based on unrealized P&L variance)
         returns = [float(h[2]) for h in holdings if h[2] is not None]
@@ -764,7 +783,7 @@ def get_risk_metrics(
                 portfolio_id, date.today(), avg_return, volatility,
                 sharpe, beta, max_drawdown,
                 top_holding_weight, top_5_weight, herfindahl,
-                {}, signal_dist  # Sector weights placeholder
+                json.dumps(sector_weights), signal_dist
             )
         )
 
@@ -780,6 +799,6 @@ def get_risk_metrics(
             beta=beta,
             max_drawdown_pct=max_drawdown,
             top_holding_weight_pct=top_holding_weight,
-            sector_weights={},  # TODO: Add sector classification
+            sector_weights=sector_weights,
             signal_distribution=signal_dist,
         )
