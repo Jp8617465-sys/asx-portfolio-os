@@ -1,131 +1,104 @@
-/**
- * Example test file for SignalBadge component
- * Demonstrates best practices for component testing
- */
-
 import { render, screen } from '@testing-library/react';
 import SignalBadge from '../signal-badge';
 import { SignalType } from '@/lib/types';
+import { designTokens } from '@/lib/design-tokens';
 
-describe('SignalBadge Component', () => {
-  describe('Rendering', () => {
-    it('should render STRONG_BUY signal correctly', () => {
-      render(<SignalBadge signal="STRONG_BUY" size="md" showIcon={false} />);
+describe('SignalBadge', () => {
+  describe('Label rendering', () => {
+    const cases: [SignalType, string][] = [
+      ['STRONG_BUY', 'Strong Buy'],
+      ['BUY', 'Buy'],
+      ['HOLD', 'Hold'],
+      ['SELL', 'Sell'],
+      ['STRONG_SELL', 'Strong Sell'],
+    ];
 
-      const badge = screen.getByText('Strong Buy');
-      expect(badge).toBeInTheDocument();
-    });
-
-    it('should render STRONG_SELL signal correctly', () => {
-      render(<SignalBadge signal="STRONG_SELL" size="md" showIcon={false} />);
-
-      const badge = screen.getByText('Strong Sell');
-      expect(badge).toBeInTheDocument();
-    });
-
-    it('should render BUY signal correctly', () => {
-      render(<SignalBadge signal="BUY" size="md" showIcon={false} />);
-
-      const badge = screen.getByText('Buy');
-      expect(badge).toBeInTheDocument();
-    });
-
-    it('should render SELL signal correctly', () => {
-      render(<SignalBadge signal="SELL" size="md" showIcon={false} />);
-
-      const badge = screen.getByText('Sell');
-      expect(badge).toBeInTheDocument();
-    });
-
-    it('should render HOLD signal correctly', () => {
-      render(<SignalBadge signal="HOLD" size="md" showIcon={false} />);
-
-      const badge = screen.getByText('Hold');
-      expect(badge).toBeInTheDocument();
+    it.each(cases)('renders label "%s" as "%s"', (signal, expectedLabel) => {
+      render(<SignalBadge signal={signal} />);
+      expect(screen.getByText(expectedLabel)).toBeInTheDocument();
     });
   });
 
-  describe('Size Variants', () => {
-    it('should apply small size classes', () => {
+  describe('Inline style colours', () => {
+    // jsdom normalises hex → rgb; match the r,g,b digits regardless of format
+    function hexToRgbPattern(hex: string) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return new RegExp(`${r},\\s*${g},\\s*${b}`);
+    }
+
+    it('STRONG_BUY applies correct color and backgroundColor', () => {
+      const { container } = render(<SignalBadge signal="STRONG_BUY" showIcon={false} />);
+      const badge = container.firstChild as HTMLElement;
+      expect(badge.style.color).toMatch(hexToRgbPattern(designTokens.colors.signals.strongBuy));
+      expect(badge.style.backgroundColor).toMatch(
+        hexToRgbPattern(designTokens.colors.signals.strongBuy)
+      );
+    });
+
+    it('HOLD applies correct color and backgroundColor', () => {
+      const { container } = render(<SignalBadge signal="HOLD" showIcon={false} />);
+      const badge = container.firstChild as HTMLElement;
+      expect(badge.style.color).toMatch(hexToRgbPattern(designTokens.colors.signals.hold));
+      expect(badge.style.backgroundColor).toMatch(
+        hexToRgbPattern(designTokens.colors.signals.hold)
+      );
+    });
+
+    it('STRONG_SELL applies correct color and backgroundColor', () => {
+      const { container } = render(<SignalBadge signal="STRONG_SELL" showIcon={false} />);
+      const badge = container.firstChild as HTMLElement;
+      expect(badge.style.color).toMatch(hexToRgbPattern(designTokens.colors.signals.strongSell));
+      expect(badge.style.backgroundColor).toMatch(
+        hexToRgbPattern(designTokens.colors.signals.strongSell)
+      );
+    });
+  });
+
+  describe('Size classes', () => {
+    it('sm applies text-xs', () => {
       const { container } = render(<SignalBadge signal="BUY" size="sm" showIcon={false} />);
-
-      const badge = container.firstChild;
-      expect(badge).toHaveClass('text-xs');
+      expect(container.firstChild).toHaveClass('text-xs');
     });
 
-    it('should apply medium size classes', () => {
+    it('md applies text-sm', () => {
       const { container } = render(<SignalBadge signal="BUY" size="md" showIcon={false} />);
-
-      const badge = container.firstChild;
-      expect(badge).toHaveClass('text-sm');
+      expect(container.firstChild).toHaveClass('text-sm');
     });
 
-    it('should apply large size classes', () => {
+    it('lg applies text-base', () => {
       const { container } = render(<SignalBadge signal="BUY" size="lg" showIcon={false} />);
-
-      const badge = container.firstChild;
-      expect(badge).toHaveClass('text-base');
+      expect(container.firstChild).toHaveClass('text-base');
     });
   });
 
-  describe('Color Variants', () => {
-    it('should apply green color for STRONG_BUY', () => {
-      const { container } = render(<SignalBadge signal="STRONG_BUY" size="md" showIcon={false} />);
-
-      const badge = container.firstChild;
-      // Component uses inline styles, check for green color in style
-      expect(badge).toHaveStyle({ color: 'rgb(16, 185, 129)' });
+  describe('Icon display', () => {
+    it('renders icon when showIcon is true', () => {
+      const { container } = render(<SignalBadge signal="BUY" showIcon={true} />);
+      expect(container.querySelector('svg')).toBeInTheDocument();
     });
 
-    it('should apply red color for STRONG_SELL', () => {
-      const { container } = render(<SignalBadge signal="STRONG_SELL" size="md" showIcon={false} />);
-
-      const badge = container.firstChild;
-      // Component uses inline styles, check for red color in style
-      expect(badge).toHaveStyle({ color: 'rgb(239, 68, 68)' });
+    it('does not render icon when showIcon is false', () => {
+      const { container } = render(<SignalBadge signal="BUY" showIcon={false} />);
+      expect(container.querySelector('svg')).not.toBeInTheDocument();
     });
 
-    it('should apply gray color for HOLD', () => {
-      const { container } = render(<SignalBadge signal="HOLD" size="md" showIcon={false} />);
-
-      const badge = container.firstChild;
-      // Component uses inline styles, check for gray color in style
-      expect(badge).toHaveStyle({ color: 'rgb(148, 163, 184)' });
+    it('renders icon by default (showIcon defaults to true)', () => {
+      const { container } = render(<SignalBadge signal="BUY" />);
+      expect(container.querySelector('svg')).toBeInTheDocument();
     });
   });
 
-  describe('Icon Display', () => {
-    it('should show icon when showIcon is true', () => {
-      render(<SignalBadge signal="STRONG_BUY" size="md" showIcon={true} />);
-
-      // With our mock, icons render as string text
-      // Just verify the component renders without errors
-      expect(screen.getByText('Strong Buy')).toBeInTheDocument();
+  describe('Confidence display', () => {
+    it('renders confidence percentage when provided', () => {
+      render(<SignalBadge signal="BUY" confidence={85} showIcon={false} />);
+      expect(screen.getByText('(85%)')).toBeInTheDocument();
     });
 
-    it('should not show icon when showIcon is false', () => {
-      render(<SignalBadge signal="STRONG_BUY" size="md" showIcon={false} />);
-
-      // Just verify the component renders correctly
-      expect(screen.getByText('Strong Buy')).toBeInTheDocument();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('should handle all signal types', () => {
-      const signalsWithLabels: Array<[SignalType, string]> = [
-        ['STRONG_BUY', 'Strong Buy'],
-        ['BUY', 'Buy'],
-        ['HOLD', 'Hold'],
-        ['SELL', 'Sell'],
-        ['STRONG_SELL', 'Strong Sell'],
-      ];
-
-      signalsWithLabels.forEach(([signal, label]) => {
-        const { unmount } = render(<SignalBadge signal={signal} size="md" showIcon={false} />);
-        expect(screen.getByText(label)).toBeInTheDocument();
-        unmount();
-      });
+    it('does not render confidence when not provided', () => {
+      const { container } = render(<SignalBadge signal="BUY" showIcon={false} />);
+      expect(container.textContent).not.toMatch(/\(\d+%\)/);
     });
   });
 });
