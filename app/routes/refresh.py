@@ -320,3 +320,44 @@ def backfill_prices(req: BackfillReq, x_api_key: Optional[str] = Header(default=
         "skipped_days": skipped_days,
         "rows_inserted": total_rows
     }
+
+
+@router.get("/refresh/fundamentals/status")
+def get_fundamentals_status(x_api_key: Optional[str] = Header(default=None)):
+    """Get current fundamentals data status."""
+    require_key(x_api_key)
+    with db() as con, con.cursor() as cur:
+        cur.execute("SELECT COUNT(DISTINCT symbol) FROM fundamentals")
+        fundamentals_count = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(DISTINCT symbol) FROM universe WHERE exchange = 'AU'")
+        universe_count = cur.fetchone()[0]
+        cur.execute("SELECT MAX(updated_at) FROM fundamentals")
+        last_updated = cur.fetchone()[0]
+    return {
+        "status": "ok",
+        "fundamentals_count": fundamentals_count,
+        "universe_count": universe_count,
+        "coverage_percent": round(fundamentals_count / universe_count * 100, 1) if universe_count > 0 else 0,
+        "missing": universe_count - fundamentals_count,
+        "last_updated": str(last_updated) if last_updated else None
+    }
+
+
+@router.post("/refresh/fundamentals")
+def refresh_fundamentals(x_api_key: Optional[str] = Header(default=None)):
+    """Refresh fundamentals data for all ASX tickers and derive features."""
+    require_key(x_api_key)
+    try:
+        from jobs.load_fundamentals_pipeline import fundamentals_pipeline, get_ticker_list
+        from jobs.derive_fundamentals_features import derive_features
+        tickers = get_ticker_list()
+        fundamentals_pipeline(tickers)
+        derive_features()
+        return {
+            "status": "ok",
+            "tickers_processed": len(tickers),
+            "message": "Fundamentals refresh and feature derivation complete"
+        }
+    except Exception as exc:
+        logger.error(f"Fundamentals refresh failed: {exc}")
+        raise HTTPException(status_code=500, detail=str(exc))
