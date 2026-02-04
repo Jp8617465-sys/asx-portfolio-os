@@ -862,7 +862,7 @@ FMG.AX,200,18.90`;
 
       const file = new File(['content'], 'test.txt', { type: 'text/plain' });
 
-      let input = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const input = container.querySelector('input[type="file"]') as HTMLInputElement;
 
       Object.defineProperty(input, 'files', {
         value: [file],

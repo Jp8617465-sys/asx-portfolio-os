@@ -2,7 +2,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import Header from '../header';
 
 // Mock NotificationBell to avoid pulling in Zustand store
-jest.mock('../notification-bell', () => () => <div data-testid="notification-bell" />);
+jest.mock('../notification-bell', () => {
+  return function MockNotificationBell() {
+    return <div data-testid="notification-bell" />;
+  };
+});
 
 describe('Header', () => {
   it('renders brand name', () => {

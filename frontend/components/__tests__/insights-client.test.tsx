@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import useSWR from 'swr';
 import InsightsClient from '../InsightsClient';
 
 // Mock SWR
@@ -8,6 +9,9 @@ jest.mock('swr', () => {
     default: jest.fn(),
   };
 });
+
+// Get typed mock reference
+const mockUseSWR = useSWR as jest.MockedFunction<typeof useSWR>;
 
 // Mock API functions
 jest.mock('@/lib/api', () => ({
@@ -243,21 +247,14 @@ const mockAsxAnnouncements = {
   },
 };
 
-// Get the mocked SWR function
-let mockSWR: jest.MockedFunction<any>;
-
-beforeAll(() => {
-  mockSWR = require('swr').default;
-});
-
 beforeEach(() => {
-  mockSWR.mockClear();
+  mockUseSWR.mockClear();
 });
 
 describe('InsightsClient', () => {
   describe('Loading States', () => {
     it('renders loading skeleton for drift timeline', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return { data: undefined, isLoading: true };
         }
@@ -269,7 +266,7 @@ describe('InsightsClient', () => {
     });
 
     it('renders loading skeleton for feature importance', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'feature-importance') {
           return { data: undefined, isLoading: true };
         }
@@ -281,7 +278,7 @@ describe('InsightsClient', () => {
     });
 
     it('renders loading skeleton for announcements', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return { data: undefined, isLoading: true };
         }
@@ -295,7 +292,7 @@ describe('InsightsClient', () => {
 
   describe('Success States', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return { data: mockDriftSummary, isLoading: false };
         }
@@ -376,7 +373,7 @@ describe('InsightsClient', () => {
 
   describe('Empty States', () => {
     it('renders "No drift history available yet" when drift rows are empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return { data: { ...mockDriftSummary, rows: [] }, isLoading: false };
         }
@@ -388,7 +385,7 @@ describe('InsightsClient', () => {
     });
 
     it('renders "No feature importance available" when features array is empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'feature-importance') {
           return { data: { ...mockModelExplainability, features: [] }, isLoading: false };
         }
@@ -400,7 +397,7 @@ describe('InsightsClient', () => {
     });
 
     it('renders "No announcements ingested yet" when announcements array is empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return { data: { ...mockAsxAnnouncements, items: [] }, isLoading: false };
         }
@@ -412,7 +409,7 @@ describe('InsightsClient', () => {
     });
 
     it('renders "No sentiment summary yet" when sentiment counts are empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return {
             data: { ...mockAsxAnnouncements, summary: { sentiment_counts: {}, event_counts: {} } },
@@ -427,7 +424,7 @@ describe('InsightsClient', () => {
     });
 
     it('renders "No event summary yet" when event counts are empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return {
             data: { ...mockAsxAnnouncements, summary: { sentiment_counts: {}, event_counts: {} } },
@@ -444,7 +441,7 @@ describe('InsightsClient', () => {
 
   describe('Missing Data Handling', () => {
     it('renders "n/a" when drift metrics are undefined', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return { data: { rows: [{ id: 1, model: 'model_a_ml' }] }, isLoading: false };
         }
@@ -457,7 +454,7 @@ describe('InsightsClient', () => {
     });
 
     it('handles undefined baseline and current labels', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return {
             data: {
@@ -482,7 +479,7 @@ describe('InsightsClient', () => {
     });
 
     it('handles undefined announcement fields', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return {
             data: {
@@ -503,7 +500,7 @@ describe('InsightsClient', () => {
 
   describe('UI Elements', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation(() => ({
+      mockUseSWR.mockImplementation(() => ({
         data: undefined,
         isLoading: false,
       }));
@@ -547,14 +544,14 @@ describe('InsightsClient', () => {
 
   describe('Table Headers', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation(() => ({
+      mockUseSWR.mockImplementation(() => ({
         data: undefined,
         isLoading: false,
       }));
     });
 
     it('renders announcements table headers', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return { data: mockAsxAnnouncements, isLoading: false };
         }
@@ -571,7 +568,7 @@ describe('InsightsClient', () => {
 
   describe('Date Formatting', () => {
     it('formats announcement dates correctly', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return { data: mockAsxAnnouncements, isLoading: false };
         }
@@ -587,7 +584,7 @@ describe('InsightsClient', () => {
 
   describe('Event Pulse Section', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return { data: mockAsxAnnouncements, isLoading: false };
         }
@@ -615,7 +612,7 @@ describe('InsightsClient', () => {
 
   describe('Conditional Rendering', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return { data: mockDriftSummary, isLoading: false };
         }
@@ -659,7 +656,7 @@ describe('InsightsClient', () => {
         })),
       };
 
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return { data: manyRows, isLoading: false };
         }
@@ -672,7 +669,7 @@ describe('InsightsClient', () => {
     });
 
     it('renders all 8 announcement items', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'asx-announcements') {
           return { data: mockAsxAnnouncements, isLoading: false };
         }
@@ -693,7 +690,7 @@ describe('InsightsClient', () => {
 
   describe('Feature Pulse Section', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation(() => ({
+      mockUseSWR.mockImplementation(() => ({
         data: undefined,
         isLoading: false,
       }));
@@ -714,7 +711,7 @@ describe('InsightsClient', () => {
 
   describe('Multiple Endpoint Integration', () => {
     it('successfully fetches data from all three endpoints', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return { data: mockDriftSummary, isLoading: false };
         }
@@ -734,7 +731,7 @@ describe('InsightsClient', () => {
       expect(screen.getAllByText('CBA').length).toBeGreaterThan(0); // announcements
       expect(screen.getByText('Feature Pulse')).toBeInTheDocument(); // explainability
 
-      expect(mockSWR).toHaveBeenCalled();
+      expect(mockUseSWR).toHaveBeenCalled();
     });
   });
 });

@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SettingsStatus from '../SettingsStatus';
 import useSWR from 'swr';
 import { getHealth } from '@/lib/api';
+import { toast } from '../ui/use-toast';
 
 // Mock SWR
 jest.mock('swr', () => ({
@@ -21,6 +22,7 @@ jest.mock('../ui/use-toast', () => ({
 
 const mockUseSWR = useSWR as jest.MockedFunction<typeof useSWR>;
 const mockGetHealth = getHealth as jest.MockedFunction<typeof getHealth>;
+const mockToast = toast as jest.MockedFunction<typeof toast>;
 
 describe('SettingsStatus', () => {
   beforeEach(() => {
@@ -342,8 +344,7 @@ describe('SettingsStatus', () => {
 
   describe('Toast Notifications', () => {
     it('shows success toast when API test succeeds', async () => {
-      const { toast } = require('../ui/use-toast');
-
+      
       mockUseSWR.mockReturnValue({
         data: { status: 'ok' },
         error: undefined,
@@ -359,7 +360,7 @@ describe('SettingsStatus', () => {
       fireEvent.click(screen.getByText('Test API'));
 
       await waitFor(() => {
-        expect(toast).toHaveBeenCalledWith({
+        expect(mockToast).toHaveBeenCalledWith({
           title: 'API OK',
           description: 'Health check returned: ok',
         });
@@ -367,8 +368,7 @@ describe('SettingsStatus', () => {
     });
 
     it('shows success toast with custom status', async () => {
-      const { toast } = require('../ui/use-toast');
-
+      
       mockUseSWR.mockReturnValue({
         data: { status: 'ok' },
         error: undefined,
@@ -384,7 +384,7 @@ describe('SettingsStatus', () => {
       fireEvent.click(screen.getByText('Test API'));
 
       await waitFor(() => {
-        expect(toast).toHaveBeenCalledWith({
+        expect(mockToast).toHaveBeenCalledWith({
           title: 'API OK',
           description: 'Health check returned: healthy',
         });
@@ -392,8 +392,7 @@ describe('SettingsStatus', () => {
     });
 
     it('shows error toast when API test fails', async () => {
-      const { toast } = require('../ui/use-toast');
-
+      
       mockUseSWR.mockReturnValue({
         data: { status: 'ok' },
         error: undefined,
@@ -409,7 +408,7 @@ describe('SettingsStatus', () => {
       fireEvent.click(screen.getByText('Test API'));
 
       await waitFor(() => {
-        expect(toast).toHaveBeenCalledWith({
+        expect(mockToast).toHaveBeenCalledWith({
           title: 'API Error',
           description: 'Health check failed. Verify OS_API_KEY and API URL.',
         });
@@ -417,8 +416,7 @@ describe('SettingsStatus', () => {
     });
 
     it('shows success toast when response has no status field', async () => {
-      const { toast } = require('../ui/use-toast');
-
+      
       mockUseSWR.mockReturnValue({
         data: { status: 'ok' },
         error: undefined,
@@ -434,7 +432,7 @@ describe('SettingsStatus', () => {
       fireEvent.click(screen.getByText('Test API'));
 
       await waitFor(() => {
-        expect(toast).toHaveBeenCalledWith({
+        expect(mockToast).toHaveBeenCalledWith({
           title: 'API OK',
           description: 'Health check returned: ok',
         });
