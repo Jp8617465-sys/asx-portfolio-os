@@ -9,16 +9,10 @@ Computes:
 - Portfolio-level risk metrics
 """
 
-import os
-import psycopg2
 from psycopg2.extras import RealDictCursor
 
 from services.job_tracker import track_job
-
-
-def get_db_connection():
-    """Create database connection."""
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
+from jobs.db_utils import get_raw_connection
 
 
 def fetch_portfolio_volatility(cursor):
@@ -157,101 +151,94 @@ def fetch_loan_metrics(cursor):
 def compute_portfolio_fusion():
     """Compute unified portfolio metrics."""
     with track_job("portfolio_fusion", "fusion") as tracker:
-        conn = get_db_connection()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-    
-    try:
-        # Fetch metrics from each asset class
-        equity = fetch_equity_metrics(cursor)
-        property_data = fetch_property_metrics(cursor)
-        loans = fetch_loan_metrics(cursor)
-        
-        # Compute volatility and max drawdown from historical returns
-        portfolio_volatility = fetch_portfolio_volatility(cursor)
-        max_drawdown = fetch_max_drawdown(cursor)
-        
-        # Compute aggregates
-        total_assets = equity['equity_value'] + property_data['property_value']
-        total_liabilities = loans['loan_balance']
-        net_worth = total_assets - total_liabilities
-        
-        # Compute allocation percentages
-        if total_assets > 0:
-            equity['equity_allocation_pct'] = (equity['equity_value'] / total_assets) * 100
-            property_data['property_allocation_pct'] = (property_data['property_value'] / total_assets) * 100
-        
-        if net_worth > 0:
-            loans['loan_allocation_pct'] = (loans['loan_balance'] / net_worth) * 100
-        
-        # Debt service ratio (monthly payment / monthly income assumption)
-        # In production, pull actual income from user profile
-        assumed_monthly_income = 10000  # Placeholder
-        debt_service_ratio = (loans['loan_monthly_payment'] / assumed_monthly_income) * 100 if assumed_monthly_income > 0 else 0
-        
-        # Risk score (0-100, higher = riskier)
-        # Simple heuristic: leverage + volatility proxy
-        risk_score = min(100, debt_service_ratio + (loans['loan_allocation_pct'] / 2))
-        
-        # Insert fusion record
-        cursor.execute("""
-            INSERT INTO portfolio_fusion (
-                equity_value, equity_count, equity_sharpe, equity_allocation_pct,
-                property_value, property_count, property_yield_avg, property_allocation_pct,
-                loan_balance, loan_count, loan_monthly_payment, loan_allocation_pct,
-                total_assets, total_liabilities, net_worth, debt_service_ratio,
-                portfolio_volatility, max_drawdown, risk_score,
-                data_freshness_hours, confidence_score
-            ) VALUES (
-                %(equity_value)s, %(equity_count)s, %(equity_sharpe)s, %(equity_allocation_pct)s,
-                %(property_value)s, %(property_count)s, %(property_yield_avg)s, %(property_allocation_pct)s,
-                %(loan_balance)s, %(loan_count)s, %(loan_monthly_payment)s, %(loan_allocation_pct)s,
-                %(total_assets)s, %(total_liabilities)s, %(net_worth)s, %(debt_service_ratio)s,
-                %(portfolio_volatility)s, %(max_drawdown)s, %(risk_score)s,
-                %(data_freshness_hours)s, %(confidence_score)s
-            )
-        """, {
-            **equity,
-            **property_data,
-            **loans,
-            'total_assets': total_assets,
-            'total_liabilities': total_liabilities,
-            'net_worth': net_worth,
-            'debt_service_ratio': debt_service_ratio,
-            'portfolio_volatility': portfolio_volatility,
-            'max_drawdown': max_drawdown,
-            'risk_score': risk_score,
-            'data_freshness_hours': 0.0,
-            'confidence_score': 85.0
-        })
-        
-        
-        # Track job metrics
-        tracker.set_records_processed(1)
-        tracker.set_output_summary({
-            'total_assets': total_assets,
-            'total_liabilities': total_liabilities,
-            'net_worth': net_worth,
-            'debt_service_ratio': debt_service_ratio,
-            'risk_score': risk_score
-        })
-        
-        conn.commit()
-        print(f"✅ Portfolio fusion computed: Net Worth ${net_worth:,.2f}")
-        return {
-            'total_assets': total_assets,
-            'total_liabilities': total_liabilities,
-            'net_worth': net_worth,
-            'debt_service_ratio': debt_service_ratio,
-            'risk_score': risk_score
-        }
-        
-    except Exception as e:
-        conn.rollback()
-        print(f"❌ Error computing portfolio fusion: {e}")
-        raise
-    finally:
-        cursor.close()
-        conn.close()
+        with get_raw_connection() as conn:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            
+            try:
+                # Fetch metrics from each asset class
+                equity = fetch_equity_metrics(cursor)
+                property_data = fetch_property_metrics(cursor)
+                loans = fetch_loan_metrics(cursor)
+                
+                # Compute volatility and max drawdown from historical returns
+                portfolio_volatility = fetch_portfolio_volatility(cursor)
+                max_drawdown = fetch_max_drawdown(cursor)
+                
+                # Compute aggregates
+                total_assets = equity['equity_value'] + property_data['property_value']
+                total_liabilities = loans['loan_balance']
+                net_worth = total_assets - total_liabilities
+                
+                # Compute allocation percentages
+                if total_assets > 0:
+                    equity['equity_allocation_pct'] = (equity['equity_value'] / total_assets) * 100
+                    property_data['property_allocation_pct'] = (property_data['property_value'] / total_assets) * 100
+                
+                if net_worth > 0:
+                    loans['loan_allocation_pct'] = (loans['loan_balance'] / net_worth) * 100
+                
+                # Debt service ratio (monthly payment / monthly income assumption)
+                # In production, pull actual income from user profile
+                assumed_monthly_income = 10000  # Placeholder
+                debt_service_ratio = (loans['loan_monthly_payment'] / assumed_monthly_income) * 100 if assumed_monthly_income > 0 else 0
+                
+                # Risk score (0-100, higher = riskier)
+                # Simple heuristic: leverage + volatility proxy
+                risk_score = min(100, debt_service_ratio + (loans['loan_allocation_pct'] / 2))
+                
+                # Insert fusion record
+                cursor.execute("""
+                    INSERT INTO portfolio_fusion (
+                        equity_value, equity_count, equity_sharpe, equity_allocation_pct,
+                        property_value, property_count, property_yield_avg, property_allocation_pct,
+                        loan_balance, loan_count, loan_monthly_payment, loan_allocation_pct,
+                        total_assets, total_liabilities, net_worth, debt_service_ratio,
+                        portfolio_volatility, max_drawdown, risk_score,
+                        data_freshness_hours, confidence_score
+                    ) VALUES (
+                        %(equity_value)s, %(equity_count)s, %(equity_sharpe)s, %(equity_allocation_pct)s,
+                        %(property_value)s, %(property_count)s, %(property_yield_avg)s, %(property_allocation_pct)s,
+                        %(loan_balance)s, %(loan_count)s, %(loan_monthly_payment)s, %(loan_allocation_pct)s,
+                        %(total_assets)s, %(total_liabilities)s, %(net_worth)s, %(debt_service_ratio)s,
+                        %(portfolio_volatility)s, %(max_drawdown)s, %(risk_score)s,
+                        %(data_freshness_hours)s, %(confidence_score)s
+                    )
+                """, {
+                    **equity,
+                    **property_data,
+                    **loans,
+                    'total_assets': total_assets,
+                    'total_liabilities': total_liabilities,
+                    'net_worth': net_worth,
+                    'debt_service_ratio': debt_service_ratio,
+                    'portfolio_volatility': portfolio_volatility,
+                    'max_drawdown': max_drawdown,
+                    'risk_score': risk_score,
+                    'data_freshness_hours': 0.0,
+                    'confidence_score': 85.0
+                })
+                
+                # Track job metrics
+                tracker.set_records_processed(1)
+                tracker.set_output_summary({
+                    'total_assets': total_assets,
+                    'total_liabilities': total_liabilities,
+                    'net_worth': net_worth,
+                    'debt_service_ratio': debt_service_ratio,
+                    'risk_score': risk_score
+                })
+                
+                print(f"✅ Portfolio fusion computed: Net Worth ${net_worth:,.2f}")
+                return {
+                    'total_assets': total_assets,
+                    'total_liabilities': total_liabilities,
+                    'net_worth': net_worth,
+                    'debt_service_ratio': debt_service_ratio,
+                    'risk_score': risk_score
+                }
+                
+            finally:
+                cursor.close()
 
 
 if __name__ == "__main__":

@@ -6,23 +6,12 @@ import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { getDriftSummary, getModelStatusSummary } from '../lib/api';
-
-type ModelStatusSummary = {
-  last_run?: {
-    created_at?: string;
-  };
-  signals?: {
-    as_of?: string;
-    row_count?: number;
-  };
-};
-
-type DriftSummary = {
-  rows?: Array<{
-    created_at?: string;
-  }>;
-};
+import {
+  getDriftSummary,
+  getModelStatusSummary,
+  type DriftSummary,
+  type ModelStatusSummary,
+} from '../lib/api';
 
 const statusStyles: Record<string, string> = {
   Success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',

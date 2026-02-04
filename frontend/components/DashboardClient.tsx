@@ -7,39 +7,16 @@ import StatCard from './StatCard';
 import DriftChart from './DriftChart';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { getDashboard, getDriftSummary, getLoanSummary, getModelStatusSummary } from '../lib/api';
-import type { LoanSummary } from '../lib/api';
-
-type ModelStatusSummary = {
-  last_run?: {
-    version?: string;
-    created_at?: string;
-    roc_auc_mean?: number;
-  };
-  signals?: {
-    as_of?: string;
-    row_count?: number;
-  };
-  drift?: {
-    psi_mean?: number;
-    psi_max?: number;
-  };
-};
-
-type DriftSummary = {
-  rows?: Array<{
-    created_at?: string;
-    metrics?: {
-      psi_mean?: number;
-    };
-  }>;
-};
-
-type DashboardSummary = {
-  summary?: {
-    n_targets?: number;
-  };
-};
+import {
+  getDashboard,
+  getDriftSummary,
+  getLoanSummary,
+  getModelStatusSummary,
+  type DashboardSummary,
+  type DriftSummary,
+  type LoanSummary,
+  type ModelStatusSummary,
+} from '../lib/api';
 
 const container = {
   hidden: {},

@@ -28,87 +28,15 @@ import {
   getPortfolioPerformance,
   getSignalsLive,
   getEnsembleSignalsLatest,
+  type DriftSummary,
   type EnsembleSignals,
+  type FeatureImportance,
+  type ModelCompare,
+  type ModelStatusSummary,
+  type PortfolioAttribution,
+  type PortfolioPerformance,
+  type SignalsLive,
 } from '../lib/api';
-
-type ModelStatusSummary = {
-  last_run?: {
-    version?: string;
-    created_at?: string;
-    roc_auc_mean?: number;
-    rmse_mean?: number;
-  };
-  signals?: {
-    as_of?: string;
-    row_count?: number;
-  };
-  drift?: {
-    psi_mean?: number;
-  };
-};
-
-type DriftSummary = {
-  rows?: Array<{
-    created_at?: string;
-    metrics?: {
-      psi_mean?: number;
-    };
-  }>;
-};
-
-type FeatureImportance = {
-  features?: Array<{
-    feature: string;
-    importance: number;
-  }>;
-};
-
-type ModelCompare = {
-  left?: {
-    version?: string;
-    created_at?: string;
-    metrics?: Record<string, number | null>;
-  };
-  right?: {
-    version?: string;
-    created_at?: string;
-    metrics?: Record<string, number | null>;
-  };
-  delta?: Record<string, number | null>;
-};
-
-type SignalsLive = {
-  as_of?: string;
-  signals?: Array<{
-    symbol?: string;
-    rank?: number;
-    score?: number;
-    ml_prob?: number;
-    ml_expected_return?: number;
-  }>;
-};
-
-type PortfolioAttribution = {
-  as_of?: string;
-  items?: Array<{
-    symbol?: string;
-    weight?: number | null;
-    return_1d?: number | null;
-    contribution?: number | null;
-  }>;
-  summary?: {
-    portfolio_return?: number | null;
-    volatility?: number | null;
-    sharpe?: number | null;
-  };
-};
-
-type PortfolioPerformance = {
-  series?: Array<{
-    as_of?: string | null;
-    portfolio_return?: number | null;
-  }>;
-};
 
 export default function ModelsClient() {
   const [activeTab, setActiveTab] = useState<'model_a' | 'model_b' | 'model_c' | 'ensemble'>(
