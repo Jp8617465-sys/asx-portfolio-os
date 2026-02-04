@@ -8,14 +8,16 @@ for standalone job execution.
 """
 
 import os
+import threading
 from contextlib import contextmanager
 from typing import Generator
 
 import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
 
-# Connection pool for jobs
+# Connection pool for jobs (thread-safe initialization)
 _job_pool = None
+_pool_lock = threading.Lock()
 
 
 def get_database_url() -> str:
@@ -27,14 +29,17 @@ def get_database_url() -> str:
 
 
 def get_job_pool() -> ThreadedConnectionPool:
-    """Get or create connection pool for jobs."""
+    """Get or create connection pool for jobs (thread-safe)."""
     global _job_pool
     if _job_pool is None:
-        _job_pool = ThreadedConnectionPool(
-            minconn=2,
-            maxconn=10,
-            dsn=get_database_url()
-        )
+        with _pool_lock:
+            # Double-check after acquiring lock
+            if _job_pool is None:
+                _job_pool = ThreadedConnectionPool(
+                    minconn=2,
+                    maxconn=10,
+                    dsn=get_database_url()
+                )
     return _job_pool
 
 

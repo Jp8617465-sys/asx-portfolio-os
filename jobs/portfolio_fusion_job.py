@@ -9,6 +9,8 @@ Computes:
 - Portfolio-level risk metrics
 """
 
+import statistics
+
 from psycopg2.extras import RealDictCursor
 
 from services.job_tracker import track_job
@@ -35,7 +37,6 @@ def fetch_portfolio_volatility(cursor):
         return None
 
     returns = [r['portfolio_return'] for r in rows]
-    import statistics
     try:
         # Daily volatility * sqrt(252) for annualized
         daily_std = statistics.stdev(returns)
