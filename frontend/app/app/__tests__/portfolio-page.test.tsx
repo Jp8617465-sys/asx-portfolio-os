@@ -3,10 +3,12 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import PortfolioPage from '../portfolio/page';
 
 // Mock the api-client module
-const mockGetPortfolio = jest.fn();
+const mockAnalyzePortfolio = jest.fn();
+const mockGetRebalancingSuggestions = jest.fn();
 jest.mock('@/lib/api-client', () => ({
   api: {
-    getPortfolio: () => mockGetPortfolio(),
+    analyzePortfolio: () => mockAnalyzePortfolio(),
+    getRebalancingSuggestions: () => mockGetRebalancingSuggestions(),
   },
 }));
 
@@ -76,6 +78,19 @@ jest.mock('lucide-react', () => ({
   RefreshCw: () => <span data-testid="refresh-icon">RefreshCw</span>,
   FileDown: () => <span data-testid="file-down-icon">FileDown</span>,
 }));
+
+// Mock Header and Footer to prevent nested component issues
+jest.mock('@/components/header', () => {
+  return function MockHeader() {
+    return <div data-testid="header">Header</div>;
+  };
+});
+
+jest.mock('@/components/footer', () => {
+  return function MockFooter() {
+    return <div data-testid="footer">Footer</div>;
+  };
+});
 
 // Sample test data
 const mockPortfolioWithProfit = {
@@ -169,6 +184,8 @@ const mockPortfolioWithStrongSignals = {
 describe('PortfolioPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock for rebalancing suggestions
+    mockGetRebalancingSuggestions.mockResolvedValue({ data: { suggestions: [] } });
   });
 
   describe('Loading State', () => {
@@ -178,7 +195,7 @@ describe('PortfolioPage', () => {
       const portfolioPromise = new Promise((resolve) => {
         resolvePortfolio = resolve;
       });
-      mockGetPortfolio.mockReturnValue(portfolioPromise);
+      mockAnalyzePortfolio.mockReturnValue(portfolioPromise);
 
       render(<PortfolioPage />);
 
@@ -187,7 +204,7 @@ describe('PortfolioPage', () => {
       expect(spinner).toBeInTheDocument();
 
       // Resolve to clean up
-      resolvePortfolio!({ data: { data: mockPortfolioWithProfit } });
+      resolvePortfolio!({ data: mockPortfolioWithProfit });
       await waitFor(() => {
         expect(screen.queryByText('Portfolio')).toBeInTheDocument();
       });
@@ -198,14 +215,14 @@ describe('PortfolioPage', () => {
       const portfolioPromise = new Promise((resolve) => {
         resolvePortfolio = resolve;
       });
-      mockGetPortfolio.mockReturnValue(portfolioPromise);
+      mockAnalyzePortfolio.mockReturnValue(portfolioPromise);
 
       render(<PortfolioPage />);
 
       const spinner = document.querySelector('.animate-spin');
       expect(spinner).toHaveClass('h-12', 'w-12', 'border-4', 'border-blue-500', 'rounded-full');
 
-      resolvePortfolio!({ data: { data: mockPortfolioWithProfit } });
+      resolvePortfolio!({ data: mockPortfolioWithProfit });
       await waitFor(() => {
         expect(screen.queryByText('Portfolio')).toBeInTheDocument();
       });
@@ -214,7 +231,7 @@ describe('PortfolioPage', () => {
 
   describe('Error State', () => {
     it('displays error message when API fails', async () => {
-      mockGetPortfolio.mockRejectedValue({
+      mockAnalyzePortfolio.mockRejectedValue({
         response: {
           status: 500,
           data: { message: 'Internal server error' },
@@ -230,7 +247,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays default error message when no specific message provided', async () => {
-      mockGetPortfolio.mockRejectedValue({
+      mockAnalyzePortfolio.mockRejectedValue({
         response: {
           status: 500,
         },
@@ -246,7 +263,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays retry button in error state', async () => {
-      mockGetPortfolio.mockRejectedValue({
+      mockAnalyzePortfolio.mockRejectedValue({
         response: { status: 500, data: { message: 'Server error' } },
       });
 
@@ -258,11 +275,11 @@ describe('PortfolioPage', () => {
     });
 
     it('retry button calls loadPortfolio again', async () => {
-      mockGetPortfolio
+      mockAnalyzePortfolio
         .mockRejectedValueOnce({
           response: { status: 500, data: { message: 'Server error' } },
         })
-        .mockResolvedValueOnce({ data: { data: mockPortfolioWithProfit } });
+        .mockResolvedValueOnce({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -273,13 +290,13 @@ describe('PortfolioPage', () => {
       fireEvent.click(screen.getByRole('button', { name: /retry/i }));
 
       await waitFor(() => {
-        expect(mockGetPortfolio).toHaveBeenCalledTimes(2);
+        expect(mockAnalyzePortfolio).toHaveBeenCalledTimes(2);
         expect(screen.getByTestId('holdings-table')).toBeInTheDocument();
       });
     });
 
     it('error state displays AlertCircle icon', async () => {
-      mockGetPortfolio.mockRejectedValue({
+      mockAnalyzePortfolio.mockRejectedValue({
         response: { status: 500, data: { message: 'Error' } },
       });
 
@@ -293,7 +310,7 @@ describe('PortfolioPage', () => {
 
   describe('Empty Portfolio State (404)', () => {
     it('shows upload component when 404 is returned', async () => {
-      mockGetPortfolio.mockRejectedValue({
+      mockAnalyzePortfolio.mockRejectedValue({
         response: { status: 404 },
       });
 
@@ -306,7 +323,7 @@ describe('PortfolioPage', () => {
     });
 
     it('does not show error state for 404', async () => {
-      mockGetPortfolio.mockRejectedValue({
+      mockAnalyzePortfolio.mockRejectedValue({
         response: { status: 404 },
       });
 
@@ -319,9 +336,9 @@ describe('PortfolioPage', () => {
     });
 
     it('upload success reloads portfolio', async () => {
-      mockGetPortfolio
+      mockAnalyzePortfolio
         .mockRejectedValueOnce({ response: { status: 404 } })
-        .mockResolvedValueOnce({ data: { data: mockPortfolioWithProfit } });
+        .mockResolvedValueOnce({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -332,7 +349,7 @@ describe('PortfolioPage', () => {
       fireEvent.click(screen.getByTestId('mock-upload-success'));
 
       await waitFor(() => {
-        expect(mockGetPortfolio).toHaveBeenCalledTimes(2);
+        expect(mockAnalyzePortfolio).toHaveBeenCalledTimes(2);
         expect(screen.getByTestId('holdings-table')).toBeInTheDocument();
       });
     });
@@ -340,7 +357,7 @@ describe('PortfolioPage', () => {
 
   describe('Portfolio with Data', () => {
     it('displays page header', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -353,7 +370,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays Export PDF button when portfolio exists', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -363,7 +380,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays Upload New Portfolio button', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -373,7 +390,7 @@ describe('PortfolioPage', () => {
     });
 
     it('renders HoldingsTable with correct props', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -385,7 +402,7 @@ describe('PortfolioPage', () => {
     });
 
     it('renders RebalancingSuggestions component', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -395,7 +412,7 @@ describe('PortfolioPage', () => {
     });
 
     it('renders RiskMetricsDashboard when riskMetrics exist', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -405,7 +422,7 @@ describe('PortfolioPage', () => {
     });
 
     it('does not render RiskMetricsDashboard when riskMetrics is null', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithStrongSignals } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithStrongSignals });
 
       render(<PortfolioPage />);
 
@@ -418,7 +435,7 @@ describe('PortfolioPage', () => {
 
   describe('Stats Cards Calculation', () => {
     it('calculates and displays total value', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -429,7 +446,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays Total Value label', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -439,7 +456,7 @@ describe('PortfolioPage', () => {
     });
 
     it('calculates positive total P&L correctly', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -452,7 +469,7 @@ describe('PortfolioPage', () => {
     });
 
     it('calculates negative total P&L correctly', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithLoss } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithLoss });
 
       const { container } = render(<PortfolioPage />);
 
@@ -469,7 +486,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays holdings count', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -482,7 +499,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays strong signals count', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithStrongSignals } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithStrongSignals });
 
       render(<PortfolioPage />);
 
@@ -495,7 +512,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays "Today\'s change" label', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -505,7 +522,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays "All-time return" label', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -515,7 +532,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays "Unique positions" label', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -525,7 +542,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays "Requires attention" label', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -537,7 +554,7 @@ describe('PortfolioPage', () => {
 
   describe('Export Functionality', () => {
     it('Export PDF button calls exportPortfolioToPDF', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -554,7 +571,7 @@ describe('PortfolioPage', () => {
     });
 
     it('Export CSV button calls exportHoldingsToCSV', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -568,7 +585,7 @@ describe('PortfolioPage', () => {
     });
 
     it('does not call export when portfolio is null', async () => {
-      mockGetPortfolio.mockRejectedValue({ response: { status: 404 } });
+      mockAnalyzePortfolio.mockRejectedValue({ response: { status: 404 } });
 
       render(<PortfolioPage />);
 
@@ -584,7 +601,7 @@ describe('PortfolioPage', () => {
 
   describe('Upload Modal', () => {
     it('shows upload modal when "Upload New Portfolio" is clicked', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -599,7 +616,7 @@ describe('PortfolioPage', () => {
     });
 
     it('shows Cancel button in upload modal when portfolio exists', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -613,7 +630,7 @@ describe('PortfolioPage', () => {
     });
 
     it('Cancel button hides upload modal', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -632,7 +649,7 @@ describe('PortfolioPage', () => {
     });
 
     it('does not show Cancel button when no portfolio exists', async () => {
-      mockGetPortfolio.mockRejectedValue({ response: { status: 404 } });
+      mockAnalyzePortfolio.mockRejectedValue({ response: { status: 404 } });
 
       render(<PortfolioPage />);
 
@@ -647,7 +664,7 @@ describe('PortfolioPage', () => {
 
   describe('Icons', () => {
     it('displays DollarSign icon on Total Value card', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -657,7 +674,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays Briefcase icon on Holdings card', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -667,7 +684,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays TrendingUp icon for positive P&L', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -677,7 +694,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays TrendingDown icon for negative P&L', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithLoss } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithLoss });
 
       render(<PortfolioPage />);
 
@@ -687,7 +704,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays FileDown icon on Export PDF button', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -699,7 +716,7 @@ describe('PortfolioPage', () => {
 
   describe('Holdings Section', () => {
     it('displays Holdings section header', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -711,7 +728,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays Holdings section subtitle', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -723,7 +740,7 @@ describe('PortfolioPage', () => {
 
   describe('P&L Percentage Calculation', () => {
     it('calculates and displays positive P&L percentage', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -734,7 +751,7 @@ describe('PortfolioPage', () => {
     });
 
     it('calculates and displays negative P&L percentage', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithLoss } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithLoss });
 
       render(<PortfolioPage />);
 
@@ -747,7 +764,7 @@ describe('PortfolioPage', () => {
 
   describe('Today Change Display', () => {
     it('displays mock today change value', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -758,7 +775,7 @@ describe('PortfolioPage', () => {
     });
 
     it('displays mock today change percentage', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       render(<PortfolioPage />);
 
@@ -770,7 +787,7 @@ describe('PortfolioPage', () => {
 
   describe('Styling Classes', () => {
     it('applies correct background gradient to page', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       const { container } = render(<PortfolioPage />);
 
@@ -781,7 +798,7 @@ describe('PortfolioPage', () => {
     });
 
     it('applies max-width container to content', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       const { container } = render(<PortfolioPage />);
 
@@ -791,7 +808,7 @@ describe('PortfolioPage', () => {
     });
 
     it('applies green color to positive P&L', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithProfit } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithProfit });
 
       const { container } = render(<PortfolioPage />);
 
@@ -802,7 +819,7 @@ describe('PortfolioPage', () => {
     });
 
     it('applies red color to negative P&L', async () => {
-      mockGetPortfolio.mockResolvedValue({ data: { data: mockPortfolioWithLoss } });
+      mockAnalyzePortfolio.mockResolvedValue({ data: mockPortfolioWithLoss });
 
       const { container } = render(<PortfolioPage />);
 
