@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.get("/signals/ensemble/latest")
 def get_ensemble_signals_latest(
-    limit: int = 50,
+    limit: int = 500,
     signal_filter: Optional[str] = None,
     agreement_only: bool = False,
     no_conflict: bool = False,

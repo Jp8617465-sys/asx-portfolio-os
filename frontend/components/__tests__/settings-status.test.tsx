@@ -287,8 +287,10 @@ describe('SettingsStatus', () => {
       const button = screen.getByText('Test API');
       fireEvent.click(button);
 
-      const testingButton = screen.getByText('Testing...');
-      expect(testingButton).toBeDisabled();
+      await waitFor(() => {
+        const testingButton = screen.getByText('Testing...');
+        expect(testingButton).toBeDisabled();
+      });
 
       // Clean up
       resolvePromise!({ status: 'ok' });

@@ -60,7 +60,7 @@ async def get_watchlist(user_id: int = Depends(get_current_user_id)):
                 SELECT
                     w.id,
                     w.ticker,
-                    u.name,
+                    u.company_name as name,
                     p.close as current_price,
                     NULL as price_change_pct,  -- TODO: Calculate from yesterday's close
                     a.signal_label as current_signal,
@@ -68,7 +68,7 @@ async def get_watchlist(user_id: int = Depends(get_current_user_id)):
                     b.quality_score,
                     w.added_at
                 FROM user_watchlist w
-                LEFT JOIN universe u ON u.symbol = w.ticker
+                LEFT JOIN stock_universe u ON u.ticker = w.ticker
                 LEFT JOIN LATERAL (
                     SELECT close
                     FROM prices

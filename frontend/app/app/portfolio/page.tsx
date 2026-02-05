@@ -50,7 +50,25 @@ export default function PortfolioPage() {
     try {
       // Call analyzePortfolio to sync prices and signals, which returns the updated portfolio
       const response = await api.analyzePortfolio();
-      setPortfolio(response.data);
+
+      // Transform backend response to match frontend types
+      const backendData = response.data;
+      const transformedPortfolio: Portfolio = {
+        totalValue: backendData.totalValue || 0,
+        holdings: (backendData.holdings || []).map((h: any) => ({
+          ticker: h.ticker,
+          companyName: h.ticker.replace('.AX', ''), // Backend doesn't return company name, use ticker for now
+          shares: h.shares,
+          avgCost: h.avgCost,
+          currentPrice: h.currentPrice || h.avgCost,
+          totalValue: h.currentValue || h.shares * h.avgCost,
+          signal: h.currentSignal || 'HOLD',
+          confidence: h.signalConfidence || 50,
+        })),
+        riskMetrics: backendData.riskMetrics,
+      };
+
+      setPortfolio(transformedPortfolio);
       setShowUpload(false);
 
       // Load rebalancing suggestions after portfolio is loaded

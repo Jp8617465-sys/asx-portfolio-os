@@ -366,14 +366,14 @@ export const getEnsembleSignal = (ticker: string) =>
 
 /**
  * Get latest ensemble signals (server-side) - from lib/api.ts
- * @param limit - Number of signals to return (default: 50)
+ * @param limit - Number of signals to return (default: 500)
  * @param signalFilter - Optional signal type filter
  * @param agreementOnly - Only return signals where models agree (default: false)
  * @param noConflict - Exclude conflicting signals (default: false)
  * @param options - Fetch options including cache revalidation
  */
 export async function getEnsembleSignalsLatest(
-  limit = 50,
+  limit = 500,
   signalFilter?: string,
   agreementOnly = false,
   noConflict = false,

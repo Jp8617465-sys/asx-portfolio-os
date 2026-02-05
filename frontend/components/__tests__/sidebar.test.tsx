@@ -83,9 +83,9 @@ describe('Sidebar', () => {
     expect(nav).toHaveClass('flex', 'flex-col', 'gap-3');
   });
 
-  it('renders all nine navigation items', () => {
+  it('renders all ten navigation items', () => {
     const { container } = render(<Sidebar />);
     const links = container.querySelectorAll('nav a');
-    expect(links).toHaveLength(9);
+    expect(links).toHaveLength(10);
   });
 });

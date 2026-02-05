@@ -54,6 +54,25 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
+  // Detect if error is network-related
+  isNetworkError(error: Error | null): boolean {
+    if (!error) return false;
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('network') ||
+      message.includes('fetch') ||
+      message.includes('timeout') ||
+      message.includes('connection')
+    );
+  }
+
+  // Detect if error is API-related
+  isApiError(error: Error | null): boolean {
+    if (!error) return false;
+    const message = error.message.toLowerCase();
+    return message.includes('api') || message.includes('server') || message.includes('500');
+  }
+
   handleReload = () => {
     window.location.reload();
   };
@@ -73,6 +92,22 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
+      // Determine error type for better messaging
+      const isNetwork = this.isNetworkError(this.state.error);
+      const isApi = this.isApiError(this.state.error);
+
+      let errorTitle = 'Something went wrong';
+      let errorDescription = 'An error occurred while rendering this page';
+
+      if (isNetwork) {
+        errorTitle = 'Connection Error';
+        errorDescription =
+          'Unable to connect to the server. Please check your internet connection.';
+      } else if (isApi) {
+        errorTitle = 'Server Error';
+        errorDescription = 'The server encountered an error. Our team has been notified.';
+      }
+
       // Default error UI
       return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">
@@ -84,11 +119,9 @@ export class ErrorBoundary extends Component<Props, State> {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Something went wrong
+                    {errorTitle}
                   </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    An error occurred while rendering this page
-                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{errorDescription}</p>
                 </div>
               </div>
 
@@ -113,16 +146,18 @@ export class ErrorBoundary extends Component<Props, State> {
                 </details>
               )}
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={this.handleReload}
                   className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  aria-label="Reload page"
                 >
                   Reload Page
                 </button>
                 <button
                   onClick={this.handleReset}
                   className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors"
+                  aria-label="Try again"
                 >
                   Try Again
                 </button>

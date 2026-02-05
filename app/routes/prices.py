@@ -87,13 +87,13 @@ async def get_price_history(
 
             # Verify ticker exists
             cur.execute(
-                "SELECT symbol FROM universe WHERE symbol = %s",
+                "SELECT ticker FROM stock_universe WHERE ticker = %s AND is_active = TRUE",
                 (ticker,)
             )
             if not cur.fetchone():
                 raise HTTPException(
                     status_code=404,
-                    detail=f"Stock '{ticker}' not found in universe"
+                    detail=f"Stock '{ticker}' not found in stock universe"
                 )
 
             # Get OHLC data

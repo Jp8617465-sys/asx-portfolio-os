@@ -329,7 +329,7 @@ def get_fundamentals_status(x_api_key: Optional[str] = Header(default=None)):
     with db() as con, con.cursor() as cur:
         cur.execute("SELECT COUNT(DISTINCT symbol) FROM fundamentals")
         fundamentals_count = cur.fetchone()[0]
-        cur.execute("SELECT COUNT(DISTINCT symbol) FROM universe WHERE exchange = 'AU'")
+        cur.execute("SELECT COUNT(DISTINCT ticker) FROM stock_universe WHERE is_active = TRUE")
         universe_count = cur.fetchone()[0]
         cur.execute("SELECT MAX(updated_at) FROM fundamentals")
         last_updated = cur.fetchone()[0]

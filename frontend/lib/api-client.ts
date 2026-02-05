@@ -131,7 +131,7 @@ export const api = {
     });
   },
 
-  analyzePortfolio: () => apiClient.post(`/portfolio/analyze`),
+  analyzePortfolio: () => apiClient.post(`/api/portfolio/analyze`),
 
   getRebalancingSuggestions: () => apiClient.get(`/api/portfolio/rebalancing`),
 

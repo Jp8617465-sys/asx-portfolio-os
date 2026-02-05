@@ -207,7 +207,7 @@ describe('API Client', () => {
 
         await api.analyzePortfolio();
 
-        expect(mockAxiosInstance.post).toHaveBeenCalledWith('/portfolio/analyze');
+        expect(mockAxiosInstance.post).toHaveBeenCalledWith('/api/portfolio/analyze');
       });
     });
 

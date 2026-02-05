@@ -14,11 +14,14 @@ from fastapi.openapi.utils import get_openapi
 from slowapi.errors import RateLimitExceeded
 
 from app.core import logger
+from app.core.events.handlers import register_event_handlers
 from app.routes import (
-    health, refresh, model, portfolio, loan, signals, insights, fusion, jobs, drift,
+    health, refresh, model, portfolio, loan, insights, fusion, jobs, drift,
     portfolio_management, fundamentals, ensemble, auth_routes, user_routes,
     notification_routes, search, watchlist, prices, sentiment, news
 )
+# Migrated to feature-based architecture
+from app.features.signals.routes import signals
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 
 # Initialize Sentry (if DSN provided)
@@ -62,7 +65,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
         # Production frontend (Vercel)
-        "https://asx-portfolio-os.vercel.app",
+        "https://asx-portfolio-frontend.vercel.app",
+        "https://asx-portfolio-os.vercel.app",  # Legacy URL (keep for backwards compatibility)
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -78,6 +82,13 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 def home():
     """Root endpoint."""
     return {"message": "ASX Portfolio OS API is running ✅"}
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Execute tasks on application startup."""
+    register_event_handlers()
+    logger.info("✅ Application startup complete - event handlers registered")
 
 
 @app.middleware("http")
