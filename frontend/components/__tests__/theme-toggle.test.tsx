@@ -115,8 +115,10 @@ describe('ThemeToggle', () => {
 
       fireEvent.click(button);
 
-      expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
-      expect(document.documentElement.classList.contains('dark')).toBe(true);
+      await waitFor(() => {
+        expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
+        expect(document.documentElement.classList.contains('dark')).toBe(true);
+      });
     });
 
     it('changes from dark to light when clicked', async () => {
@@ -133,8 +135,10 @@ describe('ThemeToggle', () => {
 
       fireEvent.click(button);
 
-      expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
-      expect(document.documentElement.classList.contains('dark')).toBe(false);
+      await waitFor(() => {
+        expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
+        expect(document.documentElement.classList.contains('dark')).toBe(false);
+      });
     });
 
     it('toggles theme multiple times correctly', async () => {
@@ -153,15 +157,21 @@ describe('ThemeToggle', () => {
 
       // First click: Light -> Dark
       fireEvent.click(button);
-      expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
+      await waitFor(() => {
+        expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
+      });
 
       // Second click: Dark -> Light
       fireEvent.click(button);
-      expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
+      await waitFor(() => {
+        expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
+      });
 
       // Third click: Light -> Dark
       fireEvent.click(button);
-      expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
+      await waitFor(() => {
+        expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
+      });
     });
   });
 
@@ -247,7 +257,9 @@ describe('ThemeToggle', () => {
 
       fireEvent.click(screen.getByRole('button'));
 
-      expect(document.documentElement.classList.contains('dark')).toBe(true);
+      await waitFor(() => {
+        expect(document.documentElement.classList.contains('dark')).toBe(true);
+      });
     });
 
     it('removes dark class from document element when light theme active', async () => {
@@ -265,7 +277,9 @@ describe('ThemeToggle', () => {
       // Toggle to light
       fireEvent.click(screen.getByRole('button'));
 
-      expect(document.documentElement.classList.contains('dark')).toBe(false);
+      await waitFor(() => {
+        expect(document.documentElement.classList.contains('dark')).toBe(false);
+      });
     });
   });
 
