@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import RebalancingSuggestions from '../rebalancing-suggestions';
-import { Portfolio } from '@/lib/types';
+import { Portfolio, RebalancingSuggestion } from '@/lib/types';
 
 // Mock SignalBadge component
 jest.mock('../signal-badge', () => {
@@ -8,6 +8,17 @@ jest.mock('../signal-badge', () => {
     return <span data-testid="signal-badge">{signal}</span>;
   };
 });
+
+// Mock lucide-react icons
+jest.mock('lucide-react', () => ({
+  TrendingUp: () => <svg data-icon="TrendingUp" />,
+  TrendingDown: () => <svg data-icon="TrendingDown" />,
+  AlertCircle: () => <svg data-icon="AlertCircle" />,
+  CheckCircle: () => <svg data-icon="CheckCircle" />,
+  ChevronDown: () => <svg data-icon="ChevronDown" />,
+  ChevronUp: () => <svg data-icon="ChevronUp" />,
+  Sparkles: () => <svg data-icon="Sparkles" />,
+}));
 
 describe('RebalancingSuggestions', () => {
   const mockPortfolioWithHoldAndStrongBuy: Portfolio = {
@@ -82,6 +93,77 @@ describe('RebalancingSuggestions', () => {
     ],
   };
 
+  // Mock suggestions data to pass to component
+  const mockSuggestions: RebalancingSuggestion[] = [
+    {
+      id: 'buy-bhp',
+      action: 'BUY',
+      ticker: 'BHP.AX',
+      companyName: 'BHP Group',
+      quantity: 60,
+      currentSignal: 'STRONG_BUY',
+      currentConfidence: 85,
+      reason: 'Increase exposure to high-confidence opportunity',
+      impact: {
+        expectedReturn: 1.2,
+        volatilityChange: 0.8,
+        newAllocation: 35,
+      },
+      priority: 'high',
+    },
+    {
+      id: 'sell-cba',
+      action: 'SELL',
+      ticker: 'CBA.AX',
+      companyName: 'Commonwealth Bank',
+      quantity: 50,
+      currentSignal: 'HOLD',
+      currentConfidence: 55,
+      reason: 'Reduce exposure to low-confidence position',
+      impact: {
+        expectedReturn: 0.5,
+        volatilityChange: -2.0,
+        newAllocation: 15,
+      },
+      priority: 'medium',
+    },
+    {
+      id: 'sell-tls',
+      action: 'SELL',
+      ticker: 'TLS.AX',
+      companyName: 'Telstra',
+      quantity: 500,
+      currentSignal: 'HOLD',
+      currentConfidence: 50,
+      reason: 'Reduce exposure to low-confidence position',
+      impact: {
+        expectedReturn: 0.3,
+        volatilityChange: -1.5,
+        newAllocation: 8,
+      },
+      priority: 'low',
+    },
+  ];
+
+  const singleSuggestion: RebalancingSuggestion[] = [
+    {
+      id: 'buy-single',
+      action: 'BUY',
+      ticker: 'NAB.AX',
+      companyName: 'National Australia Bank',
+      quantity: 30,
+      currentSignal: 'BUY',
+      currentConfidence: 70,
+      reason: 'Add position to diversify portfolio',
+      impact: {
+        expectedReturn: 0.8,
+        volatilityChange: 0.2,
+        newAllocation: 12,
+      },
+      priority: 'medium',
+    },
+  ];
+
   describe('Empty State - No Suggestions', () => {
     it('shows balanced portfolio message when no suggestions needed', () => {
       render(<RebalancingSuggestions portfolio={mockBalancedPortfolio} />);
@@ -109,25 +191,40 @@ describe('RebalancingSuggestions', () => {
     });
   });
 
-  describe('Suggestions Generation', () => {
-    it('generates SELL suggestions for HOLD positions with low confidence', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+  describe('Suggestions Display', () => {
+    it('displays suggestions when provided', () => {
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       expect(screen.getByText('AI Rebalancing Suggestions')).toBeInTheDocument();
-      // Should have suggestions for CBA.AX and TLS.AX (HOLD with < 60 confidence)
+      // Should display suggestions for CBA.AX and TLS.AX
       expect(screen.getByText(/CBA\.AX/)).toBeInTheDocument();
       expect(screen.getByText(/TLS\.AX/)).toBeInTheDocument();
     });
 
-    it('generates BUY suggestions for STRONG_BUY positions with high confidence', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+    it('displays BUY suggestions', () => {
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
-      // Should have BUY suggestion for BHP.AX (STRONG_BUY with 85% confidence)
+      // Should have BUY suggestion for BHP.AX
       expect(screen.getByText(/BHP\.AX/)).toBeInTheDocument();
     });
 
     it('displays action badges for each suggestion', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Should have both BUY and SELL badges
       const buyBadges = screen.getAllByText(/BUY \d+/);
@@ -138,39 +235,57 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('shows quantity in action badge', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
-      // SELL suggestion should be for 50% of shares
-      // CBA: 100 shares * 0.5 = 50
+      // SELL suggestion: CBA has quantity 50
       expect(screen.getAllByText(/SELL 50/).length).toBeGreaterThan(0);
 
-      // BUY suggestion should be for 30% more shares
-      // BHP: 200 shares * 0.3 = 60
+      // BUY suggestion: BHP has quantity 60
       expect(screen.getAllByText(/BUY 60/).length).toBeGreaterThan(0);
     });
 
     it('displays priority badges', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Should show priority badges (high/medium/low)
       expect(screen.getAllByText('high').length).toBeGreaterThan(0);
       expect(screen.getAllByText('medium').length).toBeGreaterThan(0);
     });
 
-    it('sorts suggestions by priority', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+    it('displays suggestions in order provided', () => {
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Get all priority badges
       const priorityBadges = screen.getAllByText(/high|medium|low/);
 
-      // First badge should be 'high' (STRONG_BUY has high priority)
+      // First badge should be 'high' (first suggestion in mockSuggestions)
       expect(priorityBadges[0]).toHaveTextContent('high');
     });
   });
 
   describe('Suggestion Details', () => {
     it('displays ticker and company name', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       expect(screen.getByText(/CBA\.AX/)).toBeInTheDocument();
       expect(screen.getByText(/Commonwealth Bank/)).toBeInTheDocument();
@@ -179,7 +294,12 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('shows current signal with SignalBadge', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Should render mocked signal badges
       const signalBadges = screen.getAllByTestId('signal-badge');
@@ -187,14 +307,24 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('displays confidence percentage', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       expect(screen.getByText('85%')).toBeInTheDocument(); // BHP confidence
       expect(screen.getByText('55%')).toBeInTheDocument(); // CBA confidence
     });
 
     it('shows reason for suggestion', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       expect(
         screen.getAllByText(/Reduce exposure to low-confidence position/).length
@@ -205,7 +335,12 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('displays expected return impact', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Should show return percentages
       expect(screen.getAllByText(/\+1\.2% return/).length).toBeGreaterThan(0);
@@ -213,7 +348,12 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('displays volatility change impact', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Should show volatility changes
       expect(screen.getAllByText(/\+0\.8% volatility/).length).toBeGreaterThan(0);
@@ -222,7 +362,10 @@ describe('RebalancingSuggestions', () => {
 
     it('formats positive returns with green color', () => {
       const { container } = render(
-        <RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
       );
 
       const greenElements = container.querySelectorAll('.text-green-600');
@@ -231,7 +374,10 @@ describe('RebalancingSuggestions', () => {
 
     it('formats negative volatility changes with green color (good thing)', () => {
       const { container } = render(
-        <RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
       );
 
       // Negative volatility is good, should be green
@@ -242,14 +388,24 @@ describe('RebalancingSuggestions', () => {
 
   describe('Expand/Collapse Functionality', () => {
     it('starts with all suggestions collapsed', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Detailed Impact Analysis should not be visible initially
       expect(screen.queryByText('Detailed Impact Analysis')).not.toBeInTheDocument();
     });
 
     it('expands suggestion when chevron button clicked', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Find first expand button (ChevronDown icon)
       const expandButtons = screen.getAllByTitle('View Details');
@@ -261,7 +417,10 @@ describe('RebalancingSuggestions', () => {
 
     it('shows ChevronDown icon when collapsed', () => {
       const { container } = render(
-        <RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
       );
 
       // Should have ChevronDown icons
@@ -270,7 +429,12 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('shows ChevronUp icon when expanded', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       const expandButtons = screen.getAllByTitle('View Details');
       fireEvent.click(expandButtons[0]);
@@ -280,7 +444,12 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('collapses when clicking chevron again', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       const expandButtons = screen.getAllByTitle('View Details');
 
@@ -295,7 +464,12 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('only expands one suggestion at a time', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       const expandButtons = screen.getAllByTitle('View Details');
 
@@ -314,7 +488,12 @@ describe('RebalancingSuggestions', () => {
 
   describe('Expanded Details Section', () => {
     beforeEach(() => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
       const expandButtons = screen.getAllByTitle('View Details');
       fireEvent.click(expandButtons[0]);
     });
@@ -372,7 +551,11 @@ describe('RebalancingSuggestions', () => {
     it('renders Apply button when onApply callback provided', () => {
       const onApply = jest.fn();
       render(
-        <RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} onApply={onApply} />
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+          onApply={onApply}
+        />
       );
 
       const applyButtons = screen.getAllByText('Apply');
@@ -380,7 +563,12 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('does not render Apply button when onApply not provided', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       expect(screen.queryByText('Apply')).not.toBeInTheDocument();
     });
@@ -388,7 +576,11 @@ describe('RebalancingSuggestions', () => {
     it('calls onApply with suggestion id when Apply clicked', () => {
       const onApply = jest.fn();
       render(
-        <RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} onApply={onApply} />
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+          onApply={onApply}
+        />
       );
 
       const applyButtons = screen.getAllByText('Apply');
@@ -403,6 +595,7 @@ describe('RebalancingSuggestions', () => {
       render(
         <RebalancingSuggestions
           portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
           onApplyAll={onApplyAll}
         />
       );
@@ -411,7 +604,12 @@ describe('RebalancingSuggestions', () => {
     });
 
     it('does not render Apply All button when onApplyAll not provided', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       expect(screen.queryByText('Apply All Suggestions')).not.toBeInTheDocument();
     });
@@ -421,6 +619,7 @@ describe('RebalancingSuggestions', () => {
       render(
         <RebalancingSuggestions
           portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
           onApplyAll={onApplyAll}
         />
       );
@@ -433,7 +632,12 @@ describe('RebalancingSuggestions', () => {
 
   describe('Footer Summary', () => {
     it('displays suggestion count', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Should show count of suggestions generated
       expect(screen.getByText(/\d+ suggestions? generated/)).toBeInTheDocument();
@@ -457,25 +661,45 @@ describe('RebalancingSuggestions', () => {
         ],
       };
 
-      render(<RebalancingSuggestions portfolio={singleSuggestionPortfolio} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={singleSuggestionPortfolio}
+          suggestions={singleSuggestion}
+        />
+      );
 
       expect(screen.getByText(/1 suggestion generated/)).toBeInTheDocument();
     });
 
     it('uses plural form for multiple suggestions', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       expect(screen.getByText(/\d+ suggestions generated/)).toBeInTheDocument();
     });
 
     it('displays last updated timestamp', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       expect(screen.getByText(/Last updated:/)).toBeInTheDocument();
     });
 
     it('shows current time in footer', () => {
-      render(<RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />);
+      render(
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
+      );
 
       // Should show a time string (format: HH:MM:SS AM/PM)
       expect(screen.getByText(/Last updated: \d{1,2}:\d{2}:\d{2}/)).toBeInTheDocument();
@@ -485,7 +709,10 @@ describe('RebalancingSuggestions', () => {
   describe('Styling and Colors', () => {
     it('applies green color to BUY actions', () => {
       const { container } = render(
-        <RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
       );
 
       const buyBadges = container.querySelectorAll('.text-green-600');
@@ -494,7 +721,10 @@ describe('RebalancingSuggestions', () => {
 
     it('applies red color to SELL actions', () => {
       const { container } = render(
-        <RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
       );
 
       const sellBadges = container.querySelectorAll('.text-red-600');
@@ -503,7 +733,10 @@ describe('RebalancingSuggestions', () => {
 
     it('applies correct priority colors', () => {
       const { container } = render(
-        <RebalancingSuggestions portfolio={mockPortfolioWithHoldAndStrongBuy} />
+        <RebalancingSuggestions
+          portfolio={mockPortfolioWithHoldAndStrongBuy}
+          suggestions={mockSuggestions}
+        />
       );
 
       // High priority should have red background
