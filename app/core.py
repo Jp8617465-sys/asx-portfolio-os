@@ -107,11 +107,11 @@ def get_pool():
     global _connection_pool
     if _connection_pool is None:
         _connection_pool = ThreadedConnectionPool(
-            minconn=5,    # Increased from 2 to handle baseline load
-            maxconn=20,   # Increased from 10 to handle concurrent requests
+            minconn=10,   # Increased for production baseline load
+            maxconn=50,   # Increased to handle high concurrent traffic
             dsn=DATABASE_URL
         )
-        logger.info("✅ Database connection pool initialized (5-20 connections)")
+        logger.info("✅ Database connection pool initialized (10-50 connections)")
     return _connection_pool
 
 
