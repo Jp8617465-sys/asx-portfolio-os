@@ -68,7 +68,6 @@ yfinance>=0.2.40
 # Authentication
 python-jose[cryptography]>=3.3.0
 pwdlib[bcrypt]>=0.2.0
-bcrypt==4.0.1
 slowapi>=0.1.9
 
 # Optional: RL dependencies (Phase 2)
