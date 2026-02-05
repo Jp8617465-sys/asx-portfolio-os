@@ -105,3 +105,19 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
   disconnect() {}
 };
+
+// Clear SWR cache between tests to prevent interference
+let swrCache;
+try {
+  const { cache } = require('swr');
+  swrCache = cache;
+} catch (e) {
+  // SWR might not be available in all test contexts
+}
+
+afterEach(() => {
+  // Clear SWR cache if available
+  if (swrCache && typeof swrCache.clear === 'function') {
+    swrCache.clear();
+  }
+});

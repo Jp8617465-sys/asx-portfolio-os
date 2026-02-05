@@ -2,9 +2,16 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import StockDetailPage from '../[ticker]/page';
 
-// Mock the api-client module
+// Mock the signals API module
 const mockGetSignal = jest.fn();
 const mockGetSignalReasoning = jest.fn();
+
+jest.mock('@/features/signals/api', () => ({
+  getSignal: (ticker: string) => mockGetSignal(ticker),
+  getSignalReasoning: (ticker: string) => mockGetSignalReasoning(ticker),
+}));
+
+// Mock the api-client module for remaining API calls
 const mockGetWatchlist = jest.fn();
 const mockAddToWatchlist = jest.fn();
 const mockRemoveFromWatchlist = jest.fn();
@@ -13,8 +20,6 @@ const mockGetAccuracy = jest.fn();
 
 jest.mock('@/lib/api-client', () => ({
   api: {
-    getSignal: (ticker: string) => mockGetSignal(ticker),
-    getSignalReasoning: (ticker: string) => mockGetSignalReasoning(ticker),
     getWatchlist: () => mockGetWatchlist(),
     addToWatchlist: (ticker: string) => mockAddToWatchlist(ticker),
     removeFromWatchlist: (ticker: string) => mockRemoveFromWatchlist(ticker),
@@ -46,8 +51,22 @@ jest.mock('@/components/footer', () => {
   };
 });
 
-jest.mock('@/components/confidence-gauge', () => {
-  return function MockConfidenceGauge({
+// Mock signal feature components
+jest.mock('@/features/signals', () => ({
+  SignalBadge: function MockSignalBadge({
+    signal,
+    confidence,
+  }: {
+    signal: string;
+    confidence?: number;
+  }) {
+    return (
+      <span data-testid="signal-badge">
+        {signal} {confidence && `(${confidence}%)`}
+      </span>
+    );
+  },
+  ConfidenceGauge: function MockConfidenceGauge({
     confidence,
     signal,
   }: {
@@ -60,8 +79,14 @@ jest.mock('@/components/confidence-gauge', () => {
         <span data-testid="gauge-signal">{signal}</span>
       </div>
     );
-  };
-});
+  },
+  ReasoningPanel: function MockReasoningPanel({ reasoning }: { reasoning: any }) {
+    return <div data-testid="reasoning-panel">{reasoning.summary}</div>;
+  },
+  AccuracyDisplay: function MockAccuracyDisplay({ accuracy }: { accuracy: any }) {
+    return <div data-testid="accuracy-display">Accuracy: {accuracy.accuracyRate}%</div>;
+  },
+}));
 
 jest.mock('@/components/stock-chart', () => {
   return function MockStockChart({ ticker, data }: { ticker: string; data: any[] }) {
@@ -70,28 +95,6 @@ jest.mock('@/components/stock-chart', () => {
         <span data-testid="chart-ticker">{ticker}</span>
         <span data-testid="chart-data-count">{data.length}</span>
       </div>
-    );
-  };
-});
-
-jest.mock('@/components/reasoning-panel', () => {
-  return function MockReasoningPanel({ reasoning }: { reasoning: any }) {
-    return <div data-testid="reasoning-panel">{reasoning.summary}</div>;
-  };
-});
-
-jest.mock('@/components/accuracy-display', () => {
-  return function MockAccuracyDisplay({ accuracy }: { accuracy: any }) {
-    return <div data-testid="accuracy-display">Accuracy: {accuracy.accuracyRate}%</div>;
-  };
-});
-
-jest.mock('@/components/signal-badge', () => {
-  return function MockSignalBadge({ signal, confidence }: { signal: string; confidence?: number }) {
-    return (
-      <span data-testid="signal-badge">
-        {signal} {confidence && `(${confidence}%)`}
-      </span>
     );
   };
 });
@@ -113,11 +116,12 @@ jest.mock('@/components/FundamentalsTab', () => {
   };
 });
 
-jest.mock('@/components/ModelComparisonPanel', () => {
-  return function MockModelComparisonPanel({ ticker }: { ticker: string }) {
+// Mock model feature components
+jest.mock('@/features/models', () => ({
+  ModelComparisonPanel: function MockModelComparisonPanel({ ticker }: { ticker: string }) {
     return <div data-testid="model-comparison-panel">Model Comparison for {ticker}</div>;
-  };
-});
+  },
+}));
 
 // Sample signal data
 const mockSignalData = {

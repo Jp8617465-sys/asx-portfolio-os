@@ -27,6 +27,10 @@ python-dotenv==1.2.1
 python-dateutil==2.9.0.post0
 pytz==2024.2
 
+# Authentication
+python-jose[cryptography]>=3.3.0
+pwdlib[argon2]>=0.2.0
+
 # Essential Dependencies
 anyio==3.7.1
 certifi==2026.1.4
