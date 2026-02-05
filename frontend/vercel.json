@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "ignoreCommand": "bash -c 'if [[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" && \"$VERCEL_GIT_COMMIT_REF\" != \"staging\" ]] ; then exit 1; else exit 0; fi'",
+  "ignoreCommand": "bash -c 'if [[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" && \"$VERCEL_GIT_COMMIT_REF\" != \"staging\" && \"$VERCEL_GIT_COMMIT_REF\" != \"fix/eslint-test-errors\" ]] ; then exit 1; else exit 0; fi'",
   "build": {
     "env": {
       "NEXT_TELEMETRY_DISABLED": "1"
