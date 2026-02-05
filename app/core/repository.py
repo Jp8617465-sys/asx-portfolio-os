@@ -5,8 +5,18 @@ Base repository class providing generic CRUD operations for database access.
 
 from typing import TypeVar, Generic, Optional, List, Dict, Any
 from psycopg2.extras import RealDictCursor, execute_values
+import importlib.util
+import os
 
-from app.core import db_context, logger
+# Import from parent module - we need to import the core.py file's functions
+# Since there's both app/core.py and app/core/ directory, we use importlib
+_core_module_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'core.py')
+spec = importlib.util.spec_from_file_location("_core_module", _core_module_path)
+_core_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(_core_module)
+
+db_context = _core_module.db_context
+logger = _core_module.logger
 
 
 T = TypeVar('T')

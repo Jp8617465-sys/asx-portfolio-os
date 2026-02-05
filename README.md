@@ -85,6 +85,39 @@ The app uses scheduled cron jobs to continuously fetch and update data:
 
 See `render.yaml` for full cron job configuration.
 
+## Architecture (V3)
+
+ASX Portfolio OS uses a **modular, event-driven architecture** following clean architecture principles:
+
+### Core Patterns
+
+- **Feature Modules**: Organized by domain under `/app/features/` (signals, portfolio, models)
+- **Repository Pattern**: Clean data access layer extending `BaseRepository`
+- **Service Pattern**: Business logic layer extending `BaseService`
+- **Plugin System**: Dynamic model registration and ensemble weighting
+- **Event Bus**: Cross-feature communication via publish-subscribe events
+
+### Architecture Layers
+
+```
+API Routes → Service Layer → Repository Layer → Database
+                 ↓
+            Event Bus
+                 ↓
+       Event Handlers (async)
+```
+
+**Key Benefits:**
+- **Testability**: Mock repositories/services independently
+- **Maintainability**: Changes isolated to specific layers
+- **Extensibility**: Add models without modifying existing code
+- **Performance**: Optimized database access with connection pooling
+
+**Learn More:**
+- [Backend Architecture](docs/architecture/BACKEND_ARCHITECTURE.md) - Detailed architecture guide
+- [Adding New Models](docs/guides/ADDING_NEW_MODELS.md) - Step-by-step model plugin guide
+- [TDD Guidelines](docs/testing/TDD_GUIDELINES.md) - Test-driven development practices
+
 ## Core Endpoints
 - `GET /health` - Service health check and database connectivity
 - `GET /dashboard/model_a_v1_1` - Model A ranked signals (production)
@@ -180,10 +213,15 @@ psql $DATABASE_URL -f schemas/cleanup_unused_tables.sql
 ### Getting Started
 - [Quick Start Guide](docs/getting-started/QUICKSTART.md) - Setup and run locally
 
+### Architecture
+- [Backend Architecture](docs/architecture/BACKEND_ARCHITECTURE.md) - Modular architecture guide
+- [Adding New Models](docs/guides/ADDING_NEW_MODELS.md) - Model plugin development
+
 ### Guides
 - [Deployment](docs/guides/DEPLOYMENT.md) - Deploy to Render, Vercel, Supabase
 - [Development](docs/guides/DEVELOPMENT.md) - Local development setup
 - [Testing](docs/guides/TESTING.md) - Testing strategy and running tests
+- [TDD Guidelines](docs/testing/TDD_GUIDELINES.md) - Test-driven development practices
 - [Security](docs/guides/SECURITY.md) - Security implementation and checklist
 - [Caching](docs/guides/CACHING.md) - Caching strategies
 - [User Journeys](docs/guides/USER_JOURNEYS.md) - User flow documentation

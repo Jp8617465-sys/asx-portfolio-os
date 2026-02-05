@@ -16,6 +16,14 @@ db_context = _core_module.db_context
 db = _core_module.db
 return_conn = _core_module.return_conn
 get_pool = _core_module.get_pool
+parse_as_of = _core_module.parse_as_of
+require_key = _core_module.require_key
+OS_API_KEY = _core_module.OS_API_KEY
+EODHD_API_KEY = _core_module.EODHD_API_KEY
+ENABLE_ASSISTANT = _core_module.ENABLE_ASSISTANT
+OUTPUT_DIR = _core_module.OUTPUT_DIR
+PROJECT_ROOT = _core_module.PROJECT_ROOT
+DATABASE_URL = _core_module.DATABASE_URL
 
 # Export event bus from core module
 from .events import event_bus, EventType, Event
@@ -26,6 +34,14 @@ __all__ = [
     "db",
     "return_conn",
     "get_pool",
+    "parse_as_of",
+    "require_key",
+    "OS_API_KEY",
+    "EODHD_API_KEY",
+    "ENABLE_ASSISTANT",
+    "OUTPUT_DIR",
+    "PROJECT_ROOT",
+    "DATABASE_URL",
     "event_bus",
     "EventType",
     "Event"

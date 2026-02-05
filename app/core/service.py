@@ -6,9 +6,18 @@ Base service class providing event publishing capability.
 from abc import ABC
 from typing import Dict, Any, Optional
 from datetime import datetime
+import importlib.util
+import os
 
 from app.core.events.event_bus import event_bus, Event, EventType
-from app.core import logger
+
+# Load the core module explicitly from core.py file
+_core_module_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'core.py')
+spec = importlib.util.spec_from_file_location("_core_module", _core_module_path)
+_core_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(_core_module)
+
+logger = _core_module.logger
 
 
 class BaseService(ABC):
