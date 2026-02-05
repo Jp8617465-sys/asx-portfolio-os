@@ -10,8 +10,16 @@ echo ""
 read -sp "Enter your Supabase database password: " SUPABASE_PASSWORD
 echo ""
 
+# Get Supabase project ID (or use default)
+SUPABASE_PROJECT_ID="${SUPABASE_PROJECT_ID:-gxjqezqndltaelmyctnl}"
+read -p "Enter your Supabase project ID [$SUPABASE_PROJECT_ID]: " USER_PROJECT_ID
+SUPABASE_PROJECT_ID="${USER_PROJECT_ID:-$SUPABASE_PROJECT_ID}"
+
 # Set DATABASE_URL
-export DATABASE_URL="postgresql://postgres:${SUPABASE_PASSWORD}@db.gxjqezqndltaelmyctnl.supabase.co:5432/postgres"
+export DATABASE_URL="postgresql://postgres:${SUPABASE_PASSWORD}@db.${SUPABASE_PROJECT_ID}.supabase.co:5432/postgres"
+
+# For production, use connection pooling (port 6543):
+# export DATABASE_URL="postgresql://postgres:${SUPABASE_PASSWORD}@db.${SUPABASE_PROJECT_ID}.supabase.co:6543/postgres?pgbouncer=true"
 
 # Generate secure keys
 echo "Generating secure keys..."
