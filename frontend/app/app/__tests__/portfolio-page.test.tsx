@@ -92,9 +92,11 @@ const mockPortfolioWithProfit = {
       shares: 100,
       avgCost: 90,
       currentPrice: 100,
-      totalValue: 10000,
+      currentValue: 10000, // Backend uses currentValue, not totalValue
       signal: 'BUY',
       confidence: 75,
+      currentSignal: 'BUY',
+      signalConfidence: 75,
     },
     {
       ticker: 'BHP.AX',
@@ -102,9 +104,11 @@ const mockPortfolioWithProfit = {
       shares: 50,
       avgCost: 40,
       currentPrice: 45,
-      totalValue: 2250,
+      currentValue: 2250, // Backend uses currentValue, not totalValue
       signal: 'STRONG_BUY',
       confidence: 85,
+      currentSignal: 'STRONG_BUY',
+      signalConfidence: 85,
     },
   ],
   riskMetrics: {
@@ -123,9 +127,11 @@ const mockPortfolioWithLoss = {
       shares: 100,
       avgCost: 120,
       currentPrice: 100,
-      totalValue: 10000,
+      currentValue: 10000, // Backend uses currentValue, not totalValue
       signal: 'SELL',
       confidence: 60,
+      currentSignal: 'SELL',
+      signalConfidence: 60,
     },
   ],
   riskMetrics: {
@@ -144,9 +150,11 @@ const mockPortfolioWithStrongSignals = {
       shares: 10,
       avgCost: 10,
       currentPrice: 11,
-      totalValue: 110,
+      currentValue: 110, // Backend uses currentValue, not totalValue
       signal: 'STRONG_BUY',
       confidence: 90,
+      currentSignal: 'STRONG_BUY',
+      signalConfidence: 90,
     },
     {
       ticker: 'B.AX',
@@ -154,9 +162,11 @@ const mockPortfolioWithStrongSignals = {
       shares: 20,
       avgCost: 20,
       currentPrice: 18,
-      totalValue: 360,
+      currentValue: 360, // Backend uses currentValue, not totalValue
       signal: 'STRONG_SELL',
       confidence: 88,
+      currentSignal: 'STRONG_SELL',
+      signalConfidence: 88,
     },
     {
       ticker: 'C.AX',
@@ -164,9 +174,11 @@ const mockPortfolioWithStrongSignals = {
       shares: 30,
       avgCost: 30,
       currentPrice: 31,
-      totalValue: 930,
+      currentValue: 930, // Backend uses currentValue, not totalValue
       signal: 'HOLD',
       confidence: 50,
+      currentSignal: 'HOLD',
+      signalConfidence: 50,
     },
   ],
   riskMetrics: null,

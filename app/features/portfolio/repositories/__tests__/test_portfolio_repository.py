@@ -27,16 +27,23 @@ except ImportError:
     PortfolioRepository = None
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_db_context():
-    """Mock database context manager"""
+    """Enhanced mock that properly handles RealDictCursor."""
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
 
-    # Setup cursor behavior - need to support both regular cursor and RealDictCursor
-    mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
-    mock_conn.cursor.return_value.__exit__.return_value = None
+    # Mock RealDictCursor behavior - returns dict-like objects
+    def cursor_factory(cursor_factory=None):
+        """Handle both regular cursor and RealDictCursor."""
+        cm = MagicMock()
+        cm.__enter__.return_value = mock_cursor
+        cm.__exit__.return_value = None
+        return cm
+
+    mock_conn.cursor = MagicMock(side_effect=cursor_factory)
     mock_conn.commit = MagicMock()
+    mock_conn.rollback = MagicMock()
 
     # Patch db_context in multiple places since it's imported in different modules
     with patch('app.core.db_context') as mock_ctx1, \
@@ -175,7 +182,7 @@ class TestCreatePortfolio:
         portfolio_id = repository.create_portfolio(
             user_id=123,
             name='My Test Portfolio',
-            description='Test portfolio description'
+            cash_balance=10000.0  # FIXED: use cash_balance instead of description
         )
 
         assert portfolio_id == 42
@@ -192,7 +199,11 @@ class TestCreatePortfolio:
         mock_conn, mock_cursor = mock_db_context
         mock_cursor.fetchone.return_value = (43,)
 
-        portfolio_id = repository.create_portfolio(user_id=123)
+        portfolio_id = repository.create_portfolio(
+            user_id=123,
+            name='My Portfolio',  # FIXED: name is required
+            cash_balance=0.0  # FIXED: cash_balance is required
+        )
 
         assert portfolio_id == 43
         call_args = mock_cursor.execute.call_args[0]

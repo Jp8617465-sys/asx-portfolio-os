@@ -6,38 +6,36 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ModelBDashboard from '@/components/ModelBDashboard';
 
-// Mock API client
-jest.mock('@/lib/api-client', () => ({
-  api: {
-    getModelBSignals: jest.fn(() =>
-      Promise.resolve({
-        data: {
-          signals: [
-            {
-              symbol: 'BHP.AX',
-              signal: 'BUY',
-              quality_score: 85,
-              quality_grade: 'A',
-              pe_ratio: 12.5,
-              roe: 0.18,
-              debt_to_equity: 0.4,
-              confidence: 0.78,
-            },
-            {
-              symbol: 'CBA.AX',
-              signal: 'HOLD',
-              quality_score: 72,
-              quality_grade: 'B',
-              pe_ratio: 15.2,
-              roe: 0.14,
-              debt_to_equity: 0.6,
-              confidence: 0.65,
-            },
-          ],
-        },
-      })
-    ),
-  },
+// Mock signals API
+jest.mock('@/features/signals/api', () => ({
+  getModelBSignals: jest.fn(() =>
+    Promise.resolve({
+      data: {
+        signals: [
+          {
+            symbol: 'BHP.AX',
+            signal: 'BUY',
+            quality_score: 85,
+            quality_grade: 'A',
+            pe_ratio: 12.5,
+            roe: 0.18,
+            debt_to_equity: 0.4,
+            confidence: 0.78,
+          },
+          {
+            symbol: 'CBA.AX',
+            signal: 'HOLD',
+            quality_score: 72,
+            quality_grade: 'B',
+            pe_ratio: 15.2,
+            roe: 0.14,
+            debt_to_equity: 0.6,
+            confidence: 0.65,
+          },
+        ],
+      },
+    })
+  ),
 }));
 
 describe('ModelBDashboard', () => {
