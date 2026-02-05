@@ -62,7 +62,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
         # Production frontend (Vercel)
-        "https://asx-portfolio-os.vercel.app",
+        "https://asx-portfolio-frontend.vercel.app",
+        "https://asx-portfolio-os.vercel.app",  # Legacy URL (keep for backwards compatibility)
     ],
     allow_credentials=True,
     allow_methods=["*"],

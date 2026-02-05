@@ -1,0 +1,160 @@
+# Model Configuration
+# This file defines the configuration for all ML models in the ensemble system.
+#
+# Each model can be enabled/disabled and weighted independently to allow for
+# dynamic ensemble composition without code changes.
+#
+# How to add a new model:
+# 1. Create a plugin class implementing ModelPlugin interface in /app/features/models/plugins/
+# 2. Add model configuration here with unique model_id
+# 3. Register the plugin in /app/features/models/registry/__init__.py
+# 4. Restart the application - the model will be automatically included in the ensemble
+
+models:
+  # Model A: Momentum-based ML model (LightGBM classifier + regressor)
+  # Features: Technical indicators, price momentum, volume patterns
+  # Training: Historical ASX data (2015-2023)
+  model_a:
+    enabled: true           # Whether this model is active in the system
+    weight: 0.6            # Weight in ensemble calculations (must sum to 1.0 across enabled models)
+    version: "v1.1"        # Model version for tracking and lineage
+    description: "Momentum-based LightGBM model using technical indicators"
+    model_type: "classification_regression"
+    features:
+      - "momentum_12_1"
+      - "momentum_6"
+      - "volatility_90d"
+      - "volume_ratio"
+      - "rsi_14"
+      - "macd_signal"
+    performance:
+      accuracy: 0.68       # Historical accuracy on test set
+      precision: 0.71
+      recall: 0.65
+    last_trained: "2024-01-15"
+
+  # Model B: Fundamentals-based grading model
+  # Features: Financial ratios, earnings quality, balance sheet strength
+  # Training: Quarterly financial data from ASX companies
+  model_b:
+    enabled: true           # Active in ensemble
+    weight: 0.4            # Lower weight due to lower update frequency
+    version: "v1.0"
+    description: "Fundamentals-based model using financial ratios and quality metrics"
+    model_type: "grade_classification"
+    features:
+      - "pe_ratio"
+      - "roe"
+      - "debt_to_equity"
+      - "earnings_growth"
+      - "dividend_yield"
+      - "quality_score"
+    performance:
+      accuracy: 0.62       # Historical accuracy
+      precision: 0.68
+      recall: 0.58
+    last_trained: "2024-01-10"
+    update_frequency: "quarterly"  # Fundamentals update less frequently
+
+  # Model C: Sentiment-based model (V3 feature - currently disabled)
+  # Features: News sentiment, social media signals, analyst ratings
+  # Status: In development - not yet trained on production data
+  model_c:
+    enabled: false          # Not yet in production
+    weight: 0.0            # Must be 0 when disabled
+    version: "v1.0"
+    description: "Sentiment analysis model using news and social media (V3 feature)"
+    model_type: "sentiment_classification"
+    features:
+      - "news_sentiment_score"
+      - "twitter_sentiment"
+      - "analyst_consensus"
+      - "reddit_mentions"
+      - "headline_polarity"
+    performance:
+      accuracy: null       # Not yet trained
+      precision: null
+      recall: null
+    last_trained: null
+    notes: "V3 roadmap feature - requires news ingestion pipeline"
+
+# Ensemble Configuration
+ensemble:
+  # Conflict resolution strategy when models disagree
+  conflict_strategy: "weighted_majority"  # Options: weighted_majority, confidence_based, conservative
+
+  # Minimum agreement threshold for ensemble signals
+  min_agreement: 0.5      # At least 50% of enabled models must agree
+
+  # Confidence threshold for generating signals
+  min_confidence: 0.6     # Only generate signals with confidence >= 0.6
+
+  # Flag conflicting signals (when enabled models strongly disagree)
+  flag_conflicts: true
+
+  # Logging and monitoring
+  log_model_contributions: true  # Log individual model outputs for debugging
+  track_drift: true              # Monitor model performance drift over time
+
+# Model Registry Configuration
+registry:
+  auto_discover: true     # Automatically discover plugins in /app/features/models/plugins/
+  validate_weights: true  # Ensure weights sum to 1.0 for enabled models
+  require_version: true   # Require version string for all models
+
+# Performance Monitoring
+monitoring:
+  # Alert thresholds for model performance degradation
+  accuracy_threshold: 0.55   # Alert if accuracy drops below this
+  drift_threshold: 0.15      # Alert if PSI > 0.15 (significant drift)
+
+  # Retention for drift monitoring data
+  drift_history_days: 90
+
+  # Performance recalculation frequency
+  recalculate_metrics_interval: "daily"
+
+# Feature Engineering Configuration
+features:
+  # Shared feature engineering settings
+  lookback_periods:
+    short_term: 30        # 30 days for short-term momentum
+    medium_term: 90       # 90 days for volatility calculations
+    long_term: 252        # 1 year (trading days) for long-term trends
+
+  # Feature validation
+  validate_features: true    # Validate feature values before prediction
+  handle_missing: "impute"   # Options: impute, drop, raise
+
+  # Feature store configuration (future enhancement)
+  use_feature_store: false   # Enable when feature store is implemented
+  feature_store_path: "features/"
+
+# Data Quality Checks
+data_quality:
+  # Checks to run before model predictions
+  checks:
+    - "no_null_prices"
+    - "valid_date_range"
+    - "sufficient_history"
+    - "no_duplicate_tickers"
+
+  # Minimum data requirements
+  min_historical_days: 90    # Require at least 90 days of price history
+  max_missing_features: 2    # Allow max 2 missing features per ticker
+
+  # Data staleness thresholds
+  max_price_age_days: 7      # Alert if prices older than 7 days
+
+# Versioning and Deployment
+deployment:
+  # Model deployment strategy
+  strategy: "blue_green"      # Options: blue_green, canary, shadow
+
+  # Rollback settings
+  enable_auto_rollback: true  # Rollback if performance degrades
+  rollback_threshold: 0.10    # Rollback if accuracy drops by 10%
+
+  # A/B testing (future enhancement)
+  enable_ab_testing: false
+  ab_test_split: 0.1          # 10% of traffic to new model version

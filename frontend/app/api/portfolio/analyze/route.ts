@@ -21,7 +21,7 @@ function transformKeysRecursive(obj: any): any {
   return obj;
 }
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   if (!BASE_URL) {
     return NextResponse.json({ error: 'Missing NEXT_PUBLIC_API_URL' }, { status: 500 });
   }
@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const res = await fetch(`${BASE_URL}/portfolio`, {
+  const res = await fetch(`${BASE_URL}/portfolio/analyze`, {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
