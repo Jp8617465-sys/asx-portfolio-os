@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation';
 jest.mock('lucide-react', () => ({
   Search: () => <svg data-icon="Search" />,
   TrendingUp: () => <svg data-icon="TrendingUp" />,
+  Plus: () => <svg data-icon="Plus" />,
 }));
 
 // Mock the API client
 jest.mock('@/lib/api-client', () => ({
   api: {
     search: jest.fn(),
+    addToWatchlist: jest.fn(),
   },
 }));
 
@@ -24,25 +26,34 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
+// Mock notification store
+jest.mock('@/lib/stores/notification-store', () => ({
+  notify: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 describe('StockSearch', () => {
+  // Mock data matches the actual SearchResult type from the component
   const mockSearchResults = [
     {
-      ticker: 'CBA.AX',
-      companyName: 'Commonwealth Bank',
+      symbol: 'CBA.AX',
+      name: 'Commonwealth Bank',
       sector: 'Financials',
-      marketCap: 180000000000,
+      market_cap: 180000000000,
     },
     {
-      ticker: 'BHP.AX',
-      companyName: 'BHP Group',
+      symbol: 'BHP.AX',
+      name: 'BHP Group',
       sector: 'Materials',
-      marketCap: 150000000000,
+      market_cap: 150000000000,
     },
     {
-      ticker: 'NAB.AX',
-      companyName: 'National Australia Bank',
+      symbol: 'NAB.AX',
+      name: 'National Australia Bank',
       sector: 'Financials',
-      marketCap: 95000000000,
+      market_cap: 95000000000,
     },
   ];
 
@@ -97,7 +108,7 @@ describe('StockSearch', () => {
 
     it('fetches after 300ms debounce delay', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
 
       render(<StockSearch />);
@@ -117,7 +128,7 @@ describe('StockSearch', () => {
 
     it('cancels previous search when typing rapidly', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
 
       render(<StockSearch />);
@@ -161,7 +172,7 @@ describe('StockSearch', () => {
 
     it('clears results when query is cleared', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
 
       render(<StockSearch />);
@@ -189,7 +200,7 @@ describe('StockSearch', () => {
   describe('Search Results', () => {
     it('renders search results after successful API call', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
 
       render(<StockSearch />);
@@ -210,7 +221,7 @@ describe('StockSearch', () => {
 
     it('displays sector information', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
 
       render(<StockSearch />);
@@ -229,7 +240,7 @@ describe('StockSearch', () => {
 
     it('displays formatted market cap', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
 
       render(<StockSearch />);
@@ -250,15 +261,15 @@ describe('StockSearch', () => {
     it('formats market cap in millions when appropriate', async () => {
       const smallCapResults = [
         {
-          ticker: 'SMALL.AX',
-          companyName: 'Small Company',
+          symbol: 'SMALL.AX',
+          name: 'Small Company',
           sector: 'Technology',
-          marketCap: 500000000, // 500M
+          market_cap: 500000000, // 500M
         },
       ];
 
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: smallCapResults },
+        data: { results: smallCapResults },
       });
 
       render(<StockSearch />);
@@ -278,7 +289,7 @@ describe('StockSearch', () => {
   describe('Loading State', () => {
     it('shows loading spinner during API call', async () => {
       (api.search as jest.Mock).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ data: { data: [] } }), 1000))
+        () => new Promise((resolve) => setTimeout(() => resolve({ data: { results: [] } }), 1000))
       );
 
       render(<StockSearch />);
@@ -297,7 +308,7 @@ describe('StockSearch', () => {
 
     it('hides loading spinner after API call completes', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
 
       render(<StockSearch />);
@@ -358,7 +369,7 @@ describe('StockSearch', () => {
   describe('Empty Results', () => {
     it('shows "No stocks found" message when results are empty', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: [] },
+        data: { results: [] },
       });
 
       render(<StockSearch />);
@@ -377,7 +388,7 @@ describe('StockSearch', () => {
 
     it('shows helpful message for no results', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: [] },
+        data: { results: [] },
       });
 
       render(<StockSearch />);
@@ -397,7 +408,7 @@ describe('StockSearch', () => {
   describe('Keyboard Navigation', () => {
     beforeEach(async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
     });
 
@@ -414,12 +425,12 @@ describe('StockSearch', () => {
         expect(screen.getByText('CBA.AX')).toBeInTheDocument();
       });
 
-      // Initially no result should have bg-gray-50 (selectedIndex starts at 0 but isn't applied until keydown)
+      // selectedIndex starts at 0, Arrow Down moves to 1 (second item)
       fireEvent.keyDown(input, { key: 'ArrowDown', code: 'ArrowDown' });
 
-      // After Arrow Down, selectedIndex becomes 1 (second item)
-      const secondResult = screen.getByText('BHP.AX').closest('button');
-      expect(secondResult).toHaveClass('bg-gray-50');
+      // The parent div of the second result should have bg-gray-50
+      const secondResultParent = screen.getByText('BHP.AX').closest('div[class*="px-4"]');
+      expect(secondResultParent).toHaveClass('bg-gray-50');
     });
 
     it('moves highlight down with repeated Arrow Down', async () => {
@@ -439,8 +450,8 @@ describe('StockSearch', () => {
       fireEvent.keyDown(input, { key: 'ArrowDown', code: 'ArrowDown' });
       fireEvent.keyDown(input, { key: 'ArrowDown', code: 'ArrowDown' });
 
-      const thirdResult = screen.getByText('NAB.AX').closest('button');
-      expect(thirdResult).toHaveClass('bg-gray-50');
+      const thirdResultParent = screen.getByText('NAB.AX').closest('div[class*="px-4"]');
+      expect(thirdResultParent).toHaveClass('bg-gray-50');
     });
 
     it('moves highlight up with Arrow Up', async () => {
@@ -461,8 +472,8 @@ describe('StockSearch', () => {
       fireEvent.keyDown(input, { key: 'ArrowDown', code: 'ArrowDown' });
       fireEvent.keyDown(input, { key: 'ArrowUp', code: 'ArrowUp' });
 
-      const secondResult = screen.getByText('BHP.AX').closest('button');
-      expect(secondResult).toHaveClass('bg-gray-50');
+      const secondResultParent = screen.getByText('BHP.AX').closest('div[class*="px-4"]');
+      expect(secondResultParent).toHaveClass('bg-gray-50');
     });
 
     it('does not go beyond first result with Arrow Up', async () => {
@@ -481,11 +492,9 @@ describe('StockSearch', () => {
       // Try to move up from initial position (should stay at 0)
       fireEvent.keyDown(input, { key: 'ArrowUp', code: 'ArrowUp' });
 
-      // selectedIndex should still be 0, which means first result IS highlighted
-      const results = screen.getAllByRole('button');
-      const firstResult = results.find((r) => r.textContent?.includes('CBA.AX'));
-      // At index 0, bg-gray-50 is applied
-      expect(firstResult).toHaveClass('bg-gray-50');
+      // selectedIndex should still be 0, first result should be highlighted
+      const firstResultParent = screen.getByText('CBA.AX').closest('div[class*="px-4"]');
+      expect(firstResultParent).toHaveClass('bg-gray-50');
     });
 
     it('does not go beyond last result with Arrow Down', async () => {
@@ -507,8 +516,8 @@ describe('StockSearch', () => {
       fireEvent.keyDown(input, { key: 'ArrowDown', code: 'ArrowDown' });
       fireEvent.keyDown(input, { key: 'ArrowDown', code: 'ArrowDown' });
 
-      const lastResult = screen.getByText('NAB.AX').closest('button');
-      expect(lastResult).toHaveClass('bg-gray-50');
+      const lastResultParent = screen.getByText('NAB.AX').closest('div[class*="px-4"]');
+      expect(lastResultParent).toHaveClass('bg-gray-50');
     });
 
     it('selects highlighted result with Enter key', async () => {
@@ -555,7 +564,7 @@ describe('StockSearch', () => {
   describe('Click Selection', () => {
     beforeEach(async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
     });
 
@@ -573,6 +582,7 @@ describe('StockSearch', () => {
         expect(screen.getByText('CBA.AX')).toBeInTheDocument();
       });
 
+      // Find the navigation button (not the add to watchlist button)
       const result = screen.getByText('CBA.AX').closest('button');
       fireEvent.click(result!);
 
@@ -644,7 +654,7 @@ describe('StockSearch', () => {
   describe('Click Outside', () => {
     it('closes dropdown when clicking outside', async () => {
       (api.search as jest.Mock).mockResolvedValue({
-        data: { data: mockSearchResults },
+        data: { results: mockSearchResults },
       });
 
       render(<StockSearch />);

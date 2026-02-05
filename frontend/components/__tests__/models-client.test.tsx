@@ -541,15 +541,17 @@ describe('ModelsClient', () => {
       expect(screen.getByText('ROC-AUC')).toBeInTheDocument();
       expect(screen.getByText('RMSE')).toBeInTheDocument();
       expect(screen.getByText('Drift')).toBeInTheDocument();
-      expect(screen.getByText('Status')).toBeInTheDocument();
+      // Status header may appear multiple times in different tables
+      expect(screen.getAllByText('Status').length).toBeGreaterThan(0);
     });
 
     it('renders signals table headers', () => {
       render(<ModelsClient />);
-      expect(screen.getByText('Rank')).toBeInTheDocument();
+      // Headers may appear multiple times in different tables
+      expect(screen.getAllByText('Rank').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Symbol').length).toBeGreaterThan(0);
-      expect(screen.getByText('Score')).toBeInTheDocument();
-      expect(screen.getByText('ML Prob')).toBeInTheDocument();
+      expect(screen.getAllByText('Score').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('ML Prob').length).toBeGreaterThan(0);
     });
 
     it('renders attribution table headers', () => {

@@ -4,12 +4,19 @@ import DashboardPage from '../dashboard/page';
 
 // Mock the api-client module
 const mockGetWatchlist = jest.fn();
+const mockGetTopSignals = jest.fn();
 const mockRemoveFromWatchlist = jest.fn();
 jest.mock('@/lib/api-client', () => ({
   api: {
     getWatchlist: () => mockGetWatchlist(),
+    getTopSignals: (params: any) => mockGetTopSignals(params),
     removeFromWatchlist: (ticker: string) => mockRemoveFromWatchlist(ticker),
   },
+}));
+
+// Mock useAutoRefresh hook
+jest.mock('@/lib/hooks/useAutoRefresh', () => ({
+  useAutoRefresh: jest.fn(),
 }));
 
 // Mock next/navigation
@@ -75,42 +82,54 @@ jest.mock('lucide-react', () => ({
   AlertCircle: () => <span data-testid="alert-circle">AlertCircle</span>,
 }));
 
-// Sample watchlist data
+// Sample watchlist data - matches backend API response format
 const mockWatchlistData = [
   {
     ticker: 'CBA.AX',
-    companyName: 'Commonwealth Bank',
-    signal: 'BUY',
-    confidence: 75,
-    lastPrice: 100,
-    priceChange: 2.5,
-    priceChangeAmount: 2.5,
+    name: 'Commonwealth Bank',
+    current_signal: 'BUY',
+    signal_confidence: 0.75, // 0-1 range, converted to 0-100 in component
+    current_price: 100,
+    price_change_pct: 2.5,
+    added_at: '2026-01-01T00:00:00Z',
   },
   {
     ticker: 'BHP.AX',
-    companyName: 'BHP Group',
-    signal: 'STRONG_BUY',
-    confidence: 85,
-    lastPrice: 45,
-    priceChange: 3.5,
-    priceChangeAmount: 1.57,
+    name: 'BHP Group',
+    current_signal: 'STRONG_BUY',
+    signal_confidence: 0.85,
+    current_price: 45,
+    price_change_pct: 3.5,
+    added_at: '2026-01-01T00:00:00Z',
   },
   {
     ticker: 'FMG.AX',
-    companyName: 'Fortescue Metals',
-    signal: 'STRONG_SELL',
-    confidence: 78,
-    lastPrice: 20,
-    priceChange: -4.2,
-    priceChangeAmount: -0.84,
+    name: 'Fortescue Metals',
+    current_signal: 'STRONG_SELL',
+    signal_confidence: 0.78,
+    current_price: 20,
+    price_change_pct: -4.2,
+    added_at: '2026-01-01T00:00:00Z',
   },
 ];
+
+// Sample top signals data - matches backend API response format
+const mockTopSignalsData = {
+  signals: [
+    { symbol: 'BHP.AX', ml_prob: 0.85 },
+    { symbol: 'CBA.AX', ml_prob: 0.75 },
+    { symbol: 'FMG.AX', ml_prob: 0.78 },
+  ],
+  as_of: '2026-02-04T10:00:00Z',
+};
 
 describe('DashboardPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});
+    // Default mock for getTopSignals to prevent errors
+    mockGetTopSignals.mockResolvedValue({ data: mockTopSignalsData });
   });
 
   afterEach(() => {
@@ -132,7 +151,7 @@ describe('DashboardPage', () => {
       expect(screen.getAllByText('...').length).toBeGreaterThan(0);
 
       // Resolve and cleanup
-      resolvePromise!({ data: { data: [] } });
+      resolvePromise!({ data: { items: [] } });
       await waitFor(() => {
         expect(screen.queryByText('...')).not.toBeInTheDocument();
       });
@@ -151,7 +170,7 @@ describe('DashboardPage', () => {
       const skeletons = container.querySelectorAll('.animate-pulse');
       expect(skeletons.length).toBeGreaterThan(0);
 
-      resolvePromise!({ data: { data: [] } });
+      resolvePromise!({ data: { items: [] } });
       await waitFor(() => {
         expect(container.querySelectorAll('.animate-pulse').length).toBe(0);
       });
@@ -184,7 +203,7 @@ describe('DashboardPage', () => {
 
   describe('Success State', () => {
     it('renders header and footer', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -195,7 +214,7 @@ describe('DashboardPage', () => {
     });
 
     it('displays page title and subtitle', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -208,7 +227,7 @@ describe('DashboardPage', () => {
     });
 
     it('renders watchlist table with data', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -221,7 +240,7 @@ describe('DashboardPage', () => {
 
   describe('Stats Calculation', () => {
     it('displays stats card labels', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -234,7 +253,7 @@ describe('DashboardPage', () => {
     });
 
     it('calculates average confidence correctly', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -245,7 +264,7 @@ describe('DashboardPage', () => {
     });
 
     it('handles empty watchlist', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: [] } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: [] } });
 
       render(<DashboardPage />);
 
@@ -256,7 +275,7 @@ describe('DashboardPage', () => {
     });
 
     it('handles null data in response', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: null } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: null } });
 
       render(<DashboardPage />);
 
@@ -268,7 +287,7 @@ describe('DashboardPage', () => {
 
   describe('Top Signals Section', () => {
     it('displays Top Signals Today heading', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -278,7 +297,7 @@ describe('DashboardPage', () => {
     });
 
     it('renders mock top signals cards', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -291,19 +310,21 @@ describe('DashboardPage', () => {
     });
 
     it('renders company names in top signals', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('BHP Group')).toBeInTheDocument();
-        expect(screen.getByText('Commonwealth Bank')).toBeInTheDocument();
-        expect(screen.getByText('Fortescue Metals')).toBeInTheDocument();
+        // Top signals derive company names from ticker symbols by stripping .AX/.AU suffix
+        // The actual company names come from watchlist data only
+        expect(screen.getByText('BHP')).toBeInTheDocument();
+        expect(screen.getByText('CBA')).toBeInTheDocument();
+        expect(screen.getByText('FMG')).toBeInTheDocument();
       });
     });
 
     it('clicking on top signal navigates to stock page', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -323,7 +344,7 @@ describe('DashboardPage', () => {
 
   describe('Watchlist Section', () => {
     it('displays Your Watchlist heading', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -344,7 +365,7 @@ describe('DashboardPage', () => {
       // While loading
       expect(screen.getByTestId('watchlist-loading')).toHaveTextContent('true');
 
-      resolvePromise!({ data: { data: mockWatchlistData } });
+      resolvePromise!({ data: { items: mockWatchlistData } });
 
       await waitFor(() => {
         expect(screen.getByTestId('watchlist-loading')).toHaveTextContent('false');
@@ -354,7 +375,7 @@ describe('DashboardPage', () => {
 
   describe('Remove from Watchlist', () => {
     it('removes item from watchlist on button click', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
       mockRemoveFromWatchlist.mockResolvedValue({});
 
       render(<DashboardPage />);
@@ -371,7 +392,7 @@ describe('DashboardPage', () => {
     });
 
     it('updates stats after removing from watchlist', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
       mockRemoveFromWatchlist.mockResolvedValue({});
 
       render(<DashboardPage />);
@@ -389,7 +410,7 @@ describe('DashboardPage', () => {
     });
 
     it('shows alert on remove failure', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
       mockRemoveFromWatchlist.mockRejectedValue(new Error('Delete failed'));
 
       // Mock alert
@@ -413,7 +434,7 @@ describe('DashboardPage', () => {
 
   describe('Icons', () => {
     it('displays Activity icons in stats cards', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -423,7 +444,7 @@ describe('DashboardPage', () => {
     });
 
     it('displays TrendingUp icon in Strong Signals card', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 
@@ -433,7 +454,7 @@ describe('DashboardPage', () => {
     });
 
     it('displays TrendingDown icon in Big Movers card', async () => {
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetWatchlist.mockResolvedValue({ data: { items: mockWatchlistData } });
 
       render(<DashboardPage />);
 

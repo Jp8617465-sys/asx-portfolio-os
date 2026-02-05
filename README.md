@@ -175,6 +175,30 @@ bash scripts/run_migrations.sh --dry-run
 psql $DATABASE_URL -f schemas/cleanup_unused_tables.sql
 ```
 
+## Documentation
+
+### Getting Started
+- [Quick Start Guide](docs/getting-started/QUICKSTART.md) - Setup and run locally
+
+### Guides
+- [Deployment](docs/guides/DEPLOYMENT.md) - Deploy to Render, Vercel, Supabase
+- [Development](docs/guides/DEVELOPMENT.md) - Local development setup
+- [Testing](docs/guides/TESTING.md) - Testing strategy and running tests
+- [Security](docs/guides/SECURITY.md) - Security implementation and checklist
+- [Caching](docs/guides/CACHING.md) - Caching strategies
+- [User Journeys](docs/guides/USER_JOURNEYS.md) - User flow documentation
+- [Optimization](docs/guides/OPTIMIZATION.md) - Performance optimization
+
+### Reference
+- [API Documentation](docs/reference/API.md) - API endpoints and usage
+
+### Roadmap
+- [Product Roadmap](docs/roadmap/ROADMAP.md) - V1-V5 feature roadmap
+
+### Frontend
+- [Frontend Guide](frontend/README.md) - Frontend architecture
+- [Design System](frontend/DESIGN_SYSTEM.md) - Component library
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
