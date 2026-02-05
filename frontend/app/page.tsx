@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import StockSearch from '@/components/stock-search';
-import SignalBadge from '@/components/signal-badge';
+import { SignalBadge } from '@/features/signals';
 import { TrendingUp, Target, BarChart3, Zap, Shield, Clock } from 'lucide-react';
 import { designTokens } from '@/lib/design-tokens';
 

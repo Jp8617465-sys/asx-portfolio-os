@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WatchlistTable from '@/components/watchlist-table';
-import SignalBadge from '@/components/signal-badge';
+import { SignalBadge } from '@/features/signals';
 import { api } from '@/lib/api-client';
 import { WatchlistItem, Signal } from '@/lib/types';
 import { TrendingUp, TrendingDown, Activity, AlertCircle } from 'lucide-react';
 import { designTokens } from '@/lib/design-tokens';
 import { useAutoRefresh } from '@/lib/hooks/useAutoRefresh';
+import { getTopSignals } from '@/features/signals/api';
 
 interface DashboardStats {
   totalStocks: number;
@@ -82,7 +83,7 @@ export default function DashboardPage() {
 
       // Load top signals from real API
       try {
-        const topSignalsResponse = await api.getTopSignals({ limit: 5 });
+        const topSignalsResponse = await getTopSignals({ limit: 5 });
         const topSignalsData = topSignalsResponse.data;
 
         if (topSignalsData?.signals && Array.isArray(topSignalsData.signals)) {

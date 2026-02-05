@@ -2,8 +2,7 @@
 
 import useSWR from 'swr';
 import Topbar from './Topbar';
-import DriftChart from './DriftChart';
-import FeatureImpactChart from './FeatureImpactChart';
+import { DriftChart, FeatureImpactChart } from '@/features/models';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ChartContainer } from './ui/chart';

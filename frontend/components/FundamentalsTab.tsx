@@ -4,8 +4,8 @@ import useSWR from 'swr';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
-import { getFundamentalsMetrics, getFundamentalsQuality } from '../lib/api';
-import type { FundamentalsMetrics, FundamentalsQuality } from '../lib/api';
+import { getFundamentalsMetrics, getFundamentalsQuality } from '@/features/signals/api';
+import type { FundamentalsMetrics, FundamentalsQuality } from '@/features/signals/api';
 
 type FundamentalsTabProps = {
   ticker: string;

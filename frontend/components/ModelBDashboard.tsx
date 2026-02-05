@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, TrendingUp, Shield, DollarSign } from 'lucide-react';
+import { getModelBSignals } from '@/features/signals/api';
 import {
   BarChart,
   Bar,
@@ -54,7 +55,7 @@ export default function ModelBDashboard() {
     setError(null);
 
     try {
-      const response = await api.getModelBSignals({ limit: 100 });
+      const response = await getModelBSignals({ limit: 100 });
       const signalsData = response.data.signals || [];
 
       setSignals(signalsData);
