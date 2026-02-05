@@ -1,14 +1,17 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import useSWR from 'swr';
 import ModelsClient from '../ModelsClient';
 
 // Mock SWR
-const useSWR = jest.fn();
 jest.mock('swr', () => {
   return {
     __esModule: true,
     default: jest.fn(),
   };
 });
+
+// Get typed mock reference
+const mockUseSWR = useSWR as jest.MockedFunction<typeof useSWR>;
 
 // Mock API functions
 jest.mock('@/lib/api', () => ({
@@ -224,21 +227,14 @@ const mockPortfolioPerformance = {
   ],
 };
 
-// Get the mocked SWR function
-let mockSWR: jest.MockedFunction<any>;
-
-beforeAll(() => {
-  mockSWR = require('swr').default;
-});
-
 beforeEach(() => {
-  mockSWR.mockClear();
+  mockUseSWR.mockClear();
 });
 
 describe('ModelsClient', () => {
   describe('Loading States', () => {
     it('renders loading skeleton for model versions section', () => {
-      mockSWR.mockImplementation(() => ({
+      mockUseSWR.mockImplementation(() => ({
         data: undefined,
         isLoading: true,
       }));
@@ -248,7 +244,7 @@ describe('ModelsClient', () => {
     });
 
     it('renders loading skeleton for model compare section', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'model-compare') {
           return { data: undefined, isLoading: true };
         }
@@ -260,7 +256,7 @@ describe('ModelsClient', () => {
     });
 
     it('renders loading skeleton for feature importance section', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'feature-importance') {
           return { data: undefined, isLoading: true };
         }
@@ -274,7 +270,7 @@ describe('ModelsClient', () => {
 
   describe('Success States', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'model-status-summary') {
           return { data: mockModelStatusSummary, isLoading: false };
         }
@@ -369,7 +365,7 @@ describe('ModelsClient', () => {
 
   describe('Empty States', () => {
     it('renders "No feature importance available" when features array is empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'feature-importance') {
           return { data: { ...mockFeatureImportance, features: [] }, isLoading: false };
         }
@@ -381,7 +377,7 @@ describe('ModelsClient', () => {
     });
 
     it('renders "No drift data yet" when drift rows are empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'drift-summary') {
           return { data: { ...mockDriftSummary, rows: [] }, isLoading: false };
         }
@@ -393,7 +389,7 @@ describe('ModelsClient', () => {
     });
 
     it('renders "No signals loaded yet" when signals array is empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'signals-live') {
           return { data: { ...mockSignalsLive, signals: [] }, isLoading: false };
         }
@@ -405,7 +401,7 @@ describe('ModelsClient', () => {
     });
 
     it('renders "No attribution data yet" when attribution items are empty', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'portfolio-attribution') {
           return { data: { ...mockPortfolioAttribution, items: [] }, isLoading: false };
         }
@@ -419,7 +415,7 @@ describe('ModelsClient', () => {
 
   describe('Missing Data Handling', () => {
     it('renders "n/a" when model version is undefined', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'model-status-summary') {
           return { data: { last_run: {} }, isLoading: false };
         }
@@ -432,7 +428,7 @@ describe('ModelsClient', () => {
     });
 
     it('renders "n/a" when compare versions are undefined', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'model-compare') {
           return { data: { status: 'ok', model: 'model_a_ml' }, isLoading: false };
         }
@@ -445,7 +441,7 @@ describe('ModelsClient', () => {
     });
 
     it('handles null values in attribution data', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'portfolio-attribution') {
           return {
             data: {
@@ -465,7 +461,7 @@ describe('ModelsClient', () => {
     });
 
     it('handles null values in portfolio summary', () => {
-      mockSWR.mockImplementation((key: string) => {
+      mockUseSWR.mockImplementation((key: string) => {
         if (key === 'portfolio-attribution') {
           return {
             data: {
@@ -490,7 +486,7 @@ describe('ModelsClient', () => {
 
   describe('UI Elements', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation(() => ({
+      mockUseSWR.mockImplementation(() => ({
         data: undefined,
         isLoading: false,
       }));
@@ -533,7 +529,7 @@ describe('ModelsClient', () => {
 
   describe('Table Headers', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation(() => ({
+      mockUseSWR.mockImplementation(() => ({
         data: undefined,
         isLoading: false,
       }));
@@ -569,7 +565,7 @@ describe('ModelsClient', () => {
 
   describe('Performance Labels', () => {
     beforeEach(() => {
-      mockSWR.mockImplementation(() => ({
+      mockUseSWR.mockImplementation(() => ({
         data: undefined,
         isLoading: false,
       }));

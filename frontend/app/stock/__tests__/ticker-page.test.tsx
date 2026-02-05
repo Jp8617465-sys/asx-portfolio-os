@@ -143,8 +143,8 @@ describe('StockDetailPage', () => {
         resolveSignal = resolve;
       });
       mockGetSignal.mockReturnValue(signalPromise);
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
+      mockGetWatchlist.mockResolvedValue({ data: mockWatchlistData });
 
       const { container } = render(<StockDetailPage />);
 
@@ -152,7 +152,7 @@ describe('StockDetailPage', () => {
       const skeletons = container.querySelectorAll('.animate-pulse');
       expect(skeletons.length).toBeGreaterThan(0);
 
-      resolveSignal!({ data: { data: mockSignalData } });
+      resolveSignal!({ data: mockSignalData });
       await waitFor(() => {
         expect(container.querySelectorAll('.animate-pulse').length).toBe(0);
       });
@@ -170,7 +170,7 @@ describe('StockDetailPage', () => {
       expect(screen.getByTestId('header')).toBeInTheDocument();
       expect(screen.getByTestId('footer')).toBeInTheDocument();
 
-      resolveSignal!({ data: { data: mockSignalData } });
+      resolveSignal!({ data: mockSignalData });
       await waitFor(() => {
         // CBA.AX appears in both h1 and chart - use getAllByText
         expect(screen.getAllByText('CBA.AX').length).toBeGreaterThan(0);
@@ -214,7 +214,7 @@ describe('StockDetailPage', () => {
     });
 
     it('displays Stock not found when signal is null', async () => {
-      mockGetSignal.mockResolvedValue({ data: { data: null } });
+      mockGetSignal.mockResolvedValue({ data: null });
 
       render(<StockDetailPage />);
 
@@ -236,9 +236,9 @@ describe('StockDetailPage', () => {
 
   describe('Success State', () => {
     beforeEach(() => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
+      mockGetWatchlist.mockResolvedValue({ data: mockWatchlistData });
     });
 
     it('renders header and footer', async () => {
@@ -332,9 +332,9 @@ describe('StockDetailPage', () => {
 
   describe('Back Button', () => {
     beforeEach(() => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
-      mockGetWatchlist.mockResolvedValue({ data: { data: mockWatchlistData } });
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
+      mockGetWatchlist.mockResolvedValue({ data: mockWatchlistData });
     });
 
     it('displays Back button', async () => {
@@ -367,9 +367,9 @@ describe('StockDetailPage', () => {
 
   describe('Watchlist Toggle', () => {
     it('shows Add to Watchlist button when not in watchlist', async () => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
-      mockGetWatchlist.mockResolvedValue({ data: { data: [] } }); // Empty watchlist
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
+      mockGetWatchlist.mockResolvedValue({ data: [] }); // Empty watchlist
 
       render(<StockDetailPage />);
 
@@ -380,10 +380,10 @@ describe('StockDetailPage', () => {
     });
 
     it('shows In Watchlist button when already in watchlist', async () => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
       mockGetWatchlist.mockResolvedValue({
-        data: { data: [{ ticker: 'CBA.AX' }] }, // CBA is in watchlist
+        data: [{ ticker: 'CBA.AX' }], // CBA is in watchlist
       });
 
       render(<StockDetailPage />);
@@ -395,9 +395,9 @@ describe('StockDetailPage', () => {
     });
 
     it('adds to watchlist when clicking Add button', async () => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
-      mockGetWatchlist.mockResolvedValue({ data: { data: [] } });
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
+      mockGetWatchlist.mockResolvedValue({ data: [] });
       mockAddToWatchlist.mockResolvedValue({});
 
       render(<StockDetailPage />);
@@ -415,9 +415,9 @@ describe('StockDetailPage', () => {
     });
 
     it('removes from watchlist when clicking In Watchlist button', async () => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
-      mockGetWatchlist.mockResolvedValue({ data: { data: [{ ticker: 'CBA.AX' }] } });
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
+      mockGetWatchlist.mockResolvedValue({ data: [{ ticker: 'CBA.AX' }] });
       mockRemoveFromWatchlist.mockResolvedValue({});
 
       render(<StockDetailPage />);
@@ -435,9 +435,9 @@ describe('StockDetailPage', () => {
     });
 
     it('shows alert on watchlist toggle failure', async () => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
-      mockGetWatchlist.mockResolvedValue({ data: { data: [] } });
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
+      mockGetWatchlist.mockResolvedValue({ data: [] });
       mockAddToWatchlist.mockRejectedValue(new Error('Failed'));
 
       const mockAlert = jest.spyOn(window, 'alert').mockImplementation(() => {});
@@ -460,9 +460,9 @@ describe('StockDetailPage', () => {
 
   describe('Reasoning unavailable', () => {
     it('does not render ReasoningPanel when reasoning fails', async () => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
       mockGetSignalReasoning.mockRejectedValue(new Error('Not available'));
-      mockGetWatchlist.mockResolvedValue({ data: { data: [] } });
+      mockGetWatchlist.mockResolvedValue({ data: [] });
 
       render(<StockDetailPage />);
 
@@ -482,9 +482,9 @@ describe('StockDetailPage', () => {
         priceChange: -2.5,
         priceChangeAmount: -2.56,
       };
-      mockGetSignal.mockResolvedValue({ data: { data: negativeSignal } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
-      mockGetWatchlist.mockResolvedValue({ data: { data: [] } });
+      mockGetSignal.mockResolvedValue({ data: negativeSignal });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
+      mockGetWatchlist.mockResolvedValue({ data: [] });
 
       render(<StockDetailPage />);
 
@@ -497,8 +497,8 @@ describe('StockDetailPage', () => {
 
   describe('Watchlist check failure', () => {
     it('defaults to not in watchlist when check fails', async () => {
-      mockGetSignal.mockResolvedValue({ data: { data: mockSignalData } });
-      mockGetSignalReasoning.mockResolvedValue({ data: { data: mockReasoningData } });
+      mockGetSignal.mockResolvedValue({ data: mockSignalData });
+      mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
       mockGetWatchlist.mockRejectedValue(new Error('Watchlist error'));
 
       render(<StockDetailPage />);

@@ -2,13 +2,13 @@ import { render, screen } from '@testing-library/react';
 import SettingsPage from '../settings/page';
 
 // Mock child components
-jest.mock('../../components/PageTransition', () => {
+jest.mock('../../../components/PageTransition', () => {
   return function MockPageTransition({ children }: { children: React.ReactNode }) {
     return <div data-testid="page-transition">{children}</div>;
   };
 });
 
-jest.mock('../../components/Topbar', () => {
+jest.mock('../../../components/Topbar', () => {
   return function MockTopbar({
     title,
     subtitle,
@@ -28,7 +28,7 @@ jest.mock('../../components/Topbar', () => {
   };
 });
 
-jest.mock('../../components/ui/card', () => ({
+jest.mock('../../../components/ui/card', () => ({
   Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div data-testid="card" className={className}>
       {children}
@@ -47,7 +47,7 @@ jest.mock('../../components/ui/card', () => ({
   ),
 }));
 
-jest.mock('../../components/ui/badge', () => ({
+jest.mock('../../../components/ui/badge', () => ({
   Badge: ({ children, variant }: { children: React.ReactNode; variant?: string }) => (
     <span data-testid="badge" data-variant={variant}>
       {children}
@@ -55,7 +55,7 @@ jest.mock('../../components/ui/badge', () => ({
   ),
 }));
 
-jest.mock('../../components/SettingsStatus', () => {
+jest.mock('../../../components/SettingsStatus', () => {
   return function MockSettingsStatus() {
     return <div data-testid="settings-status">Settings Status Component</div>;
   };
