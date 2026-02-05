@@ -3,6 +3,9 @@
  */
 
 export function logout() {
+  // Only run in browser environment
+  if (typeof window === 'undefined') return;
+
   // Clear localStorage
   localStorage.removeItem('access_token');
   localStorage.removeItem('user');
@@ -15,11 +18,17 @@ export function logout() {
 }
 
 export function getUser() {
+  // SSR-safe: return null during server-side rendering
+  if (typeof window === 'undefined') return null;
+
   const userStr = localStorage.getItem('user');
   return userStr ? JSON.parse(userStr) : null;
 }
 
 export function getToken() {
+  // SSR-safe: return null during server-side rendering
+  if (typeof window === 'undefined') return null;
+
   return localStorage.getItem('access_token');
 }
 

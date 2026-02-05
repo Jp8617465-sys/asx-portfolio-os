@@ -36,7 +36,9 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Supabase Database</span>
-                  <Badge variant="default" className="bg-green-600">Active</Badge>
+                  <Badge variant="default" className="bg-green-600">
+                    Active
+                  </Badge>
                 </div>
                 <p className="text-xs text-slate-500">
                   Fundamentals ingestion is capped while EODHD stabilizes. Add API keys and Supabase
