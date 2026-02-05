@@ -74,12 +74,17 @@ jest.mock('@/components/signal-badge', () => {
   };
 });
 
-// Mock lucide-react icons
+// Mock lucide-react icons (including icons used by SignalBadge)
 jest.mock('lucide-react', () => ({
   TrendingUp: () => <span data-testid="trending-up">TrendingUp</span>,
   TrendingDown: () => <span data-testid="trending-down">TrendingDown</span>,
   Activity: () => <span data-testid="activity-icon">Activity</span>,
   AlertCircle: () => <span data-testid="alert-circle">AlertCircle</span>,
+  ArrowUp: () => <span data-testid="arrow-up">ArrowUp</span>,
+  ArrowDown: () => <span data-testid="arrow-down">ArrowDown</span>,
+  Minus: () => <span data-testid="minus">Minus</span>,
+  ArrowUpDown: () => <span data-testid="arrow-up-down">ArrowUpDown</span>,
+  Filter: () => <span data-testid="filter">Filter</span>,
 }));
 
 // Sample watchlist data - matches backend API response format
