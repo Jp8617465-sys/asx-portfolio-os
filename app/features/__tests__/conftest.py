@@ -20,5 +20,4 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(o
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-# Configure pytest for async tests
-pytest_plugins = ('pytest_asyncio',)
+# Note: pytest_plugins is defined in root /app/conftest.py
