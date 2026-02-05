@@ -61,6 +61,19 @@ jest.mock('../../../components/SettingsStatus', () => {
   };
 });
 
+// Mock Header and Footer to prevent their links from being included in link assertions
+jest.mock('../../../components/header', () => {
+  return function MockHeader() {
+    return <div data-testid="header">Header</div>;
+  };
+});
+
+jest.mock('../../../components/footer', () => {
+  return function MockFooter() {
+    return <div data-testid="footer">Footer</div>;
+  };
+});
+
 describe('SettingsPage', () => {
   const originalEnv = process.env;
 

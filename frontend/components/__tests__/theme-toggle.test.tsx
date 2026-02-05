@@ -52,7 +52,8 @@ describe('ThemeToggle', () => {
         expect(screen.getByRole('button')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Light')).toBeInTheDocument();
+      // When light theme is active, button offers to switch to dark mode
+      expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Switch to dark mode');
       expect(document.documentElement.classList.contains('dark')).toBe(false);
     });
 
@@ -65,7 +66,8 @@ describe('ThemeToggle', () => {
         expect(screen.getByRole('button')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Dark')).toBeInTheDocument();
+      // When dark theme is active, button offers to switch to light mode
+      expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Switch to light mode');
       expect(document.documentElement.classList.contains('dark')).toBe(true);
     });
 
@@ -79,7 +81,7 @@ describe('ThemeToggle', () => {
         expect(screen.getByRole('button')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Dark')).toBeInTheDocument();
+      expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Switch to light mode');
       expect(document.documentElement.classList.contains('dark')).toBe(true);
     });
 
@@ -93,7 +95,7 @@ describe('ThemeToggle', () => {
         expect(screen.getByRole('button')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Light')).toBeInTheDocument();
+      expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Switch to dark mode');
       expect(document.documentElement.classList.contains('dark')).toBe(false);
     });
   });
@@ -109,11 +111,11 @@ describe('ThemeToggle', () => {
       });
 
       const button = screen.getByRole('button');
-      expect(screen.getByText('Light')).toBeInTheDocument();
+      expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
 
       fireEvent.click(button);
 
-      expect(screen.getByText('Dark')).toBeInTheDocument();
+      expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
       expect(document.documentElement.classList.contains('dark')).toBe(true);
     });
 
@@ -127,11 +129,11 @@ describe('ThemeToggle', () => {
       });
 
       const button = screen.getByRole('button');
-      expect(screen.getByText('Dark')).toBeInTheDocument();
+      expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
 
       fireEvent.click(button);
 
-      expect(screen.getByText('Light')).toBeInTheDocument();
+      expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
       expect(document.documentElement.classList.contains('dark')).toBe(false);
     });
 
@@ -146,20 +148,20 @@ describe('ThemeToggle', () => {
 
       const button = screen.getByRole('button');
 
-      // Start: Light
-      expect(screen.getByText('Light')).toBeInTheDocument();
+      // Start: Light theme (button offers dark mode)
+      expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
 
       // First click: Light -> Dark
       fireEvent.click(button);
-      expect(screen.getByText('Dark')).toBeInTheDocument();
+      expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
 
       // Second click: Dark -> Light
       fireEvent.click(button);
-      expect(screen.getByText('Light')).toBeInTheDocument();
+      expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
 
       // Third click: Light -> Dark
       fireEvent.click(button);
-      expect(screen.getByText('Dark')).toBeInTheDocument();
+      expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
     });
   });
 
@@ -229,7 +231,7 @@ describe('ThemeToggle', () => {
       });
 
       expect(document.documentElement.classList.contains('dark')).toBe(true);
-      expect(screen.getByText('Dark')).toBeInTheDocument();
+      expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Switch to light mode');
     });
   });
 
@@ -291,12 +293,12 @@ describe('ThemeToggle', () => {
       });
 
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('rounded-full');
-      expect(button).toHaveClass('border');
-      expect(button).toHaveClass('uppercase');
+      expect(button).toHaveClass('rounded-lg');
+      expect(button).toHaveClass('p-2');
+      expect(button).toHaveClass('transition-colors');
     });
 
-    it('displays correct text for light theme', async () => {
+    it('displays correct aria-label for light theme', async () => {
       mockMatchMedia.mockReturnValue({ matches: false });
 
       render(<ThemeToggle />);
@@ -305,10 +307,11 @@ describe('ThemeToggle', () => {
         expect(screen.getByRole('button')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Light')).toBeInTheDocument();
+      // Light theme active means button offers dark mode
+      expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Switch to dark mode');
     });
 
-    it('displays correct text for dark theme', async () => {
+    it('displays correct aria-label for dark theme', async () => {
       mockMatchMedia.mockReturnValue({ matches: true });
 
       render(<ThemeToggle />);
@@ -317,7 +320,8 @@ describe('ThemeToggle', () => {
         expect(screen.getByRole('button')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Dark')).toBeInTheDocument();
+      // Dark theme active means button offers light mode
+      expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Switch to light mode');
     });
   });
 });

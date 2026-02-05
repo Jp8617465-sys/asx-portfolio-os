@@ -22,6 +22,9 @@ describe('MobileNav', () => {
   it('renders all navigation links', () => {
     render(<MobileNav />);
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Watchlist')).toBeInTheDocument();
+    expect(screen.getByText('Portfolio')).toBeInTheDocument();
+    expect(screen.getByText('Alerts')).toBeInTheDocument();
     expect(screen.getByText('Models')).toBeInTheDocument();
     expect(screen.getByText('Jobs')).toBeInTheDocument();
     expect(screen.getByText('Insights')).toBeInTheDocument();
@@ -33,22 +36,31 @@ describe('MobileNav', () => {
     render(<MobileNav />);
 
     const dashboardLink = screen.getByText('Dashboard').closest('a');
-    expect(dashboardLink).toHaveAttribute('href', '/');
+    expect(dashboardLink).toHaveAttribute('href', '/app/dashboard');
+
+    const watchlistLink = screen.getByText('Watchlist').closest('a');
+    expect(watchlistLink).toHaveAttribute('href', '/app/watchlist');
+
+    const portfolioLink = screen.getByText('Portfolio').closest('a');
+    expect(portfolioLink).toHaveAttribute('href', '/app/portfolio');
+
+    const alertsLink = screen.getByText('Alerts').closest('a');
+    expect(alertsLink).toHaveAttribute('href', '/app/alerts');
 
     const modelsLink = screen.getByText('Models').closest('a');
-    expect(modelsLink).toHaveAttribute('href', '/models');
+    expect(modelsLink).toHaveAttribute('href', '/app/models');
 
     const jobsLink = screen.getByText('Jobs').closest('a');
-    expect(jobsLink).toHaveAttribute('href', '/jobs');
+    expect(jobsLink).toHaveAttribute('href', '/app/jobs');
 
     const insightsLink = screen.getByText('Insights').closest('a');
-    expect(insightsLink).toHaveAttribute('href', '/insights');
+    expect(insightsLink).toHaveAttribute('href', '/app/insights');
 
     const assistantLink = screen.getByText('Assistant').closest('a');
-    expect(assistantLink).toHaveAttribute('href', '/assistant');
+    expect(assistantLink).toHaveAttribute('href', '/app/assistant');
 
     const settingsLink = screen.getByText('Settings').closest('a');
-    expect(settingsLink).toHaveAttribute('href', '/settings');
+    expect(settingsLink).toHaveAttribute('href', '/app/settings');
   });
 
   it('renders ThemeToggle component', () => {
@@ -71,10 +83,10 @@ describe('MobileNav', () => {
     expect(summary).toHaveClass('cursor-pointer', 'rounded-full');
   });
 
-  it('renders all six navigation items', () => {
+  it('renders all nine navigation items', () => {
     const { container } = render(<MobileNav />);
     const links = container.querySelectorAll('a');
-    expect(links).toHaveLength(6);
+    expect(links).toHaveLength(9);
   });
 
   it('has mobile-only visibility class', () => {

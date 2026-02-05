@@ -8,6 +8,8 @@ const mockGetSignalReasoning = jest.fn();
 const mockGetWatchlist = jest.fn();
 const mockAddToWatchlist = jest.fn();
 const mockRemoveFromWatchlist = jest.fn();
+const mockGetPriceHistory = jest.fn();
+const mockGetAccuracy = jest.fn();
 
 jest.mock('@/lib/api-client', () => ({
   api: {
@@ -16,6 +18,8 @@ jest.mock('@/lib/api-client', () => ({
     getWatchlist: () => mockGetWatchlist(),
     addToWatchlist: (ticker: string) => mockAddToWatchlist(ticker),
     removeFromWatchlist: (ticker: string) => mockRemoveFromWatchlist(ticker),
+    getPriceHistory: (ticker: string, params: any) => mockGetPriceHistory(ticker, params),
+    getAccuracy: (ticker: string) => mockGetAccuracy(ticker),
   },
 }));
 
@@ -102,6 +106,19 @@ jest.mock('lucide-react', () => ({
   ArrowLeft: () => <span data-testid="arrow-left">ArrowLeft</span>,
 }));
 
+// Mock additional components
+jest.mock('@/components/FundamentalsTab', () => {
+  return function MockFundamentalsTab({ ticker }: { ticker: string }) {
+    return <div data-testid="fundamentals-tab">Fundamentals for {ticker}</div>;
+  };
+});
+
+jest.mock('@/components/ModelComparisonPanel', () => {
+  return function MockModelComparisonPanel({ ticker }: { ticker: string }) {
+    return <div data-testid="model-comparison-panel">Model Comparison for {ticker}</div>;
+  };
+});
+
 // Sample signal data
 const mockSignalData = {
   ticker: 'CBA.AX',
@@ -124,11 +141,36 @@ const mockReasoningData = {
 
 const mockWatchlistData = [{ ticker: 'BHP.AX' }, { ticker: 'FMG.AX' }];
 
+// Generate mock price history data
+const mockPriceHistoryData = {
+  data: Array.from({ length: 91 }, (_, i) => ({
+    date: new Date(Date.now() - (90 - i) * 24 * 60 * 60 * 1000).toISOString(),
+    open: 100 + Math.random() * 10,
+    high: 105 + Math.random() * 10,
+    low: 95 + Math.random() * 10,
+    close: 100 + Math.random() * 10,
+    volume: Math.floor(Math.random() * 1000000),
+  })),
+};
+
+const mockAccuracyData = {
+  overall_accuracy: 0.708,
+  signals_analyzed: 50,
+  by_signal: {
+    BUY: { count: 20, correct: 15, accuracy: 0.75 },
+    SELL: { count: 15, correct: 10, accuracy: 0.67 },
+    HOLD: { count: 15, correct: 11, accuracy: 0.73 },
+  },
+};
+
 describe('StockDetailPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});
+    // Set default mocks for price history and accuracy
+    mockGetPriceHistory.mockResolvedValue({ data: mockPriceHistoryData });
+    mockGetAccuracy.mockResolvedValue({ data: mockAccuracyData });
   });
 
   afterEach(() => {
@@ -239,6 +281,30 @@ describe('StockDetailPage', () => {
       mockGetSignal.mockResolvedValue({ data: mockSignalData });
       mockGetSignalReasoning.mockResolvedValue({ data: mockReasoningData });
       mockGetWatchlist.mockResolvedValue({ data: mockWatchlistData });
+      // Mock price history with 91 data points for chart
+      mockGetPriceHistory.mockResolvedValue({
+        data: {
+          data: Array.from({ length: 91 }, (_, i) => ({
+            date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+            open: 100 + Math.random() * 5,
+            high: 105 + Math.random() * 5,
+            low: 95 + Math.random() * 5,
+            close: 100 + Math.random() * 5,
+            volume: 1000000,
+          })),
+        },
+      });
+      // Mock accuracy data
+      mockGetAccuracy.mockResolvedValue({
+        data: {
+          signals_analyzed: 120,
+          overall_accuracy: 0.708,
+          by_signal: {
+            BUY: { count: 50, correct: 35, accuracy: 0.7 },
+            SELL: { count: 70, correct: 50, accuracy: 0.714 },
+          },
+        },
+      });
     });
 
     it('renders header and footer', async () => {
