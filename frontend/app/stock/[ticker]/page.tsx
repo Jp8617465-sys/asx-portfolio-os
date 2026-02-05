@@ -4,15 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import ConfidenceGauge from '@/components/confidence-gauge';
+import { SignalBadge, ConfidenceGauge, ReasoningPanel, AccuracyDisplay } from '@/features/signals';
 import StockChart from '@/components/stock-chart';
-import ReasoningPanel from '@/components/reasoning-panel';
-import AccuracyDisplay from '@/components/accuracy-display';
-import SignalBadge from '@/components/signal-badge';
 import FundamentalsTab from '@/components/FundamentalsTab';
-import ModelComparisonPanel from '@/components/ModelComparisonPanel';
+import { ModelComparisonPanel } from '@/features/models';
 import { api } from '@/lib/api-client';
 import { Signal, SignalReasoning, AccuracyMetric, OHLCData, WatchlistItem } from '@/lib/types';
+import { getSignal, getSignalReasoning } from '@/features/signals/api';
 import {
   TrendingUp,
   TrendingDown,
@@ -50,13 +48,13 @@ export default function StockDetailPage() {
 
     try {
       // Load signal data
-      const signalResponse = await api.getSignal(ticker);
+      const signalResponse = await getSignal(ticker);
       const signalData = signalResponse.data;
       setSignal(signalData);
 
       // Load reasoning
       try {
-        const reasoningResponse = await api.getSignalReasoning(ticker);
+        const reasoningResponse = await getSignalReasoning(ticker);
         setReasoning(reasoningResponse.data);
       } catch (err) {
         console.warn('Reasoning not available:', err);

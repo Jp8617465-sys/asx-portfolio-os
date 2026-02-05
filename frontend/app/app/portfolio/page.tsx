@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Portfolio, PortfolioHolding } from '@/lib/types';
 import { api } from '@/lib/api-client';
-import PortfolioUpload from '@/components/portfolio-upload';
-import HoldingsTable from '@/components/holdings-table';
-import RebalancingSuggestions from '@/components/rebalancing-suggestions';
-import RiskMetricsDashboard from '@/components/risk-metrics-dashboard';
+import {
+  PortfolioUpload,
+  HoldingsTable,
+  RebalancingSuggestions,
+  RiskMetricsDashboard,
+} from '@/features/portfolio';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { exportHoldingsToCSV, exportPortfolioToPDF } from '@/lib/utils/export';

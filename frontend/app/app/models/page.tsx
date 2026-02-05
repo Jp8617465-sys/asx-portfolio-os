@@ -1,5 +1,5 @@
 import PageTransition from '@/components/PageTransition';
-import ModelsClient from '@/components/ModelsClient';
+import { ModelsClient } from '@/features/models';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 

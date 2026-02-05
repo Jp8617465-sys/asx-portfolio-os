@@ -22,8 +22,8 @@ jest.mock('@/lib/utils/export', () => ({
 }));
 
 // Mock child components to isolate page testing
-jest.mock('@/components/portfolio-upload', () => {
-  return function MockPortfolioUpload({ onSuccess }: { onSuccess: () => void }) {
+jest.mock('@/features/portfolio', () => ({
+  PortfolioUpload: function MockPortfolioUpload({ onSuccess }: { onSuccess: () => void }) {
     return (
       <div data-testid="portfolio-upload">
         <button onClick={onSuccess} data-testid="mock-upload-success">
@@ -31,11 +31,8 @@ jest.mock('@/components/portfolio-upload', () => {
         </button>
       </div>
     );
-  };
-});
-
-jest.mock('@/components/holdings-table', () => {
-  return function MockHoldingsTable({
+  },
+  HoldingsTable: function MockHoldingsTable({
     holdings,
     onExport,
     isLoading,
@@ -53,20 +50,14 @@ jest.mock('@/components/holdings-table', () => {
         </button>
       </div>
     );
-  };
-});
-
-jest.mock('@/components/rebalancing-suggestions', () => {
-  return function MockRebalancingSuggestions({ portfolio }: { portfolio: any }) {
+  },
+  RebalancingSuggestions: function MockRebalancingSuggestions({ portfolio }: { portfolio: any }) {
     return <div data-testid="rebalancing-suggestions">Holdings: {portfolio.holdings.length}</div>;
-  };
-});
-
-jest.mock('@/components/risk-metrics-dashboard', () => {
-  return function MockRiskMetricsDashboard({ metrics }: { metrics: any }) {
+  },
+  RiskMetricsDashboard: function MockRiskMetricsDashboard({ metrics }: { metrics: any }) {
     return <div data-testid="risk-metrics-dashboard">Beta: {metrics.beta}</div>;
-  };
-});
+  },
+}));
 
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({

@@ -149,13 +149,13 @@ describe('SettingsPage', () => {
 
     it('displays Supabase label', () => {
       render(<SettingsPage />);
-      expect(screen.getByText('Supabase (Phase 3)')).toBeInTheDocument();
+      expect(screen.getByText('Supabase Database')).toBeInTheDocument();
     });
 
-    it('displays Supabase planned badge', () => {
+    it('displays Supabase active badge', () => {
       render(<SettingsPage />);
       const badges = screen.getAllByTestId('badge');
-      const supabaseBadge = badges.find((b) => b.textContent === 'Planned');
+      const supabaseBadge = badges.find((b) => b.textContent === 'Active');
       expect(supabaseBadge).toBeInTheDocument();
     });
 
@@ -166,12 +166,11 @@ describe('SettingsPage', () => {
       ).toBeInTheDocument();
     });
 
-    it('badge has secondary variant', () => {
+    it('data mode badge has secondary variant', () => {
       render(<SettingsPage />);
       const badges = screen.getAllByTestId('badge');
-      badges.forEach((badge) => {
-        expect(badge).toHaveAttribute('data-variant', 'secondary');
-      });
+      const dataBadge = badges.find((b) => b.textContent?.includes('Sample'));
+      expect(dataBadge).toHaveAttribute('data-variant', 'secondary');
     });
   });
 
