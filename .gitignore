@@ -27,6 +27,21 @@ models/model_a_training_summary_*.txt
 **/.next/
 frontend/coverage/
 
+# TypeScript build cache
+*.tsbuildinfo
+
+# Test coverage (comprehensive)
+coverage/
+**/coverage/
+.nyc_output/
+*.lcov
+
+# Build artifacts
+.next/
+out/
+dist/
+build/
+
 # IDE and system files
 .DS_Store
 .vscode/
