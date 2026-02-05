@@ -2,3 +2,15 @@
 .env*.local
 node_modules/
 .next/
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Build output
+out/
+dist/

@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=".env", override=True)
 
-DATABASE_URL = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")
 TRAIN_MONTHS = int(os.getenv("BACKTEST_TRAIN_MONTHS", "12"))
 TEST_MONTHS = int(os.getenv("BACKTEST_TEST_MONTHS", "1"))
 TOP_N = int(os.getenv("BACKTEST_TOP_N", "50"))

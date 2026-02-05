@@ -35,8 +35,8 @@ export default function SettingsPage() {
                   <Badge variant="secondary">Sample (&lt;=50 tickers)</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Supabase (Phase 3)</span>
-                  <Badge variant="secondary">Planned</Badge>
+                  <span>Supabase Database</span>
+                  <Badge variant="default" className="bg-green-600">Active</Badge>
                 </div>
                 <p className="text-xs text-slate-500">
                   Fundamentals ingestion is capped while EODHD stabilizes. Add API keys and Supabase

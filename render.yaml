@@ -27,8 +27,6 @@ services:
     envVars:
       - key: DATABASE_URL
         sync: false
-      - key: SUPABASE_DB_URL
-        sync: false
       - key: JWT_SECRET_KEY
         sync: false
       - key: OS_API_KEY

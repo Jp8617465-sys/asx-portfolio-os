@@ -1,0 +1,26 @@
+# Test files
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Development
+.env.local
+.env*.local
+
+# Documentation
+README.md
+SETUP_TESTING.md
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
