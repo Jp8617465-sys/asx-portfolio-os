@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
 from fastapi import HTTPException, Header, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -26,7 +26,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60  # 1 hour (reduced from 30 days for security)
 REFRESH_TOKEN_EXPIRE_DAYS = 30  # Refresh tokens valid for 30 days
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = PasswordHash.recommended()
 
 # HTTP Bearer token scheme
 security = HTTPBearer()
