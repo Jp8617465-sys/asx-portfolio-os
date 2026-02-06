@@ -125,9 +125,7 @@ describe('DashboardPage', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Model A Dashboard')).toBeInTheDocument();
-        expect(
-          screen.getByText(/Real-time AI-powered stock signals/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Real-time AI-powered stock signals/i)).toBeInTheDocument();
       });
     });
 
@@ -172,7 +170,13 @@ describe('DashboardPage', () => {
 
     it('handles empty signals array', async () => {
       (apiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: { signals: [], count: 0, status: 'success', model: 'model_a_ml', as_of: new Date().toISOString() },
+        data: {
+          signals: [],
+          count: 0,
+          status: 'success',
+          model: 'model_a_ml',
+          as_of: new Date().toISOString(),
+        },
       });
 
       render(<DashboardPage />);
