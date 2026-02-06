@@ -34,12 +34,10 @@ def mock_db_context():
     mock_cursor = MagicMock()
 
     # Mock RealDictCursor behavior - returns dict-like objects
+    # Repository doesn't use cursor as context manager, so return mock_cursor directly
     def cursor_factory(cursor_factory=None):
         """Handle both regular cursor and RealDictCursor."""
-        cm = MagicMock()
-        cm.__enter__.return_value = mock_cursor
-        cm.__exit__.return_value = None
-        return cm
+        return mock_cursor
 
     mock_conn.cursor = MagicMock(side_effect=cursor_factory)
     mock_conn.commit = MagicMock()
