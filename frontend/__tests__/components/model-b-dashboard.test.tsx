@@ -113,9 +113,9 @@ describe('ModelBDashboard', () => {
   });
 
   it('handles empty state gracefully', async () => {
-    // Mock empty response
-    const { api } = require('@/lib/api-client');
-    api.getModelBSignals.mockResolvedValueOnce({
+    // Mock empty response using the new mock structure
+    const { getModelBSignals } = require('@/features/signals/api');
+    getModelBSignals.mockResolvedValueOnce({
       data: { signals: [] },
     });
 
@@ -130,9 +130,9 @@ describe('ModelBDashboard', () => {
   });
 
   it('handles API errors gracefully', async () => {
-    // Mock API error
-    const { api } = require('@/lib/api-client');
-    api.getModelBSignals.mockRejectedValueOnce(new Error('API Error'));
+    // Mock API error using the new mock structure
+    const { getModelBSignals } = require('@/features/signals/api');
+    getModelBSignals.mockRejectedValueOnce(new Error('API Error'));
 
     render(<ModelBDashboard />);
 
@@ -189,8 +189,8 @@ describe('ModelBDashboard', () => {
   });
 
   it('sorts signals by quality score descending', async () => {
-    const { api } = require('@/lib/api-client');
-    api.getModelBSignals.mockResolvedValueOnce({
+    const { getModelBSignals } = require('@/features/signals/api');
+    getModelBSignals.mockResolvedValueOnce({
       data: {
         signals: [
           {
