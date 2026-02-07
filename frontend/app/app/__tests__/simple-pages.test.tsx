@@ -36,6 +36,13 @@ jest.mock('../../../components/ModelsClient', () => {
   };
 });
 
+// ModelsPage imports ModelsClient from @/features/models, not @/components/ModelsClient
+jest.mock('@/features/models', () => ({
+  ModelsClient: function MockModelsClient() {
+    return <div data-testid="models-client">Models Client</div>;
+  },
+}));
+
 describe('Simple Page Components', () => {
   it('renders AssistantPage', () => {
     const { getByTestId } = render(<AssistantPage />);

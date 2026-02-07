@@ -1,4 +1,6 @@
+import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
+import { SWRConfig } from 'swr';
 import { useEnsembleSignals } from '../useEnsembleSignals';
 import { getEnsembleSignalsLatest } from '../../api/signals-api';
 import type { EnsembleSignals } from '../../api/signals-api';
@@ -10,17 +12,16 @@ const mockedGetEnsembleSignalsLatest = getEnsembleSignalsLatest as jest.MockedFu
   typeof getEnsembleSignalsLatest
 >;
 
-// Mock SWR to avoid caching issues between tests
-jest.mock('swr', () => {
-  const originalModule = jest.requireActual('swr');
-  return {
-    __esModule: true,
-    ...originalModule,
-    default: (key: any, fetcher: any, config?: any) => {
-      return originalModule.default(key, fetcher, { ...config, dedupingInterval: 0 });
-    },
+// Wrapper that provides a fresh SWR cache for each test to prevent cache bleeding
+const createWrapper = (swrConfig?: Record<string, unknown>) => {
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(
+      SWRConfig,
+      { value: { provider: () => new Map(), dedupingInterval: 0, ...swrConfig } },
+      children
+    );
   };
-});
+};
 
 describe('useEnsembleSignals', () => {
   const mockEnsembleSignals: EnsembleSignals = {
@@ -97,7 +98,9 @@ describe('useEnsembleSignals', () => {
     it('should fetch ensemble signals with default parameters', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result } = renderHook(() => useEnsembleSignals());
+      const { result } = renderHook(() => useEnsembleSignals(), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.isLoading).toBe(true);
 
@@ -114,7 +117,9 @@ describe('useEnsembleSignals', () => {
     it('should return all signal data properties', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result } = renderHook(() => useEnsembleSignals());
+      const { result } = renderHook(() => useEnsembleSignals(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -139,7 +144,9 @@ describe('useEnsembleSignals', () => {
         count: 10,
       });
 
-      const { result } = renderHook(() => useEnsembleSignals({ limit: 10 }));
+      const { result } = renderHook(() => useEnsembleSignals({ limit: 10 }), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -156,7 +163,9 @@ describe('useEnsembleSignals', () => {
         signals: mockEnsembleSignals.signals?.slice(0, 1),
       });
 
-      const { result } = renderHook(() => useEnsembleSignals({ limit: 5 }));
+      const { result } = renderHook(() => useEnsembleSignals({ limit: 5 }), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -172,7 +181,9 @@ describe('useEnsembleSignals', () => {
         count: 100,
       });
 
-      const { result } = renderHook(() => useEnsembleSignals({ limit: 100 }));
+      const { result } = renderHook(() => useEnsembleSignals({ limit: 100 }), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -197,7 +208,9 @@ describe('useEnsembleSignals', () => {
 
       mockedGetEnsembleSignalsLatest.mockResolvedValue(agreementOnlySignals);
 
-      const { result } = renderHook(() => useEnsembleSignals({ agreementOnly: true }));
+      const { result } = renderHook(() => useEnsembleSignals({ agreementOnly: true }), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -211,7 +224,9 @@ describe('useEnsembleSignals', () => {
     it('should include conflicting signals when false', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result } = renderHook(() => useEnsembleSignals({ agreementOnly: false }));
+      const { result } = renderHook(() => useEnsembleSignals({ agreementOnly: false }), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -237,7 +252,9 @@ describe('useEnsembleSignals', () => {
 
       mockedGetEnsembleSignalsLatest.mockResolvedValue(filteredSignals);
 
-      const { result } = renderHook(() => useEnsembleSignals({ limit: 10, agreementOnly: true }));
+      const { result } = renderHook(() => useEnsembleSignals({ limit: 10, agreementOnly: true }), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -256,12 +273,14 @@ describe('useEnsembleSignals', () => {
         .mockResolvedValueOnce(signals1)
         .mockResolvedValueOnce(signals2);
 
+      const wrapper = createWrapper();
       const { result, rerender } = renderHook(({ params }) => useEnsembleSignals(params), {
         initialProps: { params: { limit: 10 } },
+        wrapper,
       });
 
       await waitFor(() => {
-        expect(result.current.data).toBeDefined();
+        expect(result.current.data?.count).toBe(10);
       });
 
       // Change parameters
@@ -282,9 +301,11 @@ describe('useEnsembleSignals', () => {
   describe('error handling', () => {
     it('should handle API errors gracefully', async () => {
       const error = new Error('API Error: Failed to fetch ensemble signals');
-      mockedGetEnsembleSignalsLatest.mockRejectedValueOnce(error);
+      mockedGetEnsembleSignalsLatest.mockRejectedValue(error);
 
-      const { result } = renderHook(() => useEnsembleSignals({ limit: 999 }));
+      const { result } = renderHook(() => useEnsembleSignals({ limit: 999 }), {
+        wrapper: createWrapper({ shouldRetryOnError: false }),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -298,7 +319,9 @@ describe('useEnsembleSignals', () => {
       const networkError = new Error('Network error');
       mockedGetEnsembleSignalsLatest.mockRejectedValue(networkError);
 
-      const { result } = renderHook(() => useEnsembleSignals());
+      const { result } = renderHook(() => useEnsembleSignals(), {
+        wrapper: createWrapper({ shouldRetryOnError: false }),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -309,9 +332,11 @@ describe('useEnsembleSignals', () => {
 
     it('should handle 500 errors', async () => {
       const error500 = Object.assign(new Error('Internal server error'), { status: 500 });
-      mockedGetEnsembleSignalsLatest.mockRejectedValueOnce(error500);
+      mockedGetEnsembleSignalsLatest.mockRejectedValue(error500);
 
-      const { result } = renderHook(() => useEnsembleSignals({ limit: 888 }));
+      const { result } = renderHook(() => useEnsembleSignals({ limit: 888 }), {
+        wrapper: createWrapper({ shouldRetryOnError: false }),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -329,7 +354,9 @@ describe('useEnsembleSignals', () => {
 
       mockedGetEnsembleSignalsLatest.mockResolvedValue(emptyResponse);
 
-      const { result } = renderHook(() => useEnsembleSignals());
+      const { result } = renderHook(() => useEnsembleSignals(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -344,14 +371,21 @@ describe('useEnsembleSignals', () => {
     it('should cache results for same parameters', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result: result1 } = renderHook(() => useEnsembleSignals({ limit: 10 }));
+      // Both hooks must share the same SWR cache to test caching
+      const wrapper = createWrapper();
+
+      const { result: result1 } = renderHook(() => useEnsembleSignals({ limit: 10 }), {
+        wrapper,
+      });
 
       await waitFor(() => {
         expect(result1.current.data).toBeDefined();
       });
 
       // Second call with same params should use cache
-      const { result: result2 } = renderHook(() => useEnsembleSignals({ limit: 10 }));
+      const { result: result2 } = renderHook(() => useEnsembleSignals({ limit: 10 }), {
+        wrapper,
+      });
 
       await waitFor(() => {
         expect(result2.current.data).toBeDefined();
@@ -364,11 +398,19 @@ describe('useEnsembleSignals', () => {
     it('should use different cache for different parameters', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result: result1 } = renderHook(() => useEnsembleSignals({ limit: 10 }));
-      const { result: result2 } = renderHook(() => useEnsembleSignals({ limit: 20 }));
+      const { result: result1 } = renderHook(() => useEnsembleSignals({ limit: 10 }), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result1.current.data).toBeDefined();
+      });
+
+      const { result: result2 } = renderHook(() => useEnsembleSignals({ limit: 20 }), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
         expect(result2.current.data).toBeDefined();
       });
 
@@ -385,13 +427,19 @@ describe('useEnsembleSignals', () => {
         .mockResolvedValueOnce(agreementSignals)
         .mockResolvedValueOnce(allSignals);
 
-      const { result: result1 } = renderHook(() => useEnsembleSignals({ agreementOnly: true }));
+      const wrapper = createWrapper();
+
+      const { result: result1 } = renderHook(() => useEnsembleSignals({ agreementOnly: true }), {
+        wrapper,
+      });
 
       await waitFor(() => {
         expect(result1.current.data).toBeDefined();
       });
 
-      const { result: result2 } = renderHook(() => useEnsembleSignals({ agreementOnly: false }));
+      const { result: result2 } = renderHook(() => useEnsembleSignals({ agreementOnly: false }), {
+        wrapper,
+      });
 
       await waitFor(() => {
         expect(result2.current.data).toBeDefined();
@@ -404,7 +452,11 @@ describe('useEnsembleSignals', () => {
     it('should revalidate on mount', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result, unmount } = renderHook(() => useEnsembleSignals());
+      const wrapper = createWrapper();
+
+      const { result, unmount } = renderHook(() => useEnsembleSignals(), {
+        wrapper,
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -413,7 +465,9 @@ describe('useEnsembleSignals', () => {
       unmount();
 
       // Re-mount should trigger revalidation
-      const { result: result2 } = renderHook(() => useEnsembleSignals());
+      const { result: result2 } = renderHook(() => useEnsembleSignals(), {
+        wrapper,
+      });
 
       await waitFor(() => {
         expect(result2.current.data).toBeDefined();
@@ -432,7 +486,9 @@ describe('useEnsembleSignals', () => {
 
       mockedGetEnsembleSignalsLatest.mockReturnValueOnce(promise as any);
 
-      const { result } = renderHook(() => useEnsembleSignals({ limit: 777 }));
+      const { result } = renderHook(() => useEnsembleSignals({ limit: 777 }), {
+        wrapper: createWrapper(),
+      });
 
       // Initially should have no data
       expect(result.current.data).toBeUndefined();
@@ -448,7 +504,9 @@ describe('useEnsembleSignals', () => {
     it('should set isLoading to false after successful fetch', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result } = renderHook(() => useEnsembleSignals());
+      const { result } = renderHook(() => useEnsembleSignals(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -459,9 +517,11 @@ describe('useEnsembleSignals', () => {
 
     it('should set isLoading to false after error', async () => {
       const error = new Error('API Error');
-      mockedGetEnsembleSignalsLatest.mockRejectedValueOnce(error);
+      mockedGetEnsembleSignalsLatest.mockRejectedValue(error);
 
-      const { result } = renderHook(() => useEnsembleSignals({ limit: 666 }));
+      const { result } = renderHook(() => useEnsembleSignals({ limit: 666 }), {
+        wrapper: createWrapper({ shouldRetryOnError: false }),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -475,7 +535,9 @@ describe('useEnsembleSignals', () => {
     it('should preserve signal agreement status', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result } = renderHook(() => useEnsembleSignals());
+      const { result } = renderHook(() => useEnsembleSignals(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -493,7 +555,9 @@ describe('useEnsembleSignals', () => {
     it('should preserve component signal details', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result } = renderHook(() => useEnsembleSignals());
+      const { result } = renderHook(() => useEnsembleSignals(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -509,7 +573,9 @@ describe('useEnsembleSignals', () => {
     it('should preserve statistics data', async () => {
       mockedGetEnsembleSignalsLatest.mockResolvedValue(mockEnsembleSignals);
 
-      const { result } = renderHook(() => useEnsembleSignals());
+      const { result } = renderHook(() => useEnsembleSignals(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();

@@ -34,17 +34,14 @@ jest.mock('../Topbar', () => {
   };
 });
 
-jest.mock('../DriftChart', () => {
-  return function MockDriftChart({ data }: any) {
+jest.mock('@/features/models', () => ({
+  DriftChart: function MockDriftChart({ data }: any) {
     return <div data-testid="drift-chart">{data.length} data points</div>;
-  };
-});
-
-jest.mock('../FeatureImpactChart', () => {
-  return function MockFeatureImpactChart({ data }: any) {
+  },
+  FeatureImpactChart: function MockFeatureImpactChart({ data }: any) {
     return <div data-testid="feature-impact-chart">{data.length} features</div>;
-  };
-});
+  },
+}));
 
 // Mock data fixtures
 const mockDriftSummary = {

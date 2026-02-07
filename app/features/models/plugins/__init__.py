@@ -1,6 +1,7 @@
 """Model Plugins Module"""
 from .base import ModelPlugin, ModelConfig, ModelOutput, SignalType
 from .model_a import ModelAPlugin
+from .model_b import ModelBPlugin
 
 __all__ = [
     "ModelPlugin",
@@ -8,4 +9,5 @@ __all__ = [
     "ModelOutput",
     "SignalType",
     "ModelAPlugin",
+    "ModelBPlugin",
 ]

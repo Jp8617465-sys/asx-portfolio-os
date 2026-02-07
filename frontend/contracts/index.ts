@@ -10,3 +10,5 @@ export * from '../lib/types';
 export * from './signal.contract';
 export * from './portfolio.contract';
 export * from './model.contract';
+export * from './etf.contract';
+export * from './alert.contract';

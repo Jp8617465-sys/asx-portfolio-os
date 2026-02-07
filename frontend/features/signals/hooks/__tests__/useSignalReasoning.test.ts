@@ -1,4 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
+import { SWRConfig } from 'swr';
+import React from 'react';
 import { useSignalReasoning } from '../useSignalReasoning';
 import { getSignalReasoning } from '../../api/signals-api';
 import type { SignalReasoning } from '@/contracts';
@@ -10,17 +12,15 @@ const mockedGetSignalReasoning = getSignalReasoning as jest.MockedFunction<
   typeof getSignalReasoning
 >;
 
-// Mock SWR to avoid caching issues between tests
-jest.mock('swr', () => {
-  const originalModule = jest.requireActual('swr');
-  return {
-    __esModule: true,
-    ...originalModule,
-    default: (key: any, fetcher: any, config?: any) => {
-      return originalModule.default(key, fetcher, { ...config, dedupingInterval: 0 });
-    },
-  };
-});
+// Wrapper that provides a fresh SWR cache for each test
+const createWrapper = () => {
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(
+      SWRConfig,
+      { value: { provider: () => new Map(), dedupingInterval: 0 } },
+      children
+    );
+};
 
 describe('useSignalReasoning', () => {
   const mockReasoning: SignalReasoning = {
@@ -55,12 +55,12 @@ describe('useSignalReasoning', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('null ticker handling', () => {
     it('should not fetch when ticker is null', () => {
-      const { result } = renderHook(() => useSignalReasoning(null));
+      const { result } = renderHook(() => useSignalReasoning(null), { wrapper: createWrapper() });
 
       expect(mockedGetSignalReasoning).not.toHaveBeenCalled();
       expect(result.current.data).toBeUndefined();
@@ -69,7 +69,7 @@ describe('useSignalReasoning', () => {
     });
 
     it('should not make API call when ticker is null', async () => {
-      renderHook(() => useSignalReasoning(null));
+      renderHook(() => useSignalReasoning(null), { wrapper: createWrapper() });
 
       await waitFor(() => {
         expect(mockedGetSignalReasoning).not.toHaveBeenCalled();
@@ -81,7 +81,9 @@ describe('useSignalReasoning', () => {
     it('should fetch reasoning data when ticker is provided', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.isLoading).toBe(true);
 
@@ -98,7 +100,9 @@ describe('useSignalReasoning', () => {
     it('should return complete reasoning data with all properties', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -116,7 +120,9 @@ describe('useSignalReasoning', () => {
     it('should preserve top factors data', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -136,7 +142,9 @@ describe('useSignalReasoning', () => {
     it('should preserve model breakdown scores', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -166,7 +174,9 @@ describe('useSignalReasoning', () => {
 
       mockedGetSignalReasoning.mockResolvedValue({ data: sellReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('BHP.AX'));
+      const { result } = renderHook(() => useSignalReasoning('BHP.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -182,7 +192,9 @@ describe('useSignalReasoning', () => {
       const error = new Error('API Error: Reasoning not found');
       mockedGetSignalReasoning.mockRejectedValue(error);
 
-      const { result } = renderHook(() => useSignalReasoning('INVALID.AX'));
+      const { result } = renderHook(() => useSignalReasoning('INVALID.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -197,7 +209,9 @@ describe('useSignalReasoning', () => {
       const networkError = new Error('Network error');
       mockedGetSignalReasoning.mockRejectedValue(networkError);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -210,7 +224,9 @@ describe('useSignalReasoning', () => {
       const error404 = Object.assign(new Error('Not found'), { status: 404 });
       mockedGetSignalReasoning.mockRejectedValue(error404);
 
-      const { result } = renderHook(() => useSignalReasoning('NOTFOUND.AX'));
+      const { result } = renderHook(() => useSignalReasoning('NOTFOUND.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -223,7 +239,9 @@ describe('useSignalReasoning', () => {
       const error500 = Object.assign(new Error('Internal server error'), { status: 500 });
       mockedGetSignalReasoning.mockRejectedValueOnce(error500);
 
-      const { result } = renderHook(() => useSignalReasoning('ERROR500.AX'));
+      const { result } = renderHook(() => useSignalReasoning('ERROR500.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -242,7 +260,9 @@ describe('useSignalReasoning', () => {
 
       mockedGetSignalReasoning.mockResolvedValue({ data: incompleteReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -262,13 +282,17 @@ describe('useSignalReasoning', () => {
         .mockResolvedValueOnce({ data: reasoning1 } as any)
         .mockResolvedValueOnce({ data: reasoning2 } as any);
 
-      const { result: result1 } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result: result1 } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result1.current.data).toBeDefined();
       });
 
-      const { result: result2 } = renderHook(() => useSignalReasoning('BHP.AX'));
+      const { result: result2 } = renderHook(() => useSignalReasoning('BHP.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result2.current.data).toBeDefined();
@@ -282,14 +306,18 @@ describe('useSignalReasoning', () => {
     it('should share cache for same ticker', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result: result1 } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result: result1 } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result1.current.data).toBeDefined();
       });
 
       // Second call with same ticker should use cache
-      const { result: result2 } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result: result2 } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result2.current.data).toBeDefined();
@@ -303,7 +331,9 @@ describe('useSignalReasoning', () => {
       const reasoning = { ...mockReasoning, ticker: 'CACHE.AX' };
       mockedGetSignalReasoning.mockResolvedValueOnce({ data: reasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CACHE.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CACHE.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -316,7 +346,9 @@ describe('useSignalReasoning', () => {
     it('should revalidate on mount', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result, unmount } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result, unmount } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -325,7 +357,9 @@ describe('useSignalReasoning', () => {
       unmount();
 
       // Re-mount should trigger revalidation
-      const { result: result2 } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result: result2 } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result2.current.data).toBeDefined();
@@ -349,7 +383,9 @@ describe('useSignalReasoning', () => {
         .mockResolvedValueOnce({ data: reasoning1 } as any)
         .mockResolvedValueOnce({ data: reasoning2 } as any);
 
+      const wrapper = createWrapper();
       const { result, rerender } = renderHook(({ ticker }) => useSignalReasoning(ticker), {
+        wrapper,
         initialProps: { ticker: 'CHANGE1.AX' },
       });
 
@@ -371,7 +407,9 @@ describe('useSignalReasoning', () => {
     it('should stop fetching when ticker becomes null', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
+      const wrapper = createWrapper();
       const { result, rerender } = renderHook(({ ticker }) => useSignalReasoning(ticker), {
+        wrapper,
         initialProps: { ticker: 'CBA.AX' },
       });
 
@@ -393,7 +431,9 @@ describe('useSignalReasoning', () => {
       const reasoning = { ...mockReasoning, ticker: 'RESUME.AX' };
       mockedGetSignalReasoning.mockResolvedValueOnce({ data: reasoning } as any);
 
+      const wrapper = createWrapper();
       const { result, rerender } = renderHook(({ ticker }) => useSignalReasoning(ticker), {
+        wrapper,
         initialProps: { ticker: null },
       });
 
@@ -420,7 +460,9 @@ describe('useSignalReasoning', () => {
 
       mockedGetSignalReasoning.mockReturnValueOnce(promise as any);
 
-      const { result } = renderHook(() => useSignalReasoning('LOADING.AX'));
+      const { result } = renderHook(() => useSignalReasoning('LOADING.AX'), {
+        wrapper: createWrapper(),
+      });
 
       // Initially should have no data
       expect(result.current.data).toBeUndefined();
@@ -436,7 +478,9 @@ describe('useSignalReasoning', () => {
     it('should set isLoading to false after successful fetch', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -449,7 +493,9 @@ describe('useSignalReasoning', () => {
       const error = new Error('API Error');
       mockedGetSignalReasoning.mockRejectedValue(error);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeDefined();
@@ -463,7 +509,9 @@ describe('useSignalReasoning', () => {
     it('should handle positive and negative impact factors', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -479,7 +527,9 @@ describe('useSignalReasoning', () => {
     it('should handle numeric and string factor values', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -494,7 +544,9 @@ describe('useSignalReasoning', () => {
     it('should preserve factor order', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -522,7 +574,9 @@ describe('useSignalReasoning', () => {
 
       mockedGetSignalReasoning.mockResolvedValue({ data: manyFactorsReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('WBC.AX'));
+      const { result } = renderHook(() => useSignalReasoning('WBC.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();
@@ -536,7 +590,9 @@ describe('useSignalReasoning', () => {
     it('should handle revalidation correctly', async () => {
       mockedGetSignalReasoning.mockResolvedValue({ data: mockReasoning } as any);
 
-      const { result } = renderHook(() => useSignalReasoning('CBA.AX'));
+      const { result } = renderHook(() => useSignalReasoning('CBA.AX'), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.data).toBeDefined();

@@ -288,7 +288,8 @@ describe('SettingsStatus', () => {
       fireEvent.click(button);
 
       await waitFor(() => {
-        const testingButton = screen.getByText('Testing...');
+        const testingText = screen.getByText('Testing...');
+        const testingButton = testingText.closest('button')!;
         expect(testingButton).toBeDisabled();
       });
 
