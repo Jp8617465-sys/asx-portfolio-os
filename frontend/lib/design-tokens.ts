@@ -1,14 +1,17 @@
 /**
  * Design Tokens for ASX Portfolio OS
+ * "Midnight Indigo" palette
  * Central source of truth for all design values
  */
 
 export const designTokens = {
   colors: {
     brand: {
-      primary: '#3b82f6',
-      primaryHover: '#2563eb',
-      primaryActive: '#1d4ed8',
+      primary: '#6366F1',
+      primaryHover: '#4F46E5',
+      primaryActive: '#4338CA',
+      primaryLight: '#818CF8',
+      primarySubtle: '#EEF2FF',
     },
     semantic: {
       success: '#10b981',
@@ -20,9 +23,9 @@ export const designTokens = {
       warning: '#f59e0b',
       warningLight: '#fbbf24',
       warningDark: '#d97706',
-      info: '#3b82f6',
-      infoLight: '#60a5fa',
-      infoDark: '#2563eb',
+      info: '#6366F1',
+      infoLight: '#818CF8',
+      infoDark: '#4F46E5',
     },
     signals: {
       strongBuy: '#10b981',
@@ -37,33 +40,33 @@ export const designTokens = {
       neutral: '#94a3b8',
     },
     neutral: {
-      50: '#f9fafb',
-      100: '#f3f4f6',
-      200: '#e5e7eb',
-      300: '#d1d5db',
-      400: '#9ca3af',
-      500: '#6b7280',
-      600: '#4b5563',
-      700: '#374151',
-      800: '#1f2937',
-      900: '#111827',
-      950: '#030712',
+      50: '#f8fafc',
+      100: '#f1f5f9',
+      200: '#e2e8f0',
+      300: '#cbd5e1',
+      400: '#94a3b8',
+      500: '#64748b',
+      600: '#475569',
+      700: '#334155',
+      800: '#1e293b',
+      900: '#0f172a',
+      950: '#020617',
     },
     dark: {
-      background: '#0f172a',
-      surface: '#1e293b',
-      surfaceHover: '#334155',
-      border: '#334155',
+      background: '#0B1121',
+      surface: '#111827',
+      surfaceHover: '#1E293B',
+      border: '#1E293B',
       text: '#f1f5f9',
       textMuted: '#94a3b8',
     },
     light: {
       background: '#ffffff',
-      surface: '#f9fafb',
-      surfaceHover: '#f3f4f6',
-      border: '#e5e7eb',
-      text: '#111827',
-      textMuted: '#6b7280',
+      surface: '#f8fafc',
+      surfaceHover: '#f1f5f9',
+      border: '#e2e8f0',
+      text: '#0f172a',
+      textMuted: '#64748b',
     },
   },
   typography: {
@@ -112,12 +115,12 @@ export const designTokens = {
   },
   borderRadius: {
     none: '0',
-    sm: '0.125rem',
-    base: '0.25rem',
-    md: '0.375rem',
-    lg: '0.5rem',
-    xl: '0.75rem',
-    '2xl': '1rem',
+    sm: '0.375rem',
+    base: '0.5rem',
+    md: '0.5rem',
+    lg: '0.75rem',
+    xl: '1rem',
+    '2xl': '1.5rem',
     full: '9999px',
   },
   shadows: {
@@ -126,6 +129,7 @@ export const designTokens = {
     md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
     lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
     xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+    glow: '0 0 20px rgba(99, 102, 241, 0.15)',
   },
   animations: {
     duration: {
