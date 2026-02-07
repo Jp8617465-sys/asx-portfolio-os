@@ -567,8 +567,36 @@ describe('PortfolioPage', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /export pdf/i }));
 
+      // The component transforms backend data before passing to exports
+      const expectedTransformedPortfolio = {
+        totalValue: 0,
+        holdings: [
+          {
+            ticker: 'CBA.AX',
+            companyName: 'CBA',
+            shares: 100,
+            avgCost: 90,
+            currentPrice: 100,
+            totalValue: 10000,
+            signal: 'BUY',
+            confidence: 75,
+          },
+          {
+            ticker: 'BHP.AX',
+            companyName: 'BHP',
+            shares: 50,
+            avgCost: 40,
+            currentPrice: 45,
+            totalValue: 2250,
+            signal: 'STRONG_BUY',
+            confidence: 85,
+          },
+        ],
+        riskMetrics: mockPortfolioWithProfit.riskMetrics,
+      };
+
       expect(mockExportPortfolioToPDF).toHaveBeenCalledWith(
-        mockPortfolioWithProfit,
+        expectedTransformedPortfolio,
         mockPortfolioWithProfit.riskMetrics
       );
     });
@@ -584,7 +612,31 @@ describe('PortfolioPage', () => {
 
       fireEvent.click(screen.getByTestId('export-csv-button'));
 
-      expect(mockExportHoldingsToCSV).toHaveBeenCalledWith(mockPortfolioWithProfit.holdings);
+      // The component transforms backend data before passing to exports
+      const expectedTransformedHoldings = [
+        {
+          ticker: 'CBA.AX',
+          companyName: 'CBA',
+          shares: 100,
+          avgCost: 90,
+          currentPrice: 100,
+          totalValue: 10000,
+          signal: 'BUY',
+          confidence: 75,
+        },
+        {
+          ticker: 'BHP.AX',
+          companyName: 'BHP',
+          shares: 50,
+          avgCost: 40,
+          currentPrice: 45,
+          totalValue: 2250,
+          signal: 'STRONG_BUY',
+          confidence: 85,
+        },
+      ];
+
+      expect(mockExportHoldingsToCSV).toHaveBeenCalledWith(expectedTransformedHoldings);
     });
 
     it('does not call export when portfolio is null', async () => {
