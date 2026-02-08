@@ -75,9 +75,7 @@ export default function ConfidenceGauge({
           strokeDashoffset={offset}
           strokeLinecap="round"
           style={{
-            transition: animate
-              ? 'stroke-dashoffset 0.8s cubic-bezier(0.33, 1, 0.68, 1)'
-              : 'none',
+            transition: animate ? 'stroke-dashoffset 0.8s cubic-bezier(0.33, 1, 0.68, 1)' : 'none',
           }}
         />
 

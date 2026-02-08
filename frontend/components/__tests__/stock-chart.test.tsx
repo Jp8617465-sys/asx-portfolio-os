@@ -331,11 +331,11 @@ describe('StockChart', () => {
       });
     });
 
-    it('does not set markers when signalMarkers is empty', async () => {
+    it('clears markers when signalMarkers is empty', async () => {
       render(<StockChart ticker="CBA.AX" data={mockPriceData} signalMarkers={[]} />);
 
       await waitFor(() => {
-        expect(mockSetMarkers).not.toHaveBeenCalled();
+        expect(mockSetMarkers).toHaveBeenCalledWith([]);
       });
     });
   });
@@ -351,17 +351,22 @@ describe('StockChart', () => {
       addEventListenerSpy.mockRestore();
     });
 
-    it('updates chart width on window resize', () => {
+    it('updates chart width on window resize after debounce', async () => {
+      jest.useFakeTimers();
       render(<StockChart ticker="CBA.AX" data={mockPriceData} />);
 
       // Simulate window resize
       window.dispatchEvent(new Event('resize'));
+
+      // Resize is debounced with 100ms timeout
+      jest.advanceTimersByTime(150);
 
       expect(mockApplyOptions).toHaveBeenCalledWith(
         expect.objectContaining({
           width: expect.any(Number),
         })
       );
+      jest.useRealTimers();
     });
 
     it('has responsive container classes', () => {
@@ -394,13 +399,16 @@ describe('StockChart', () => {
   });
 
   describe('Edge Cases', () => {
-    it('does not create chart when data is empty', () => {
+    it('creates chart but skips data when data is empty', () => {
       render(<StockChart ticker="CBA.AX" data={[]} />);
 
-      expect(createChart).not.toHaveBeenCalled();
+      // Chart is still created on mount
+      expect(createChart).toHaveBeenCalled();
+      // But data is not set (data effect exits early when data.length === 0)
+      expect(mockSetData).not.toHaveBeenCalled();
     });
 
-    it('recreates chart when data changes', () => {
+    it('updates data in-place when data changes', async () => {
       const { rerender } = render(<StockChart ticker="CBA.AX" data={mockPriceData} />);
 
       const initialCallCount = (createChart as jest.Mock).mock.calls.length;
@@ -418,12 +426,21 @@ describe('StockChart', () => {
 
       rerender(<StockChart ticker="CBA.AX" data={newData} />);
 
-      // Chart should be recreated
-      expect(mockRemove).toHaveBeenCalled();
-      expect(createChart).toHaveBeenCalledTimes(initialCallCount + 1);
+      // Chart is NOT recreated – data is updated in-place
+      expect(createChart).toHaveBeenCalledTimes(initialCallCount);
+      await waitFor(() => {
+        expect(mockSetData).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({
+              time: 1707004800,
+              open: 110,
+            }),
+          ])
+        );
+      });
     });
 
-    it('recreates chart when ticker changes', () => {
+    it('updates title when ticker changes without recreating chart', () => {
       const { rerender } = render(<StockChart ticker="CBA.AX" data={mockPriceData} />);
 
       const initialCallCount = (createChart as jest.Mock).mock.calls.length;
@@ -432,8 +449,8 @@ describe('StockChart', () => {
       rerender(<StockChart ticker="BHP.AX" data={mockPriceData} />);
 
       expect(screen.getByText('BHP.AX Price Chart')).toBeInTheDocument();
-      expect(mockRemove).toHaveBeenCalled();
-      expect(createChart).toHaveBeenCalledTimes(initialCallCount + 1);
+      // Chart is NOT recreated when only ticker changes
+      expect(createChart).toHaveBeenCalledTimes(initialCallCount);
     });
 
     it('recreates chart when showVolume changes', () => {

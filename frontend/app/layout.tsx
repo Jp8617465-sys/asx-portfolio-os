@@ -22,9 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           >
             Skip to content
           </a>
-          <main id="main-content">
-            {children}
-          </main>
+          <main id="main-content">{children}</main>
           <Toaster />
         </ErrorBoundary>
       </body>

@@ -77,42 +77,25 @@ describe('ConfidenceGauge', () => {
     });
   });
 
-  describe('Animation', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
+  describe('Animation (CSS transition)', () => {
+    it('applies CSS transition when animate=true', () => {
+      const { container } = render(<ConfidenceGauge confidence={50} signal="BUY" animate={true} />);
+      // Component renders target value immediately; CSS handles the visual animation
+      expect(screen.getByText('50%')).toBeInTheDocument();
+      const circles = container.querySelectorAll('circle');
+      expect(circles[1].style.transition).toContain('stroke-dashoffset');
     });
 
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
-    it('animates from 0 to target confidence when animate=true', async () => {
-      const { rerender } = render(<ConfidenceGauge confidence={50} signal="BUY" animate={true} />);
-
-      // Initial state should be 0%
-      expect(screen.getByText('0%')).toBeInTheDocument();
-
-      // Simulate animation frames
-      for (let i = 0; i < 20; i++) {
-        jest.advanceTimersByTime(50);
-      }
-
-      // Re-render to see updated state
-      rerender(<ConfidenceGauge confidence={50} signal="BUY" animate={true} />);
-    });
-
-    it('handles animation with 100% confidence', () => {
+    it('renders 100% immediately with animate=true', () => {
       render(<ConfidenceGauge confidence={100} signal="STRONG_BUY" animate={true} />);
-
-      // Initial state should be 0%
-      expect(screen.getByText('0%')).toBeInTheDocument();
+      expect(screen.getByText('100%')).toBeInTheDocument();
     });
 
-    it('defaults to animate=true', () => {
-      render(<ConfidenceGauge confidence={75} signal="BUY" />);
-
-      // Should start at 0% due to animation default
-      expect(screen.getByText('0%')).toBeInTheDocument();
+    it('defaults to animate=true with CSS transition', () => {
+      const { container } = render(<ConfidenceGauge confidence={75} signal="BUY" />);
+      expect(screen.getByText('75%')).toBeInTheDocument();
+      const circles = container.querySelectorAll('circle');
+      expect(circles[1].style.transition).toContain('stroke-dashoffset');
     });
   });
 

@@ -21,24 +21,61 @@ import { SignalBadge } from '@/features/signals';
 /* ---------- DATA ---------- */
 
 const sampleSignals = [
-  { ticker: 'BHP.AX', company: 'BHP Group', signal: 'STRONG_BUY' as const, confidence: 87, expected: '+4.2%', rank: 1 },
-  { ticker: 'CBA.AX', company: 'Commonwealth Bank', signal: 'BUY' as const, confidence: 78, expected: '+2.8%', rank: 2 },
-  { ticker: 'CSL.AX', company: 'CSL Limited', signal: 'BUY' as const, confidence: 74, expected: '+2.1%', rank: 3 },
-  { ticker: 'WES.AX', company: 'Wesfarmers', signal: 'HOLD' as const, confidence: 55, expected: '+0.4%', rank: 5 },
-  { ticker: 'TLS.AX', company: 'Telstra Group', signal: 'SELL' as const, confidence: 68, expected: '-1.8%', rank: 8 },
+  {
+    ticker: 'BHP.AX',
+    company: 'BHP Group',
+    signal: 'STRONG_BUY' as const,
+    confidence: 87,
+    expected: '+4.2%',
+    rank: 1,
+  },
+  {
+    ticker: 'CBA.AX',
+    company: 'Commonwealth Bank',
+    signal: 'BUY' as const,
+    confidence: 78,
+    expected: '+2.8%',
+    rank: 2,
+  },
+  {
+    ticker: 'CSL.AX',
+    company: 'CSL Limited',
+    signal: 'BUY' as const,
+    confidence: 74,
+    expected: '+2.1%',
+    rank: 3,
+  },
+  {
+    ticker: 'WES.AX',
+    company: 'Wesfarmers',
+    signal: 'HOLD' as const,
+    confidence: 55,
+    expected: '+0.4%',
+    rank: 5,
+  },
+  {
+    ticker: 'TLS.AX',
+    company: 'Telstra Group',
+    signal: 'SELL' as const,
+    confidence: 68,
+    expected: '-1.8%',
+    rank: 8,
+  },
 ];
 
 const features = [
   {
     icon: Brain,
     title: 'LightGBM Ensemble',
-    description: 'Walk-forward validated momentum model trained on years of ASX price data. Not a black box.',
+    description:
+      'Walk-forward validated momentum model trained on years of ASX price data. Not a black box.',
     accent: 'from-indigo-500 to-violet-500',
   },
   {
     icon: Target,
     title: 'SHAP Explainability',
-    description: 'See exactly which features drove each signal — momentum, volatility, volume, trend.',
+    description:
+      'See exactly which features drove each signal — momentum, volatility, volume, trend.',
     accent: 'from-cyan-500 to-blue-500',
   },
   {
@@ -50,19 +87,22 @@ const features = [
   {
     icon: Shield,
     title: 'Portfolio Risk Analysis',
-    description: 'Upload your holdings. Get Sharpe ratio, max drawdown, concentration risk, and rebalancing suggestions.',
+    description:
+      'Upload your holdings. Get Sharpe ratio, max drawdown, concentration risk, and rebalancing suggestions.',
     accent: 'from-amber-500 to-orange-500',
   },
   {
     icon: Layers,
     title: 'Multi-Model Fusion',
-    description: 'Technical, fundamental, and sentiment models combined with configurable ensemble weights.',
+    description:
+      'Technical, fundamental, and sentiment models combined with configurable ensemble weights.',
     accent: 'from-rose-500 to-pink-500',
   },
   {
     icon: Activity,
     title: 'Drift Monitoring',
-    description: 'Continuous model health checks. Get alerted when feature distributions shift beyond thresholds.',
+    description:
+      'Continuous model health checks. Get alerted when feature distributions shift beyond thresholds.',
     accent: 'from-sky-500 to-indigo-500',
   },
 ];
@@ -79,7 +119,6 @@ const stats = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0B1121] text-slate-900 dark:text-slate-100 overflow-hidden">
-
       {/* ==================== NAV ==================== */}
       <nav className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
@@ -144,8 +183,8 @@ export default function LandingPage() {
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-              Machine learning models that rank every ASX stock daily by momentum, volatility, and trend.
-              Transparent reasoning. Portfolio-level risk analysis. No black boxes.
+              Machine learning models that rank every ASX stock daily by momentum, volatility, and
+              trend. Transparent reasoning. Portfolio-level risk analysis. No black boxes.
             </p>
 
             {/* CTA Buttons */}
@@ -202,16 +241,34 @@ export default function LandingPage() {
                 {/* Top stats row */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                   {[
-                    { label: 'Total Stocks', value: '187', color: 'text-slate-900 dark:text-white' },
-                    { label: 'Strong Buys', value: '24', color: 'text-emerald-600 dark:text-emerald-400' },
-                    { label: 'Avg Confidence', value: '72%', color: 'text-indigo-600 dark:text-indigo-400' },
-                    { label: 'Last Updated', value: '4:10 PM', color: 'text-slate-900 dark:text-white' },
+                    {
+                      label: 'Total Stocks',
+                      value: '187',
+                      color: 'text-slate-900 dark:text-white',
+                    },
+                    {
+                      label: 'Strong Buys',
+                      value: '24',
+                      color: 'text-emerald-600 dark:text-emerald-400',
+                    },
+                    {
+                      label: 'Avg Confidence',
+                      value: '72%',
+                      color: 'text-indigo-600 dark:text-indigo-400',
+                    },
+                    {
+                      label: 'Last Updated',
+                      value: '4:10 PM',
+                      color: 'text-slate-900 dark:text-white',
+                    },
                   ].map((s) => (
                     <div
                       key={s.label}
                       className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-4"
                     >
-                      <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{s.label}</div>
+                      <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                        {s.label}
+                      </div>
                       <div className={`text-2xl font-bold tabular-nums ${s.color}`}>{s.value}</div>
                     </div>
                   ))}
@@ -221,8 +278,12 @@ export default function LandingPage() {
                 <div className="rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
                   <div className="bg-slate-50 dark:bg-white/5 px-4 py-3 border-b border-slate-200 dark:border-white/10">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">Live Signals</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">Model A v1.1</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                        Live Signals
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        Model A v1.1
+                      </span>
                     </div>
                   </div>
                   <table className="w-full">
@@ -242,7 +303,9 @@ export default function LandingPage() {
                           key={item.ticker}
                           className="border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                         >
-                          <td className="px-4 py-3 text-sm text-slate-400 font-medium">{item.rank}</td>
+                          <td className="px-4 py-3 text-sm text-slate-400 font-medium">
+                            {item.rank}
+                          </td>
                           <td className="px-4 py-3">
                             <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                               {item.ticker.replace('.AX', '')}
@@ -302,8 +365,8 @@ export default function LandingPage() {
               ASX analysis
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-              Every feature designed to give you an analytical edge.
-              Not tips — transparent, quantitative intelligence.
+              Every feature designed to give you an analytical edge. Not tips — transparent,
+              quantitative intelligence.
             </p>
           </div>
 
@@ -351,19 +414,22 @@ export default function LandingPage() {
                 step: '01',
                 icon: LineChart,
                 title: 'Data Pipeline',
-                description: 'Daily OHLCV price sync for 200+ ASX stocks. 15+ engineered features including momentum, volatility, trend strength, and volume ratios.',
+                description:
+                  'Daily OHLCV price sync for 200+ ASX stocks. 15+ engineered features including momentum, volatility, trend strength, and volume ratios.',
               },
               {
                 step: '02',
                 icon: Brain,
                 title: 'ML Inference',
-                description: 'LightGBM ensemble with walk-forward validation generates probability scores. Each stock ranked by expected return with confidence levels.',
+                description:
+                  'LightGBM ensemble with walk-forward validation generates probability scores. Each stock ranked by expected return with confidence levels.',
               },
               {
                 step: '03',
                 icon: Target,
                 title: 'Signal + Reasoning',
-                description: 'SHAP values explain every prediction. You see which features contributed and by how much. Upload your portfolio for personalized analysis.',
+                description:
+                  'SHAP values explain every prediction. You see which features contributed and by how much. Upload your portfolio for personalized analysis.',
               },
             ].map((item) => {
               const Icon = item.icon;
@@ -400,8 +466,9 @@ export default function LandingPage() {
                 Your holdings, enriched with AI signals
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
-                Upload a CSV of your portfolio. Instantly see each holding enriched with the latest signal,
-                confidence score, and expected return. Get rebalancing suggestions based on model output.
+                Upload a CSV of your portfolio. Instantly see each holding enriched with the latest
+                signal, confidence score, and expected return. Get rebalancing suggestions based on
+                model output.
               </p>
               <ul className="space-y-4">
                 {[
@@ -427,41 +494,83 @@ export default function LandingPage() {
                 <div className="grid grid-cols-3 gap-3 mb-6">
                   <div className="rounded-lg bg-slate-50 dark:bg-white/5 p-3 text-center">
                     <div className="text-xs text-slate-500 dark:text-slate-400">Total Value</div>
-                    <div className="text-lg font-bold tabular-nums text-slate-900 dark:text-white">$142,350</div>
+                    <div className="text-lg font-bold tabular-nums text-slate-900 dark:text-white">
+                      $142,350
+                    </div>
                   </div>
                   <div className="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 p-3 text-center">
                     <div className="text-xs text-slate-500 dark:text-slate-400">Total P&L</div>
-                    <div className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">+$12,450</div>
+                    <div className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                      +$12,450
+                    </div>
                   </div>
                   <div className="rounded-lg bg-slate-50 dark:bg-white/5 p-3 text-center">
                     <div className="text-xs text-slate-500 dark:text-slate-400">Sharpe</div>
-                    <div className="text-lg font-bold tabular-nums text-indigo-600 dark:text-indigo-400">1.42</div>
+                    <div className="text-lg font-bold tabular-nums text-indigo-600 dark:text-indigo-400">
+                      1.42
+                    </div>
                   </div>
                 </div>
 
                 {/* Holdings mini table */}
                 <div className="rounded-lg border border-slate-200 dark:border-white/10 overflow-hidden">
                   <div className="bg-slate-50 dark:bg-white/5 px-3 py-2 border-b border-slate-200 dark:border-white/10">
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Holdings</span>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      Holdings
+                    </span>
                   </div>
                   {[
-                    { ticker: 'BHP', shares: 100, value: '$4,523', pl: '+$450', signal: 'BUY', weight: '3.2%' },
-                    { ticker: 'CBA', shares: 50, value: '$5,710', pl: '+$320', signal: 'BUY', weight: '4.0%' },
-                    { ticker: 'WES', shares: 30, value: '$2,100', pl: '-$85', signal: 'HOLD', weight: '1.5%' },
-                    { ticker: 'TLS', shares: 200, value: '$820', pl: '-$40', signal: 'SELL', weight: '0.6%' },
+                    {
+                      ticker: 'BHP',
+                      shares: 100,
+                      value: '$4,523',
+                      pl: '+$450',
+                      signal: 'BUY',
+                      weight: '3.2%',
+                    },
+                    {
+                      ticker: 'CBA',
+                      shares: 50,
+                      value: '$5,710',
+                      pl: '+$320',
+                      signal: 'BUY',
+                      weight: '4.0%',
+                    },
+                    {
+                      ticker: 'WES',
+                      shares: 30,
+                      value: '$2,100',
+                      pl: '-$85',
+                      signal: 'HOLD',
+                      weight: '1.5%',
+                    },
+                    {
+                      ticker: 'TLS',
+                      shares: 200,
+                      value: '$820',
+                      pl: '-$40',
+                      signal: 'SELL',
+                      weight: '0.6%',
+                    },
                   ].map((h) => (
                     <div
                       key={h.ticker}
                       className="flex items-center justify-between px-3 py-2.5 border-b border-slate-100 dark:border-white/5 last:border-0"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 w-10">{h.ticker}</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">{h.shares} shares</span>
+                        <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 w-10">
+                          {h.ticker}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {h.shares} shares
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <span
                           className={`text-xs font-semibold tabular-nums ${
-                            h.pl.startsWith('+') ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
+                            h.pl.startsWith('+')
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-500 dark:text-red-400'
                           }`}
                         >
                           {h.pl}
@@ -503,8 +612,8 @@ export default function LandingPage() {
             </span>
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 max-w-xl mx-auto">
-            Free during beta. Daily signals, portfolio analysis, and model explainability.
-            No credit card required.
+            Free during beta. Daily signals, portfolio analysis, and model explainability. No credit
+            card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -540,11 +649,14 @@ export default function LandingPage() {
               <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
                 <TrendingUp className="h-4 w-4 text-white" />
               </div>
-              <span className="text-sm font-semibold text-slate-900 dark:text-white">ASX Portfolio OS</span>
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                ASX Portfolio OS
+              </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 text-center max-w-lg">
-              Not financial advice. AI signals are for informational purposes only.
-              Always conduct your own research before investing. Past model performance does not guarantee future results.
+              Not financial advice. AI signals are for informational purposes only. Always conduct
+              your own research before investing. Past model performance does not guarantee future
+              results.
             </p>
             <p className="text-xs text-slate-400 dark:text-slate-500">
               &copy; 2026 ASX Portfolio OS

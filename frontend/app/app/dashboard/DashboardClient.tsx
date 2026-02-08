@@ -46,13 +46,15 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   const router = useRouter();
 
   // SWR for auto-refresh – falls back to initialData for instant first paint
-  const { data: liveData, error: swrError, isLoading: swrLoading } = useLiveSignals(
-    'model_a_ml',
-    100,
-    {
-      fallbackData: initialData ? { signals: initialData.signals, as_of: initialData.as_of } : undefined,
-    }
-  );
+  const {
+    data: liveData,
+    error: swrError,
+    isLoading: swrLoading,
+  } = useLiveSignals('model_a_ml', 100, {
+    fallbackData: initialData
+      ? { signals: initialData.signals, as_of: initialData.as_of }
+      : undefined,
+  });
 
   const [sortField, setSortField] = useState<SortField>('confidence');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -102,7 +104,8 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       let comparison = 0;
       if (sortField === 'confidence') comparison = a.confidence - b.confidence;
       else if (sortField === 'rank') comparison = a.rank - b.rank;
-      else if (sortField === 'expectedReturn') comparison = (a.expectedReturn || 0) - (b.expectedReturn || 0);
+      else if (sortField === 'expectedReturn')
+        comparison = (a.expectedReturn || 0) - (b.expectedReturn || 0);
       return sortDirection === 'asc' ? comparison : -comparison;
     });
   }, [signals, sortField, sortDirection, signalFilter]);
@@ -142,7 +145,9 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Stocks</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Total Stocks
+            </span>
             <Activity className="h-5 w-5 text-gray-400" />
           </div>
           <div className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -164,7 +169,9 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Confidence</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Avg Confidence
+            </span>
             <Activity className="h-5 w-5 text-blue-600" />
           </div>
           <div className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -174,7 +181,9 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Last Updated</span>
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Last Updated
+            </span>
             <TrendingDown className="h-5 w-5 text-orange-600" />
           </div>
           <div className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -237,7 +246,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                   <tr>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                      aria-sort={sortField === 'rank' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+                      aria-sort={
+                        sortField === 'rank'
+                          ? sortDirection === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : 'none'
+                      }
                     >
                       <button
                         onClick={() => handleSort('rank')}
@@ -255,7 +270,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                      aria-sort={sortField === 'confidence' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+                      aria-sort={
+                        sortField === 'confidence'
+                          ? sortDirection === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : 'none'
+                      }
                     >
                       <button
                         onClick={() => handleSort('confidence')}
@@ -267,7 +288,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                      aria-sort={sortField === 'expectedReturn' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+                      aria-sort={
+                        sortField === 'expectedReturn'
+                          ? sortDirection === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : 'none'
+                      }
                     >
                       <button
                         onClick={() => handleSort('expectedReturn')}

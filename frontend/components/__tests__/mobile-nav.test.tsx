@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import MobileNav from '../MobileNav';
 
 jest.mock('../ThemeToggle', () => {
@@ -14,13 +14,14 @@ describe('MobileNav', () => {
     expect(screen.getByText('Control Deck')).toBeInTheDocument();
   });
 
-  it('renders menu summary button', () => {
+  it('renders menu button', () => {
     render(<MobileNav />);
     expect(screen.getByText('Menu')).toBeInTheDocument();
   });
 
-  it('renders all navigation links', () => {
+  it('renders all navigation links when menu is open', () => {
     render(<MobileNav />);
+    fireEvent.click(screen.getByText('Menu'));
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Watchlist')).toBeInTheDocument();
     expect(screen.getByText('Portfolio')).toBeInTheDocument();
@@ -32,8 +33,9 @@ describe('MobileNav', () => {
     expect(screen.getByText('Settings')).toBeInTheDocument();
   });
 
-  it('renders navigation links with correct hrefs', () => {
+  it('renders navigation links with correct hrefs when open', () => {
     render(<MobileNav />);
+    fireEvent.click(screen.getByText('Menu'));
 
     const dashboardLink = screen.getByText('Dashboard').closest('a');
     expect(dashboardLink).toHaveAttribute('href', '/app/dashboard');
@@ -63,28 +65,37 @@ describe('MobileNav', () => {
     expect(settingsLink).toHaveAttribute('href', '/app/settings');
   });
 
-  it('renders ThemeToggle component', () => {
+  it('renders ThemeToggle component when open', () => {
     render(<MobileNav />);
+    fireEvent.click(screen.getByText('Menu'));
     expect(screen.getByTestId('theme-toggle')).toBeInTheDocument();
   });
 
-  it('has details/summary disclosure structure', () => {
-    const { container } = render(<MobileNav />);
-    const details = container.querySelector('details');
-    expect(details).toBeInTheDocument();
+  it('menu button toggles open/close', () => {
+    render(<MobileNav />);
+    const button = screen.getByText('Menu');
 
-    const summary = container.querySelector('summary');
-    expect(summary).toBeInTheDocument();
+    // Initially no links visible
+    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
+
+    // Open menu
+    fireEvent.click(button);
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+
+    // Close menu
+    fireEvent.click(button);
+    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
   });
 
   it('menu button has correct styling', () => {
-    const { container } = render(<MobileNav />);
-    const summary = container.querySelector('summary');
-    expect(summary).toHaveClass('cursor-pointer', 'rounded-full');
+    render(<MobileNav />);
+    const button = screen.getByRole('button', { name: /navigation menu/i });
+    expect(button).toHaveClass('cursor-pointer', 'rounded-full');
   });
 
-  it('renders all nine navigation items', () => {
+  it('renders all nine navigation items when open', () => {
     const { container } = render(<MobileNav />);
+    fireEvent.click(screen.getByText('Menu'));
     const links = container.querySelectorAll('a');
     expect(links).toHaveLength(9);
   });
@@ -95,15 +106,17 @@ describe('MobileNav', () => {
     expect(mobileNav).toBeInTheDocument();
   });
 
-  it('menu dropdown is positioned correctly', () => {
+  it('menu dropdown is positioned correctly when open', () => {
     const { container } = render(<MobileNav />);
+    fireEvent.click(screen.getByText('Menu'));
     const dropdown = container.querySelector('.absolute.right-0');
     expect(dropdown).toBeInTheDocument();
   });
 
-  it('ThemeToggle is in separate section with border', () => {
+  it('ThemeToggle is in separate section with border when open', () => {
     const { container } = render(<MobileNav />);
-    const themeSection = container.querySelector('.border-t.border-white\\/10.pt-3');
+    fireEvent.click(screen.getByText('Menu'));
+    const themeSection = container.querySelector('.border-t');
     expect(themeSection).toBeInTheDocument();
     expect(themeSection?.querySelector('[data-testid="theme-toggle"]')).toBeInTheDocument();
   });

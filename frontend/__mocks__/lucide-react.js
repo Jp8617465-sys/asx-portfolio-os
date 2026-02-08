@@ -136,6 +136,7 @@ const iconNames = [
   'Mail',
   'MailOpen',
   'ListChecks',
+  'Brain',
 ];
 
 const icons = {};

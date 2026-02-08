@@ -68,10 +68,10 @@ module.exports = {
 
         // Dark mode surfaces — navy-tinted for depth
         dark: {
-          primary: '#0B1121',    // Deep midnight
-          secondary: '#111827',  // Card surface
-          tertiary: '#1E293B',   // Elevated surface
-          elevated: '#334155',   // Hover / active
+          primary: '#0B1121', // Deep midnight
+          secondary: '#111827', // Card surface
+          tertiary: '#1E293B', // Elevated surface
+          elevated: '#334155', // Hover / active
         },
         light: {
           primary: '#FFFFFF',
