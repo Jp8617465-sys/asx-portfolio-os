@@ -13,6 +13,7 @@ import {
   Bell,
   LogOut,
   Settings as SettingsIcon,
+  Wallet,
 } from 'lucide-react';
 import { designTokens } from '@/lib/design-tokens';
 import NotificationBell from './notification-bell';
@@ -35,6 +36,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
   { label: 'Watchlist', href: '/app/watchlist', icon: Bookmark },
   { label: 'Portfolio', href: '/app/portfolio', icon: TrendingUp },
+  { label: 'Budgeting', href: '/app/budgeting', icon: Wallet },
   { label: 'Alerts', href: '/app/alerts', icon: Bell },
 ];
 
