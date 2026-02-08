@@ -18,6 +18,12 @@ import {
   Trash2,
   Info,
   Calculator,
+  Upload,
+  FileText,
+  X,
+  AlertCircle,
+  FileSpreadsheet,
+  Download,
 } from 'lucide-react';
 
 // --- Types ---
@@ -72,6 +78,36 @@ const DEFAULT_EXPENSES: ExpenseItem[] = [
   { id: '6', label: 'Insurance (Health/Car/Home)', amount: 0, frequency: 'monthly', category: 'insurance' },
   { id: '7', label: 'Subscriptions & Entertainment', amount: 0, frequency: 'monthly', category: 'entertainment' },
 ];
+
+const VALID_FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'] as const;
+const VALID_CATEGORIES = Object.keys(CATEGORY_LABELS) as ExpenseCategory[];
+
+function normaliseFrequency(raw: string): ExpenseItem['frequency'] {
+  const lower = raw.trim().toLowerCase();
+  if (VALID_FREQUENCIES.includes(lower as any)) return lower as ExpenseItem['frequency'];
+  if (lower === 'week' || lower === 'w') return 'weekly';
+  if (lower === 'fortnight' || lower === 'fn' || lower === '2weeks') return 'fortnightly';
+  if (lower === 'month' || lower === 'm') return 'monthly';
+  if (lower === 'quarter' || lower === 'q') return 'quarterly';
+  if (lower === 'year' || lower === 'annual' || lower === 'annually' || lower === 'y') return 'yearly';
+  return 'monthly';
+}
+
+function normaliseCategory(raw: string): ExpenseCategory {
+  const lower = raw.trim().toLowerCase();
+  if (VALID_CATEGORIES.includes(lower as any)) return lower as ExpenseCategory;
+  // fuzzy match common variations
+  if (lower.includes('rent') || lower.includes('mortgage') || lower.includes('hous')) return 'housing';
+  if (lower.includes('car') || lower.includes('fuel') || lower.includes('transport') || lower.includes('travel')) return 'transport';
+  if (lower.includes('grocer') || lower.includes('food') || lower.includes('dining') || lower.includes('eat')) return 'food';
+  if (lower.includes('electr') || lower.includes('gas') || lower.includes('water') || lower.includes('util') || lower.includes('internet') || lower.includes('phone')) return 'utilities';
+  if (lower.includes('insur')) return 'insurance';
+  if (lower.includes('health') || lower.includes('medic') || lower.includes('doctor') || lower.includes('gym')) return 'health';
+  if (lower.includes('entertain') || lower.includes('subscri') || lower.includes('stream') || lower.includes('netflix')) return 'entertainment';
+  if (lower.includes('debt') || lower.includes('loan') || lower.includes('credit') || lower.includes('repay')) return 'debt';
+  if (lower.includes('cloth') || lower.includes('personal') || lower.includes('haircut')) return 'personal';
+  return 'other';
+}
 
 // --- Helper: annualise any amount ---
 function annualise(amount: number, frequency: string): number {
@@ -169,6 +205,13 @@ export default function BudgetingPage() {
   const [expenses, setExpenses] = useState<ExpenseItem[]>(DEFAULT_EXPENSES);
   const [newExpenseLabel, setNewExpenseLabel] = useState('');
   const [newExpenseCategory, setNewExpenseCategory] = useState<ExpenseCategory>('other');
+
+  // --- Spreadsheet Upload State ---
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadPreview, setUploadPreview] = useState<ExpenseItem[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
 
   // --- Investment Params ---
   const [investmentPercent, setInvestmentPercent] = useState<number>(50);
@@ -282,6 +325,179 @@ export default function BudgetingPage() {
     ]);
     setNewExpenseLabel('');
   }, [newExpenseLabel, newExpenseCategory]);
+
+  // --- Spreadsheet upload handlers ---
+  const parseCSV = useCallback((text: string): ExpenseItem[] => {
+    const lines = text.split(/\r?\n/).filter((line) => line.trim());
+    if (lines.length < 2) throw new Error('File must contain a header row and at least one data row.');
+
+    const headers = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/['"]/g, ''));
+
+    // Find column indices — support common header names
+    const nameIdx = headers.findIndex((h) =>
+      ['name', 'label', 'description', 'expense', 'item', 'expense_name', 'expense name'].includes(h)
+    );
+    const amountIdx = headers.findIndex((h) =>
+      ['amount', 'cost', 'value', 'price', '$', 'aud', 'total'].includes(h)
+    );
+    const frequencyIdx = headers.findIndex((h) =>
+      ['frequency', 'freq', 'period', 'cycle', 'interval'].includes(h)
+    );
+    const categoryIdx = headers.findIndex((h) =>
+      ['category', 'cat', 'type', 'group'].includes(h)
+    );
+
+    if (nameIdx === -1 && amountIdx === -1) {
+      throw new Error(
+        'Could not find required columns. Your CSV needs at least a "name" and "amount" column. ' +
+        'Accepted headers: name/label/description/expense/item for names, amount/cost/value/price for amounts.'
+      );
+    }
+    if (nameIdx === -1) {
+      throw new Error('Could not find a name column. Use a header like "name", "label", "description", or "expense".');
+    }
+    if (amountIdx === -1) {
+      throw new Error('Could not find an amount column. Use a header like "amount", "cost", "value", or "price".');
+    }
+
+    const rows: ExpenseItem[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      // Handle quoted CSV values
+      const values = parseCSVLine(lines[i]);
+      const name = (values[nameIdx] || '').trim();
+      const rawAmount = (values[amountIdx] || '').replace(/[^0-9.\-]/g, '');
+      const amount = parseFloat(rawAmount);
+
+      if (!name || isNaN(amount)) continue;
+
+      const frequency = frequencyIdx >= 0 ? normaliseFrequency(values[frequencyIdx] || '') : 'monthly';
+      const category = categoryIdx >= 0 ? normaliseCategory(values[categoryIdx] || '') : normaliseCategory(name);
+
+      rows.push({
+        id: `upload-${Date.now()}-${i}`,
+        label: name,
+        amount: Math.abs(amount),
+        frequency,
+        category,
+      });
+    }
+
+    if (rows.length === 0) {
+      throw new Error('No valid expense rows found. Check that your data has non-empty names and numeric amounts.');
+    }
+
+    return rows;
+  }, []);
+
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
+  const handleFileSelect = useCallback(
+    (file: File) => {
+      setUploadError(null);
+      setUploadPreview([]);
+
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (ext !== 'csv') {
+        setUploadError(
+          ext === 'xlsx' || ext === 'xls'
+            ? 'Excel files (.xlsx/.xls) are not directly supported. Please export your spreadsheet as CSV first (File > Save As > CSV).'
+            : 'Please upload a CSV file (.csv). You can export from Excel, Google Sheets, or any spreadsheet app.'
+        );
+        setUploadFile(null);
+        return;
+      }
+
+      setUploadFile(file);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const text = e.target?.result as string;
+          const parsed = parseCSV(text);
+          setUploadPreview(parsed);
+          setUploadError(null);
+        } catch (err: any) {
+          setUploadError(err.message || 'Failed to parse CSV file.');
+          setUploadPreview([]);
+        }
+      };
+      reader.onerror = () => {
+        setUploadError('Failed to read file. Please try again.');
+      };
+      reader.readAsText(file);
+    },
+    [parseCSV]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) handleFileSelect(file);
+    },
+    [handleFileSelect]
+  );
+
+  const importUploadedExpenses = useCallback(
+    (mode: 'replace' | 'append') => {
+      if (uploadPreview.length === 0) return;
+      if (mode === 'replace') {
+        setExpenses(uploadPreview);
+      } else {
+        setExpenses((prev) => [...prev, ...uploadPreview]);
+      }
+      // Reset upload state
+      setUploadFile(null);
+      setUploadPreview([]);
+      setUploadError(null);
+      setShowUpload(false);
+    },
+    [uploadPreview]
+  );
+
+  const clearUpload = useCallback(() => {
+    setUploadFile(null);
+    setUploadPreview([]);
+    setUploadError(null);
+  }, []);
+
+  const downloadTemplate = useCallback(() => {
+    const csv = [
+      'name,amount,frequency,category',
+      'Rent,2000,monthly,housing',
+      'Groceries,150,weekly,food',
+      'Electricity,350,quarterly,utilities',
+      'Internet,80,monthly,utilities',
+      'Car Insurance,1200,yearly,insurance',
+      'Gym Membership,60,monthly,health',
+      'Netflix,17,monthly,entertainment',
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'budget_expenses_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -461,6 +677,176 @@ export default function BudgetingPage() {
                 bills) &mdash; the calculator normalises everything to annual figures automatically.
               </p>
             </div>
+
+            {/* Upload Spreadsheet Toggle */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowUpload(!showUpload)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                {showUpload ? 'Hide Upload' : 'Import from Spreadsheet'}
+              </button>
+              <button
+                onClick={downloadTemplate}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                title="Download CSV template"
+              >
+                <Download className="w-4 h-4" />
+                Template
+              </button>
+            </div>
+
+            {showUpload && (
+              <div className="space-y-4 p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50/50 dark:bg-gray-800/50">
+                {/* Format Guide */}
+                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <p className="font-medium text-gray-700 dark:text-gray-300">
+                    Upload a CSV file with your expenses. Expected columns:
+                  </p>
+                  <div className="bg-white dark:bg-gray-800 rounded-md p-3 font-mono text-xs border border-gray-200 dark:border-gray-700">
+                    <p className="text-gray-500">name,amount,frequency,category</p>
+                    <p>Rent,2000,monthly,housing</p>
+                    <p>Groceries,150,weekly,food</p>
+                    <p>Electricity,350,quarterly,utilities</p>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <strong>Required:</strong> name + amount. <strong>Optional:</strong> frequency
+                    (defaults to monthly) and category (auto-detected from name).
+                    Supports exports from Excel, Google Sheets, or any app that saves CSV.
+                  </p>
+                </div>
+
+                {/* Drag & Drop Zone */}
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  className={`relative flex flex-col items-center justify-center gap-2 p-8 rounded-lg border-2 border-dashed transition-colors cursor-pointer ${
+                    isDragging
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFileSelect(f);
+                      e.target.value = '';
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <Upload className={`w-8 h-8 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {isDragging ? 'Drop your file here' : 'Drag & drop a CSV file, or click to browse'}
+                  </p>
+                </div>
+
+                {/* Upload Error */}
+                {uploadError && (
+                  <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-700 dark:text-red-300">{uploadError}</p>
+                  </div>
+                )}
+
+                {/* File Info & Preview */}
+                {uploadFile && uploadPreview.length > 0 && (
+                  <div className="space-y-3">
+                    {/* File header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {uploadFile.name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({(uploadFile.size / 1024).toFixed(1)} KB &middot; {uploadPreview.length} expense{uploadPreview.length !== 1 ? 's' : ''})
+                        </span>
+                      </div>
+                      <button
+                        onClick={clearUpload}
+                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        title="Clear file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Preview Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-200 dark:border-gray-700">
+                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Name</th>
+                            <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Amount</th>
+                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Frequency</th>
+                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Category</th>
+                            <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Annual</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {uploadPreview.slice(0, 10).map((row) => (
+                            <tr key={row.id} className="border-b border-gray-100 dark:border-gray-800">
+                              <td className="py-1.5 px-3 text-gray-900 dark:text-white">{row.label}</td>
+                              <td className="py-1.5 px-3 text-right text-gray-900 dark:text-white">
+                                {formatCurrency(row.amount)}
+                              </td>
+                              <td className="py-1.5 px-3 text-gray-600 dark:text-gray-400 capitalize">{row.frequency}</td>
+                              <td className="py-1.5 px-3 text-gray-600 dark:text-gray-400">
+                                {CATEGORY_LABELS[row.category]}
+                              </td>
+                              <td className="py-1.5 px-3 text-right text-gray-500 dark:text-gray-400">
+                                {formatCurrency(annualise(row.amount, row.frequency))}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="border-t border-gray-200 dark:border-gray-700">
+                            <td colSpan={4} className="py-2 px-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              Total ({uploadPreview.length} items)
+                              {uploadPreview.length > 10 && (
+                                <span className="font-normal text-gray-500"> &mdash; showing first 10</span>
+                              )}
+                            </td>
+                            <td className="py-2 px-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
+                              {formatCurrency(
+                                uploadPreview.reduce((s, r) => s + annualise(r.amount, r.frequency), 0)
+                              )}
+                              /yr
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+
+                    {/* Import Buttons */}
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        onClick={() => importUploadedExpenses('replace')}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Replace All Expenses
+                      </button>
+                      <button
+                        onClick={() => importUploadedExpenses('append')}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-blue-600 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add to Existing
+                      </button>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        &ldquo;Replace&rdquo; clears current expenses. &ldquo;Add&rdquo; appends to them.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Expense List */}
             <div className="space-y-3">
