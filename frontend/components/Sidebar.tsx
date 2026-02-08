@@ -14,6 +14,7 @@ import {
   Bell,
   Search,
   PieChart,
+  Wallet,
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/app/watchlist', label: 'Watchlist', icon: Bookmark },
   { href: '/app/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/app/etfs', label: 'ETFs', icon: PieChart },
+  { href: '/app/budgeting', label: 'Budgeting', icon: Wallet },
   { href: '/app/alerts', label: 'Alerts', icon: Bell },
   { href: '/app/models', label: 'Models', icon: Sparkles },
   { href: '/app/jobs', label: 'Jobs', icon: ListChecks },
