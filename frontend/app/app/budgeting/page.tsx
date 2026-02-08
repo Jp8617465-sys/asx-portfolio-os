@@ -24,6 +24,9 @@ import {
   AlertCircle,
   FileSpreadsheet,
   Download,
+  Wand2,
+  BarChart3,
+  Lightbulb,
 } from 'lucide-react';
 
 // --- Types ---
@@ -93,20 +96,268 @@ function normaliseFrequency(raw: string): ExpenseItem['frequency'] {
   return 'monthly';
 }
 
+// --- Auto-classification keyword dictionary ---
+// Each category has keywords ordered from most to least specific.
+// The classifier scores each category by counting keyword hits.
+const CATEGORY_KEYWORDS: Record<ExpenseCategory, string[]> = {
+  housing: [
+    'rent', 'mortgage', 'strata', 'body corp', 'body corporate', 'council rates',
+    'rates', 'land tax', 'home loan', 'housing', 'accommodation', 'lease',
+    'property', 'landlord', 'tenant', 'real estate', 'stamp duty',
+  ],
+  transport: [
+    'car', 'fuel', 'petrol', 'diesel', 'transport', 'uber', 'taxi', 'lyft',
+    'rego', 'registration', 'toll', 'etoll', 'opal', 'myki', 'go card',
+    'parking', 'bus', 'train', 'ferry', 'flight', 'airfare', 'airline',
+    'vehicle', 'mechanic', 'service', 'roadside', 'nrma', 'racv', 'racq',
+    'travel', 'commut',
+  ],
+  food: [
+    'grocer', 'coles', 'woolworths', 'woolies', 'aldi', 'iga', 'food',
+    'dining', 'restaurant', 'takeaway', 'takeout', 'uber eats', 'ubereats',
+    'doordash', 'menulog', 'deliveroo', 'coffee', 'cafe', 'lunch', 'dinner',
+    'breakfast', 'meal', 'snack', 'drink', 'alcohol', 'wine', 'beer', 'pub',
+    'bar', 'eating out', 'eat out',
+  ],
+  utilities: [
+    'electricity', 'electric', 'power', 'gas', 'water', 'sewerage',
+    'internet', 'broadband', 'nbn', 'wifi', 'phone', 'mobile', 'telstra',
+    'optus', 'vodafone', 'tpg', 'iinet', 'aussie broadband', 'utility',
+    'utilities', 'energy', 'agl', 'origin energy', 'alinta',
+  ],
+  insurance: [
+    'insurance', 'insur', 'premium', 'life insurance', 'income protection',
+    'health insurance', 'medibank', 'bupa', 'hcf', 'nib', 'ahm',
+    'car insurance', 'home insurance', 'contents', 'travel insurance',
+    'tpd', 'total permanent disability', 'cover', 'policy',
+  ],
+  health: [
+    'health', 'medical', 'doctor', 'gp', 'dentist', 'dental', 'physio',
+    'physiotherapy', 'chiropractor', 'optometrist', 'glasses', 'contacts',
+    'prescription', 'pharmacy', 'chemist', 'medication', 'medicine',
+    'hospital', 'specialist', 'psychologist', 'therapy', 'therapist',
+    'gym', 'fitness', 'yoga', 'pilates', 'personal trainer', 'anytime fitness',
+    'f45', 'crossfit', 'swimming', 'sport', 'wellness', 'mental health',
+  ],
+  entertainment: [
+    'netflix', 'stan', 'disney', 'spotify', 'apple music', 'youtube',
+    'amazon prime', 'hulu', 'binge', 'paramount', 'kayo', 'foxtel',
+    'subscription', 'streaming', 'entertainment', 'movie', 'cinema',
+    'concert', 'event', 'ticket', 'gaming', 'playstation', 'xbox',
+    'nintendo', 'steam', 'hobby', 'hobbies', 'recreation', 'fun',
+    'going out', 'night out', 'club', 'festival', 'audible', 'podcast',
+  ],
+  debt: [
+    'debt', 'loan', 'repayment', 'repay', 'credit card', 'credit',
+    'afterpay', 'zip pay', 'buy now pay later', 'bnpl', 'hecs', 'help debt',
+    'student loan', 'personal loan', 'car loan', 'interest', 'minimum payment',
+    'balance', 'owing', 'instalment', 'installment',
+  ],
+  personal: [
+    'clothing', 'clothes', 'shoes', 'fashion', 'haircut', 'hairdresser',
+    'barber', 'beauty', 'salon', 'nails', 'spa', 'massage', 'skincare',
+    'cosmetics', 'makeup', 'personal', 'grooming', 'self care', 'self-care',
+    'gift', 'birthday', 'christmas', 'present', 'donation', 'charity',
+    'child care', 'childcare', 'daycare', 'school', 'tuition', 'education',
+    'course', 'book', 'stationery', 'pet', 'vet', 'veterinary',
+  ],
+  other: [],
+};
+
+interface ClassificationResult {
+  category: ExpenseCategory;
+  confidence: number; // 0-1
+  matched: string[];  // which keywords hit
+}
+
+function classifyExpense(name: string): ClassificationResult {
+  const lower = name.trim().toLowerCase();
+  if (!lower) return { category: 'other', confidence: 0, matched: [] };
+
+  // Exact category name match
+  if (VALID_CATEGORIES.includes(lower as any)) {
+    return { category: lower as ExpenseCategory, confidence: 1, matched: [lower] };
+  }
+
+  // Score each category
+  const scores: { cat: ExpenseCategory; hits: string[]; score: number }[] = [];
+
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (cat === 'other') continue;
+    const hits: string[] = [];
+    let score = 0;
+    for (const kw of keywords) {
+      if (lower.includes(kw)) {
+        hits.push(kw);
+        // Longer keyword matches are more specific = higher weight
+        score += kw.length;
+      }
+    }
+    if (hits.length > 0) {
+      scores.push({ cat: cat as ExpenseCategory, hits, score });
+    }
+  }
+
+  if (scores.length === 0) {
+    return { category: 'other', confidence: 0, matched: [] };
+  }
+
+  // Sort by score descending, pick the best
+  scores.sort((a, b) => b.score - a.score);
+  const best = scores[0];
+
+  // Confidence: strong if multiple hits or a long match
+  const confidence = Math.min(1, best.score / 12);
+
+  return {
+    category: best.cat,
+    confidence,
+    matched: best.hits,
+  };
+}
+
 function normaliseCategory(raw: string): ExpenseCategory {
-  const lower = raw.trim().toLowerCase();
-  if (VALID_CATEGORIES.includes(lower as any)) return lower as ExpenseCategory;
-  // fuzzy match common variations
-  if (lower.includes('rent') || lower.includes('mortgage') || lower.includes('hous')) return 'housing';
-  if (lower.includes('car') || lower.includes('fuel') || lower.includes('transport') || lower.includes('travel')) return 'transport';
-  if (lower.includes('grocer') || lower.includes('food') || lower.includes('dining') || lower.includes('eat')) return 'food';
-  if (lower.includes('electr') || lower.includes('gas') || lower.includes('water') || lower.includes('util') || lower.includes('internet') || lower.includes('phone')) return 'utilities';
-  if (lower.includes('insur')) return 'insurance';
-  if (lower.includes('health') || lower.includes('medic') || lower.includes('doctor') || lower.includes('gym')) return 'health';
-  if (lower.includes('entertain') || lower.includes('subscri') || lower.includes('stream') || lower.includes('netflix')) return 'entertainment';
-  if (lower.includes('debt') || lower.includes('loan') || lower.includes('credit') || lower.includes('repay')) return 'debt';
-  if (lower.includes('cloth') || lower.includes('personal') || lower.includes('haircut')) return 'personal';
-  return 'other';
+  return classifyExpense(raw).category;
+}
+
+// --- Spending Trend Analysis ---
+interface SpendingInsight {
+  type: 'warning' | 'info' | 'tip';
+  title: string;
+  detail: string;
+}
+
+const BENCHMARK_PERCENTAGES: Partial<Record<ExpenseCategory, { label: string; max: number }>> = {
+  housing: { label: 'Housing', max: 30 },
+  food: { label: 'Food', max: 15 },
+  transport: { label: 'Transport', max: 15 },
+  entertainment: { label: 'Entertainment', max: 10 },
+  insurance: { label: 'Insurance', max: 10 },
+  personal: { label: 'Personal', max: 10 },
+  debt: { label: 'Debt', max: 20 },
+};
+
+function analyseSpendingTrends(
+  expenses: ExpenseItem[],
+  totalAnnualExpenses: number,
+  annualNetPay: number,
+): SpendingInsight[] {
+  const insights: SpendingInsight[] = [];
+  if (totalAnnualExpenses === 0) return insights;
+
+  // Group by category
+  const byCat: Record<string, number> = {};
+  for (const e of expenses) {
+    const annual = annualise(e.amount, e.frequency);
+    byCat[e.category] = (byCat[e.category] || 0) + annual;
+  }
+
+  // 1. Check against benchmarks
+  for (const [cat, benchmark] of Object.entries(BENCHMARK_PERCENTAGES)) {
+    const annual = byCat[cat] || 0;
+    if (annual === 0) continue;
+    const pct = (annual / (annualNetPay || totalAnnualExpenses)) * 100;
+    if (pct > benchmark.max) {
+      insights.push({
+        type: 'warning',
+        title: `${benchmark.label} spending is high`,
+        detail: `${benchmark.label} is ${pct.toFixed(0)}% of your income (benchmark: under ${benchmark.max}%). ` +
+          `That\u2019s ${formatCurrency(annual)}/year \u2014 review if there\u2019s room to optimise.`,
+      });
+    }
+  }
+
+  // 2. Identify the biggest single expense
+  const nonZero = expenses.filter((e) => e.amount > 0);
+  if (nonZero.length > 0) {
+    const largest = [...nonZero].sort(
+      (a, b) => annualise(b.amount, b.frequency) - annualise(a.amount, a.frequency)
+    )[0];
+    const largestAnnual = annualise(largest.amount, largest.frequency);
+    const pctOfTotal = (largestAnnual / totalAnnualExpenses) * 100;
+    if (pctOfTotal > 30) {
+      insights.push({
+        type: 'info',
+        title: `"${largest.label}" dominates your budget`,
+        detail: `This single expense is ${pct(pctOfTotal)} of all spending (${formatCurrency(largestAnnual)}/year). ` +
+          `Even a small reduction here has outsized impact on your surplus.`,
+      });
+    }
+  }
+
+  // 3. Discretionary vs essential split
+  const discretionary = ['entertainment', 'personal', 'food', 'other'];
+  const discretionaryTotal = discretionary.reduce((s, c) => s + (byCat[c] || 0), 0);
+  const essentialTotal = totalAnnualExpenses - discretionaryTotal;
+  const discPct = (discretionaryTotal / totalAnnualExpenses) * 100;
+  if (discPct > 40) {
+    insights.push({
+      type: 'tip',
+      title: `Discretionary spending is ${pct(discPct)} of expenses`,
+      detail: `Discretionary categories (food, entertainment, personal, other) total ${formatCurrency(discretionaryTotal)}/year. ` +
+        `Essential spending is ${formatCurrency(essentialTotal)}/year. Cutting discretionary by 10% saves ${formatCurrency(discretionaryTotal * 0.1)}/year.`,
+    });
+  } else if (totalAnnualExpenses > 0) {
+    insights.push({
+      type: 'info',
+      title: `Discretionary vs essential split`,
+      detail: `${pct(discPct)} discretionary (${formatCurrency(discretionaryTotal)}/yr) vs ${pct(100 - discPct)} essential (${formatCurrency(essentialTotal)}/yr). ` +
+        `A healthy split keeps discretionary under 40%.`,
+    });
+  }
+
+  // 4. Many small subscriptions add up
+  const subscriptionLike = expenses.filter((e) => {
+    const l = e.label.toLowerCase();
+    return e.category === 'entertainment' || l.includes('subscri') || l.includes('membership') ||
+      l.includes('netflix') || l.includes('spotify') || l.includes('stan') || l.includes('disney');
+  });
+  if (subscriptionLike.length >= 3) {
+    const subTotal = subscriptionLike.reduce((s, e) => s + annualise(e.amount, e.frequency), 0);
+    if (subTotal > 0) {
+      insights.push({
+        type: 'tip',
+        title: `${subscriptionLike.length} subscriptions totalling ${formatCurrency(subTotal)}/year`,
+        detail: `Small recurring charges add up. Review whether you actively use all of them. ` +
+          `Cancelling even one ${formatCurrency(subTotal / subscriptionLike.length)}/year subscription compounds over time.`,
+      });
+    }
+  }
+
+  // 5. Uncategorised expenses
+  const uncategorised = expenses.filter((e) => e.category === 'other' && e.amount > 0);
+  if (uncategorised.length >= 2) {
+    insights.push({
+      type: 'info',
+      title: `${uncategorised.length} expenses are uncategorised`,
+      detail: `Use the "Auto-Classify All" button to automatically categorise expenses based on their name, or set categories manually for better insights.`,
+    });
+  }
+
+  // 6. Savings rate
+  if (annualNetPay > 0) {
+    const savingsRate = ((annualNetPay - totalAnnualExpenses) / annualNetPay) * 100;
+    if (savingsRate >= 20) {
+      insights.push({
+        type: 'info',
+        title: `Savings rate: ${savingsRate.toFixed(0)}%`,
+        detail: `You\u2019re saving ${savingsRate.toFixed(0)}% of net income \u2014 that\u2019s above the 20% target recommended by the 50/30/20 rule. Well done.`,
+      });
+    } else if (savingsRate > 0) {
+      insights.push({
+        type: 'tip',
+        title: `Savings rate: ${savingsRate.toFixed(0)}%`,
+        detail: `The 50/30/20 rule suggests saving at least 20% of net income. You\u2019re at ${savingsRate.toFixed(0)}%. ` +
+          `Finding ${formatCurrency((annualNetPay * 0.2) - (annualNetPay - totalAnnualExpenses))}/year in savings would hit that target.`,
+      });
+    }
+  }
+
+  return insights;
+}
+
+function pct(value: number): string {
+  return `${value.toFixed(0)}%`;
 }
 
 // --- Helper: annualise any amount ---
@@ -258,6 +509,12 @@ export default function BudgetingPage() {
 
   const monthlySurplus = annualSurplus / 12;
 
+  // Spending trend analysis
+  const spendingInsights = useMemo(
+    () => analyseSpendingTrends(expenses, totalAnnualExpenses, annualNetPay),
+    [expenses, totalAnnualExpenses, annualNetPay]
+  );
+
   const investmentAllocation = useMemo(
     () => Math.max(0, annualSurplus * (investmentPercent / 100)),
     [annualSurplus, investmentPercent]
@@ -313,6 +570,9 @@ export default function BudgetingPage() {
 
   const addExpense = useCallback(() => {
     if (!newExpenseLabel.trim()) return;
+    // Auto-classify from name, but allow manual override if user changed the dropdown
+    const autoCategory = classifyExpense(newExpenseLabel.trim());
+    const category = newExpenseCategory !== 'other' ? newExpenseCategory : autoCategory.category;
     setExpenses((prev) => [
       ...prev,
       {
@@ -320,11 +580,40 @@ export default function BudgetingPage() {
         label: newExpenseLabel.trim(),
         amount: 0,
         frequency: 'monthly',
-        category: newExpenseCategory,
+        category,
       },
     ]);
     setNewExpenseLabel('');
+    setNewExpenseCategory('other');
   }, [newExpenseLabel, newExpenseCategory]);
+
+  // Auto-classify: update category when expense name is edited
+  const updateExpenseLabel = useCallback((id: string, newLabel: string) => {
+    setExpenses((prev) =>
+      prev.map((e) => {
+        if (e.id !== id) return e;
+        const result = classifyExpense(newLabel);
+        // Only auto-reclassify if we have decent confidence and the name actually changed
+        if (result.confidence >= 0.3 && result.category !== 'other') {
+          return { ...e, label: newLabel, category: result.category };
+        }
+        return { ...e, label: newLabel };
+      })
+    );
+  }, []);
+
+  // Auto-classify all expenses based on their names
+  const autoClassifyAll = useCallback(() => {
+    setExpenses((prev) =>
+      prev.map((e) => {
+        const result = classifyExpense(e.label);
+        if (result.category !== 'other' && result.confidence > 0) {
+          return { ...e, category: result.category };
+        }
+        return e;
+      })
+    );
+  }, []);
 
   // --- Spreadsheet upload handlers ---
   const parseCSV = useCallback((text: string): ExpenseItem[] => {
@@ -678,14 +967,22 @@ export default function BudgetingPage() {
               </p>
             </div>
 
-            {/* Upload Spreadsheet Toggle */}
-            <div className="flex items-center gap-3">
+            {/* Expense Actions Row */}
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setShowUpload(!showUpload)}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <FileSpreadsheet className="w-4 h-4" />
                 {showUpload ? 'Hide Upload' : 'Import from Spreadsheet'}
+              </button>
+              <button
+                onClick={autoClassifyAll}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
+                title="Re-classify all expenses based on their names using the auto-detection engine"
+              >
+                <Wand2 className="w-4 h-4" />
+                Auto-Classify All
               </button>
               <button
                 onClick={downloadTemplate}
@@ -858,7 +1155,7 @@ export default function BudgetingPage() {
                   <input
                     type="text"
                     value={expense.label}
-                    onChange={(e) => updateExpense(expense.id, 'label', e.target.value)}
+                    onChange={(e) => updateExpenseLabel(expense.id, e.target.value)}
                     className="flex-1 min-w-[140px] px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                   <div className="relative">
@@ -912,9 +1209,16 @@ export default function BudgetingPage() {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <input
                 type="text"
-                placeholder="New expense name..."
+                placeholder="New expense name... (category auto-detected)"
                 value={newExpenseLabel}
-                onChange={(e) => setNewExpenseLabel(e.target.value)}
+                onChange={(e) => {
+                  setNewExpenseLabel(e.target.value);
+                  // Live auto-classify as user types
+                  const result = classifyExpense(e.target.value);
+                  if (result.confidence >= 0.3) {
+                    setNewExpenseCategory(result.category);
+                  }
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && addExpense()}
                 className="flex-1 min-w-[160px] px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
@@ -977,6 +1281,54 @@ export default function BudgetingPage() {
             )}
           </div>
         </ToggleSection>
+
+        {/* ============================================ */}
+        {/* SECTION 2.5: Spending Trends & Insights */}
+        {/* ============================================ */}
+        {spendingInsights.length > 0 && (
+          <ToggleSection title="Spending Trends & Insights" icon={BarChart3} accentColor="purple" defaultOpen={true}>
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Auto-generated insights based on your expense data. These update live as you add or change expenses.
+              </p>
+              {spendingInsights.map((insight, i) => {
+                const styles = {
+                  warning: {
+                    bg: 'bg-amber-50 dark:bg-amber-950/30',
+                    border: 'border-amber-200 dark:border-amber-800',
+                    icon: <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />,
+                    title: 'text-amber-900 dark:text-amber-200',
+                    detail: 'text-amber-800 dark:text-amber-300',
+                  },
+                  info: {
+                    bg: 'bg-blue-50 dark:bg-blue-950/30',
+                    border: 'border-blue-200 dark:border-blue-800',
+                    icon: <BarChart3 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />,
+                    title: 'text-blue-900 dark:text-blue-200',
+                    detail: 'text-blue-800 dark:text-blue-300',
+                  },
+                  tip: {
+                    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+                    border: 'border-emerald-200 dark:border-emerald-800',
+                    icon: <Lightbulb className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />,
+                    title: 'text-emerald-900 dark:text-emerald-200',
+                    detail: 'text-emerald-800 dark:text-emerald-300',
+                  },
+                };
+                const s = styles[insight.type];
+                return (
+                  <div key={i} className={`flex items-start gap-3 p-3 rounded-lg border ${s.bg} ${s.border}`}>
+                    {s.icon}
+                    <div>
+                      <p className={`text-sm font-semibold ${s.title}`}>{insight.title}</p>
+                      <p className={`text-xs mt-0.5 ${s.detail}`}>{insight.detail}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </ToggleSection>
+        )}
 
         {/* ============================================ */}
         {/* SECTION 3: Budget Summary & Surplus */}
