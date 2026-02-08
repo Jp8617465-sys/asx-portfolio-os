@@ -24,6 +24,7 @@ describe('MobileNav', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Watchlist')).toBeInTheDocument();
     expect(screen.getByText('Portfolio')).toBeInTheDocument();
+    expect(screen.getByText('ETFs')).toBeInTheDocument();
     expect(screen.getByText('Alerts')).toBeInTheDocument();
     expect(screen.getByText('Models')).toBeInTheDocument();
     expect(screen.getByText('Jobs')).toBeInTheDocument();
@@ -43,6 +44,9 @@ describe('MobileNav', () => {
 
     const portfolioLink = screen.getByText('Portfolio').closest('a');
     expect(portfolioLink).toHaveAttribute('href', '/app/portfolio');
+
+    const etfsLink = screen.getByText('ETFs').closest('a');
+    expect(etfsLink).toHaveAttribute('href', '/app/etfs');
 
     const alertsLink = screen.getByText('Alerts').closest('a');
     expect(alertsLink).toHaveAttribute('href', '/app/alerts');
@@ -83,10 +87,10 @@ describe('MobileNav', () => {
     expect(summary).toHaveClass('cursor-pointer', 'rounded-full');
   });
 
-  it('renders all nine navigation items', () => {
+  it('renders all ten navigation items', () => {
     const { container } = render(<MobileNav />);
     const links = container.querySelectorAll('a');
-    expect(links).toHaveLength(9);
+    expect(links).toHaveLength(10);
   });
 
   it('has mobile-only visibility class', () => {

@@ -24,6 +24,7 @@ from app.routes import (
 from app.features.signals.routes import signals
 from app.features.signals.routes import ensemble_router
 from app.features.etf.routes import router as etf_router
+from app.features.alerts.routes import router as alerts_router
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 
 # Initialize Sentry (if DSN provided)
@@ -123,6 +124,7 @@ app.include_router(loan.router)
 app.include_router(signals.router)
 app.include_router(ensemble_router)  # Feature-based ensemble endpoints (signals/routes/ensemble_routes.py)
 app.include_router(etf_router)  # ETF holdings drill-down (etf/routes/etf_routes.py)
+app.include_router(alerts_router)  # Price alerts CRUD (alerts/routes/alert_routes.py)
 app.include_router(insights.router)
 app.include_router(fusion.router)
 app.include_router(jobs.router)
