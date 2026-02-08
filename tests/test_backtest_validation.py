@@ -7,7 +7,6 @@ Validates that backtesting logic produces accurate and reliable results.
 
 import pytest
 from jobs.backtest_model_a_ml import (
-    run_rolling_backtest,
     _compute_max_drawdown,
     run_walk_forward_backtest,
 )
@@ -21,7 +20,7 @@ class TestBacktestSmokTests:
         start_date = '2024-01-01'
         end_date = '2024-01-31'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -37,7 +36,7 @@ class TestBacktestSmokTests:
         start_date = '2024-01-01'
         end_date = '2024-01-31'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -62,7 +61,7 @@ class TestBacktestSmokTests:
         start_date = '2030-01-01'
         end_date = '2030-01-31'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -82,7 +81,7 @@ class TestBacktestMetrics:
         start_date = '2024-01-01'
         end_date = '2024-02-29'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -112,7 +111,7 @@ class TestBacktestMetrics:
         start_date = '2024-01-01'
         end_date = '2024-03-31'  # Longer period for Sharpe
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -134,7 +133,7 @@ class TestBacktestMetrics:
         start_date = '2024-01-01'
         end_date = '2024-02-29'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -158,7 +157,7 @@ class TestBacktestMetrics:
         start_date = '2024-01-01'
         end_date = '2024-02-29'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -329,7 +328,7 @@ class TestBacktestEdgeCases:
         start_date = '2024-06-01'
         end_date = '2024-01-01'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -344,7 +343,7 @@ class TestBacktestEdgeCases:
         start_date = '2024-01-01'
         end_date = '2024-01-02'  # Very short period
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=1000,  # Request more stocks than available
@@ -359,7 +358,7 @@ class TestBacktestEdgeCases:
         start_date = '2024-01-01'
         end_date = '2024-03-31'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=20,
@@ -383,7 +382,7 @@ class TestBacktestWithRealData:
         start_date = '2024-01-01'
         end_date = '2024-01-31'
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=10,
@@ -403,7 +402,7 @@ class TestBacktestWithRealData:
 
         start_time = time.time()
 
-        result = run_rolling_backtest(
+        result = run_walk_forward_backtest(
             start_date=start_date,
             end_date=end_date,
             top_n=20,

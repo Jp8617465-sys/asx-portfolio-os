@@ -27,6 +27,7 @@ jobs:
       DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
       EODHD_API_KEY: "ci-placeholder"
       OPENAI_API_KEY: "ci-placeholder"
+      JWT_SECRET_KEY: "ci-test-secret-key-do-not-use-in-production"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
