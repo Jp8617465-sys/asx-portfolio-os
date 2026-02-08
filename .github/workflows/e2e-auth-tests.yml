@@ -11,6 +11,11 @@ jobs:
   test:
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asx_portfolio_test
+      JWT_SECRET_KEY: test_secret_key_for_ci_only_do_not_use_in_production
+      EODHD_API_KEY: dummy_key_for_testing
+      OS_API_KEY: ci-placeholder-key
 
     services:
       postgres:
@@ -19,7 +24,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: asx_portfolio_test
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -52,25 +57,21 @@ jobs:
         run: npm ci
 
       - name: Apply database schema
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asx_portfolio_test
         run: |
           python scripts/apply_user_schema.py || true
           python scripts/apply_notification_schema.py || true
 
       - name: Create demo user
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asx_portfolio_test
         run: |
           python -c "
-          import psycopg2
-          from passlib.context import CryptContext
-          pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-          conn = psycopg2.connect('postgresql://postgres:postgres@localhost:5432/asx_portfolio_test')
+          import os, psycopg2
+          from pwdlib import PasswordHash
+          pwd_context = PasswordHash.recommended()
+          conn = psycopg2.connect(os.environ['DATABASE_URL'])
           cur = conn.cursor()
           hashed = pwd_context.hash('testpass123')
           cur.execute(
-              'INSERT INTO user_accounts (username, email, hashed_password, full_name, is_active, is_verified) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (username) DO NOTHING',
+              'INSERT INTO user_accounts (username, email, password_hash, full_name, is_active, is_verified) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (username) DO NOTHING',
               ('demo_user', 'demo@test.com', hashed, 'Demo User', True, True)
           )
           conn.commit()
@@ -90,9 +91,6 @@ jobs:
 
       - name: Start backend server
         env:
-          JWT_SECRET_KEY: test_secret_key_for_ci_only_do_not_use_in_production
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asx_portfolio_test
-          EODHD_API_KEY: dummy_key_for_testing
           ALPHA_VANTAGE_API_KEY: dummy_key
           FINNHUB_API_KEY: dummy_key
           FMP_API_KEY: dummy_key
