@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Glow AI",
+    "slug": "glow-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FFF0F5",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.glowai.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Glow AI needs access to your camera to analyze your skin.",
+        "NSPhotoLibraryUsageDescription": "Glow AI needs access to your photos to analyze skin images."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF0F5"
+      },
+      "package": "com.glowai.app",
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-camera",
+      "expo-image-picker"
+    ]
+  }
+}
