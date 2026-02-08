@@ -12,6 +12,7 @@ import {
   Bookmark,
   Briefcase,
   Bell,
+  PieChart,
   Wallet,
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
@@ -21,6 +22,7 @@ const navItems = [
   { href: '/app/dashboard', label: 'Dashboard', icon: LayoutGrid },
   { href: '/app/watchlist', label: 'Watchlist', icon: Bookmark },
   { href: '/app/portfolio', label: 'Portfolio', icon: Briefcase },
+  { href: '/app/etfs', label: 'ETFs', icon: PieChart },
   { href: '/app/budgeting', label: 'Budgeting', icon: Wallet },
   { href: '/app/alerts', label: 'Alerts', icon: Bell },
   { href: '/app/models', label: 'Models', icon: Sparkles },
@@ -48,7 +50,7 @@ export default function MobileNav() {
         <div className="absolute right-0 mt-3 w-52 rounded-2xl border border-slate-200/80 bg-white/95 p-3 text-sm shadow-card dark:border-white/10 dark:bg-slate-900">
           <div className="flex flex-col gap-2">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link
                   key={item.href}

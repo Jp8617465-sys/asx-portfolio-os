@@ -78,8 +78,20 @@ const DEFAULT_EXPENSES: ExpenseItem[] = [
   { id: '3', label: 'Electricity & Gas', amount: 0, frequency: 'quarterly', category: 'utilities' },
   { id: '4', label: 'Internet & Phone', amount: 0, frequency: 'monthly', category: 'utilities' },
   { id: '5', label: 'Car / Transport', amount: 0, frequency: 'monthly', category: 'transport' },
-  { id: '6', label: 'Insurance (Health/Car/Home)', amount: 0, frequency: 'monthly', category: 'insurance' },
-  { id: '7', label: 'Subscriptions & Entertainment', amount: 0, frequency: 'monthly', category: 'entertainment' },
+  {
+    id: '6',
+    label: 'Insurance (Health/Car/Home)',
+    amount: 0,
+    frequency: 'monthly',
+    category: 'insurance',
+  },
+  {
+    id: '7',
+    label: 'Subscriptions & Entertainment',
+    amount: 0,
+    frequency: 'monthly',
+    category: 'entertainment',
+  },
 ];
 
 const VALID_FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'] as const;
@@ -92,7 +104,8 @@ function normaliseFrequency(raw: string): ExpenseItem['frequency'] {
   if (lower === 'fortnight' || lower === 'fn' || lower === '2weeks') return 'fortnightly';
   if (lower === 'month' || lower === 'm') return 'monthly';
   if (lower === 'quarter' || lower === 'q') return 'quarterly';
-  if (lower === 'year' || lower === 'annual' || lower === 'annually' || lower === 'y') return 'yearly';
+  if (lower === 'year' || lower === 'annual' || lower === 'annually' || lower === 'y')
+    return 'yearly';
   return 'monthly';
 }
 
@@ -101,65 +114,271 @@ function normaliseFrequency(raw: string): ExpenseItem['frequency'] {
 // The classifier scores each category by counting keyword hits.
 const CATEGORY_KEYWORDS: Record<ExpenseCategory, string[]> = {
   housing: [
-    'rent', 'mortgage', 'strata', 'body corp', 'body corporate', 'council rates',
-    'rates', 'land tax', 'home loan', 'housing', 'accommodation', 'lease',
-    'property', 'landlord', 'tenant', 'real estate', 'stamp duty',
+    'rent',
+    'mortgage',
+    'strata',
+    'body corp',
+    'body corporate',
+    'council rates',
+    'rates',
+    'land tax',
+    'home loan',
+    'housing',
+    'accommodation',
+    'lease',
+    'property',
+    'landlord',
+    'tenant',
+    'real estate',
+    'stamp duty',
   ],
   transport: [
-    'car', 'fuel', 'petrol', 'diesel', 'transport', 'uber', 'taxi', 'lyft',
-    'rego', 'registration', 'toll', 'etoll', 'opal', 'myki', 'go card',
-    'parking', 'bus', 'train', 'ferry', 'flight', 'airfare', 'airline',
-    'vehicle', 'mechanic', 'service', 'roadside', 'nrma', 'racv', 'racq',
-    'travel', 'commut',
+    'car',
+    'fuel',
+    'petrol',
+    'diesel',
+    'transport',
+    'uber',
+    'taxi',
+    'lyft',
+    'rego',
+    'registration',
+    'toll',
+    'etoll',
+    'opal',
+    'myki',
+    'go card',
+    'parking',
+    'bus',
+    'train',
+    'ferry',
+    'flight',
+    'airfare',
+    'airline',
+    'vehicle',
+    'mechanic',
+    'service',
+    'roadside',
+    'nrma',
+    'racv',
+    'racq',
+    'travel',
+    'commut',
   ],
   food: [
-    'grocer', 'coles', 'woolworths', 'woolies', 'aldi', 'iga', 'food',
-    'dining', 'restaurant', 'takeaway', 'takeout', 'uber eats', 'ubereats',
-    'doordash', 'menulog', 'deliveroo', 'coffee', 'cafe', 'lunch', 'dinner',
-    'breakfast', 'meal', 'snack', 'drink', 'alcohol', 'wine', 'beer', 'pub',
-    'bar', 'eating out', 'eat out',
+    'grocer',
+    'coles',
+    'woolworths',
+    'woolies',
+    'aldi',
+    'iga',
+    'food',
+    'dining',
+    'restaurant',
+    'takeaway',
+    'takeout',
+    'uber eats',
+    'ubereats',
+    'doordash',
+    'menulog',
+    'deliveroo',
+    'coffee',
+    'cafe',
+    'lunch',
+    'dinner',
+    'breakfast',
+    'meal',
+    'snack',
+    'drink',
+    'alcohol',
+    'wine',
+    'beer',
+    'pub',
+    'bar',
+    'eating out',
+    'eat out',
   ],
   utilities: [
-    'electricity', 'electric', 'power', 'gas', 'water', 'sewerage',
-    'internet', 'broadband', 'nbn', 'wifi', 'phone', 'mobile', 'telstra',
-    'optus', 'vodafone', 'tpg', 'iinet', 'aussie broadband', 'utility',
-    'utilities', 'energy', 'agl', 'origin energy', 'alinta',
+    'electricity',
+    'electric',
+    'power',
+    'gas',
+    'water',
+    'sewerage',
+    'internet',
+    'broadband',
+    'nbn',
+    'wifi',
+    'phone',
+    'mobile',
+    'telstra',
+    'optus',
+    'vodafone',
+    'tpg',
+    'iinet',
+    'aussie broadband',
+    'utility',
+    'utilities',
+    'energy',
+    'agl',
+    'origin energy',
+    'alinta',
   ],
   insurance: [
-    'insurance', 'insur', 'premium', 'life insurance', 'income protection',
-    'health insurance', 'medibank', 'bupa', 'hcf', 'nib', 'ahm',
-    'car insurance', 'home insurance', 'contents', 'travel insurance',
-    'tpd', 'total permanent disability', 'cover', 'policy',
+    'insurance',
+    'insur',
+    'premium',
+    'life insurance',
+    'income protection',
+    'health insurance',
+    'medibank',
+    'bupa',
+    'hcf',
+    'nib',
+    'ahm',
+    'car insurance',
+    'home insurance',
+    'contents',
+    'travel insurance',
+    'tpd',
+    'total permanent disability',
+    'cover',
+    'policy',
   ],
   health: [
-    'health', 'medical', 'doctor', 'gp', 'dentist', 'dental', 'physio',
-    'physiotherapy', 'chiropractor', 'optometrist', 'glasses', 'contacts',
-    'prescription', 'pharmacy', 'chemist', 'medication', 'medicine',
-    'hospital', 'specialist', 'psychologist', 'therapy', 'therapist',
-    'gym', 'fitness', 'yoga', 'pilates', 'personal trainer', 'anytime fitness',
-    'f45', 'crossfit', 'swimming', 'sport', 'wellness', 'mental health',
+    'health',
+    'medical',
+    'doctor',
+    'gp',
+    'dentist',
+    'dental',
+    'physio',
+    'physiotherapy',
+    'chiropractor',
+    'optometrist',
+    'glasses',
+    'contacts',
+    'prescription',
+    'pharmacy',
+    'chemist',
+    'medication',
+    'medicine',
+    'hospital',
+    'specialist',
+    'psychologist',
+    'therapy',
+    'therapist',
+    'gym',
+    'fitness',
+    'yoga',
+    'pilates',
+    'personal trainer',
+    'anytime fitness',
+    'f45',
+    'crossfit',
+    'swimming',
+    'sport',
+    'wellness',
+    'mental health',
   ],
   entertainment: [
-    'netflix', 'stan', 'disney', 'spotify', 'apple music', 'youtube',
-    'amazon prime', 'hulu', 'binge', 'paramount', 'kayo', 'foxtel',
-    'subscription', 'streaming', 'entertainment', 'movie', 'cinema',
-    'concert', 'event', 'ticket', 'gaming', 'playstation', 'xbox',
-    'nintendo', 'steam', 'hobby', 'hobbies', 'recreation', 'fun',
-    'going out', 'night out', 'club', 'festival', 'audible', 'podcast',
+    'netflix',
+    'stan',
+    'disney',
+    'spotify',
+    'apple music',
+    'youtube',
+    'amazon prime',
+    'hulu',
+    'binge',
+    'paramount',
+    'kayo',
+    'foxtel',
+    'subscription',
+    'streaming',
+    'entertainment',
+    'movie',
+    'cinema',
+    'concert',
+    'event',
+    'ticket',
+    'gaming',
+    'playstation',
+    'xbox',
+    'nintendo',
+    'steam',
+    'hobby',
+    'hobbies',
+    'recreation',
+    'fun',
+    'going out',
+    'night out',
+    'club',
+    'festival',
+    'audible',
+    'podcast',
   ],
   debt: [
-    'debt', 'loan', 'repayment', 'repay', 'credit card', 'credit',
-    'afterpay', 'zip pay', 'buy now pay later', 'bnpl', 'hecs', 'help debt',
-    'student loan', 'personal loan', 'car loan', 'interest', 'minimum payment',
-    'balance', 'owing', 'instalment', 'installment',
+    'debt',
+    'loan',
+    'repayment',
+    'repay',
+    'credit card',
+    'credit',
+    'afterpay',
+    'zip pay',
+    'buy now pay later',
+    'bnpl',
+    'hecs',
+    'help debt',
+    'student loan',
+    'personal loan',
+    'car loan',
+    'interest',
+    'minimum payment',
+    'balance',
+    'owing',
+    'instalment',
+    'installment',
   ],
   personal: [
-    'clothing', 'clothes', 'shoes', 'fashion', 'haircut', 'hairdresser',
-    'barber', 'beauty', 'salon', 'nails', 'spa', 'massage', 'skincare',
-    'cosmetics', 'makeup', 'personal', 'grooming', 'self care', 'self-care',
-    'gift', 'birthday', 'christmas', 'present', 'donation', 'charity',
-    'child care', 'childcare', 'daycare', 'school', 'tuition', 'education',
-    'course', 'book', 'stationery', 'pet', 'vet', 'veterinary',
+    'clothing',
+    'clothes',
+    'shoes',
+    'fashion',
+    'haircut',
+    'hairdresser',
+    'barber',
+    'beauty',
+    'salon',
+    'nails',
+    'spa',
+    'massage',
+    'skincare',
+    'cosmetics',
+    'makeup',
+    'personal',
+    'grooming',
+    'self care',
+    'self-care',
+    'gift',
+    'birthday',
+    'christmas',
+    'present',
+    'donation',
+    'charity',
+    'child care',
+    'childcare',
+    'daycare',
+    'school',
+    'tuition',
+    'education',
+    'course',
+    'book',
+    'stationery',
+    'pet',
+    'vet',
+    'veterinary',
   ],
   other: [],
 };
@@ -167,7 +386,7 @@ const CATEGORY_KEYWORDS: Record<ExpenseCategory, string[]> = {
 interface ClassificationResult {
   category: ExpenseCategory;
   confidence: number; // 0-1
-  matched: string[];  // which keywords hit
+  matched: string[]; // which keywords hit
 }
 
 function classifyExpense(name: string): ClassificationResult {
@@ -240,7 +459,7 @@ const BENCHMARK_PERCENTAGES: Partial<Record<ExpenseCategory, { label: string; ma
 function analyseSpendingTrends(
   expenses: ExpenseItem[],
   totalAnnualExpenses: number,
-  annualNetPay: number,
+  annualNetPay: number
 ): SpendingInsight[] {
   const insights: SpendingInsight[] = [];
   if (totalAnnualExpenses === 0) return insights;
@@ -261,7 +480,8 @@ function analyseSpendingTrends(
       insights.push({
         type: 'warning',
         title: `${benchmark.label} spending is high`,
-        detail: `${benchmark.label} is ${pct.toFixed(0)}% of your income (benchmark: under ${benchmark.max}%). ` +
+        detail:
+          `${benchmark.label} is ${pct.toFixed(0)}% of your income (benchmark: under ${benchmark.max}%). ` +
           `That\u2019s ${formatCurrency(annual)}/year \u2014 review if there\u2019s room to optimise.`,
       });
     }
@@ -279,7 +499,8 @@ function analyseSpendingTrends(
       insights.push({
         type: 'info',
         title: `"${largest.label}" dominates your budget`,
-        detail: `This single expense is ${pct(pctOfTotal)} of all spending (${formatCurrency(largestAnnual)}/year). ` +
+        detail:
+          `This single expense is ${pct(pctOfTotal)} of all spending (${formatCurrency(largestAnnual)}/year). ` +
           `Even a small reduction here has outsized impact on your surplus.`,
       });
     }
@@ -294,14 +515,16 @@ function analyseSpendingTrends(
     insights.push({
       type: 'tip',
       title: `Discretionary spending is ${pct(discPct)} of expenses`,
-      detail: `Discretionary categories (food, entertainment, personal, other) total ${formatCurrency(discretionaryTotal)}/year. ` +
+      detail:
+        `Discretionary categories (food, entertainment, personal, other) total ${formatCurrency(discretionaryTotal)}/year. ` +
         `Essential spending is ${formatCurrency(essentialTotal)}/year. Cutting discretionary by 10% saves ${formatCurrency(discretionaryTotal * 0.1)}/year.`,
     });
   } else if (totalAnnualExpenses > 0) {
     insights.push({
       type: 'info',
       title: `Discretionary vs essential split`,
-      detail: `${pct(discPct)} discretionary (${formatCurrency(discretionaryTotal)}/yr) vs ${pct(100 - discPct)} essential (${formatCurrency(essentialTotal)}/yr). ` +
+      detail:
+        `${pct(discPct)} discretionary (${formatCurrency(discretionaryTotal)}/yr) vs ${pct(100 - discPct)} essential (${formatCurrency(essentialTotal)}/yr). ` +
         `A healthy split keeps discretionary under 40%.`,
     });
   }
@@ -309,8 +532,15 @@ function analyseSpendingTrends(
   // 4. Many small subscriptions add up
   const subscriptionLike = expenses.filter((e) => {
     const l = e.label.toLowerCase();
-    return e.category === 'entertainment' || l.includes('subscri') || l.includes('membership') ||
-      l.includes('netflix') || l.includes('spotify') || l.includes('stan') || l.includes('disney');
+    return (
+      e.category === 'entertainment' ||
+      l.includes('subscri') ||
+      l.includes('membership') ||
+      l.includes('netflix') ||
+      l.includes('spotify') ||
+      l.includes('stan') ||
+      l.includes('disney')
+    );
   });
   if (subscriptionLike.length >= 3) {
     const subTotal = subscriptionLike.reduce((s, e) => s + annualise(e.amount, e.frequency), 0);
@@ -318,7 +548,8 @@ function analyseSpendingTrends(
       insights.push({
         type: 'tip',
         title: `${subscriptionLike.length} subscriptions totalling ${formatCurrency(subTotal)}/year`,
-        detail: `Small recurring charges add up. Review whether you actively use all of them. ` +
+        detail:
+          `Small recurring charges add up. Review whether you actively use all of them. ` +
           `Cancelling even one ${formatCurrency(subTotal / subscriptionLike.length)}/year subscription compounds over time.`,
       });
     }
@@ -347,8 +578,9 @@ function analyseSpendingTrends(
       insights.push({
         type: 'tip',
         title: `Savings rate: ${savingsRate.toFixed(0)}%`,
-        detail: `The 50/30/20 rule suggests saving at least 20% of net income. You\u2019re at ${savingsRate.toFixed(0)}%. ` +
-          `Finding ${formatCurrency((annualNetPay * 0.2) - (annualNetPay - totalAnnualExpenses))}/year in savings would hit that target.`,
+        detail:
+          `The 50/30/20 rule suggests saving at least 20% of net income. You\u2019re at ${savingsRate.toFixed(0)}%. ` +
+          `Finding ${formatCurrency(annualNetPay * 0.2 - (annualNetPay - totalAnnualExpenses))}/year in savings would hit that target.`,
       });
     }
   }
@@ -450,7 +682,9 @@ export default function BudgetingPage() {
   const [grossSalary, setGrossSalary] = useState<number>(0);
   const [payFrequency, setPayFrequency] = useState<'weekly' | 'fortnightly' | 'monthly'>('monthly');
   const [otherIncome, setOtherIncome] = useState<number>(0);
-  const [otherIncomeFrequency, setOtherIncomeFrequency] = useState<'weekly' | 'fortnightly' | 'monthly' | 'yearly'>('monthly');
+  const [otherIncomeFrequency, setOtherIncomeFrequency] = useState<
+    'weekly' | 'fortnightly' | 'monthly' | 'yearly'
+  >('monthly');
 
   // --- Expense State ---
   const [expenses, setExpenses] = useState<ExpenseItem[]>(DEFAULT_EXPENSES);
@@ -471,20 +705,28 @@ export default function BudgetingPage() {
 
   // --- Missed Investment State ---
   const [missedAmount, setMissedAmount] = useState<number>(100);
-  const [missedFrequency, setMissedFrequency] = useState<'weekly' | 'fortnightly' | 'monthly'>('weekly');
+  const [missedFrequency, setMissedFrequency] = useState<'weekly' | 'fortnightly' | 'monthly'>(
+    'weekly'
+  );
   const [missedYears, setMissedYears] = useState<number>(20);
   const [missedReturn, setMissedReturn] = useState<number>(8);
 
   // --- Calculations ---
-  const annualGross = useMemo(() => annualise(grossSalary, payFrequency), [grossSalary, payFrequency]);
-  const annualOther = useMemo(() => annualise(otherIncome, otherIncomeFrequency), [otherIncome, otherIncomeFrequency]);
+  const annualGross = useMemo(
+    () => annualise(grossSalary, payFrequency),
+    [grossSalary, payFrequency]
+  );
+  const annualOther = useMemo(
+    () => annualise(otherIncome, otherIncomeFrequency),
+    [otherIncome, otherIncomeFrequency]
+  );
 
   // Simple Australian tax estimate (2024-25 rates)
   const taxEstimate = useMemo(() => {
     const taxable = annualGross;
     if (taxable <= 18200) return 0;
     if (taxable <= 45000) return (taxable - 18200) * 0.16;
-    if (taxable <= 135000) return 4288 + (taxable - 45000) * 0.30;
+    if (taxable <= 135000) return 4288 + (taxable - 45000) * 0.3;
     if (taxable <= 190000) return 31288 + (taxable - 135000) * 0.37;
     return 51638 + (taxable - 190000) * 0.45;
   }, [annualGross]);
@@ -559,9 +801,7 @@ export default function BudgetingPage() {
 
   // --- Expense handlers ---
   const updateExpense = useCallback((id: string, field: keyof ExpenseItem, value: any) => {
-    setExpenses((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, [field]: value } : e))
-    );
+    setExpenses((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
   }, []);
 
   const removeExpense = useCallback((id: string) => {
@@ -618,13 +858,16 @@ export default function BudgetingPage() {
   // --- Spreadsheet upload handlers ---
   const parseCSV = useCallback((text: string): ExpenseItem[] => {
     const lines = text.split(/\r?\n/).filter((line) => line.trim());
-    if (lines.length < 2) throw new Error('File must contain a header row and at least one data row.');
+    if (lines.length < 2)
+      throw new Error('File must contain a header row and at least one data row.');
 
     const headers = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/['"]/g, ''));
 
     // Find column indices — support common header names
     const nameIdx = headers.findIndex((h) =>
-      ['name', 'label', 'description', 'expense', 'item', 'expense_name', 'expense name'].includes(h)
+      ['name', 'label', 'description', 'expense', 'item', 'expense_name', 'expense name'].includes(
+        h
+      )
     );
     const amountIdx = headers.findIndex((h) =>
       ['amount', 'cost', 'value', 'price', '$', 'aud', 'total'].includes(h)
@@ -632,21 +875,23 @@ export default function BudgetingPage() {
     const frequencyIdx = headers.findIndex((h) =>
       ['frequency', 'freq', 'period', 'cycle', 'interval'].includes(h)
     );
-    const categoryIdx = headers.findIndex((h) =>
-      ['category', 'cat', 'type', 'group'].includes(h)
-    );
+    const categoryIdx = headers.findIndex((h) => ['category', 'cat', 'type', 'group'].includes(h));
 
     if (nameIdx === -1 && amountIdx === -1) {
       throw new Error(
         'Could not find required columns. Your CSV needs at least a "name" and "amount" column. ' +
-        'Accepted headers: name/label/description/expense/item for names, amount/cost/value/price for amounts.'
+          'Accepted headers: name/label/description/expense/item for names, amount/cost/value/price for amounts.'
       );
     }
     if (nameIdx === -1) {
-      throw new Error('Could not find a name column. Use a header like "name", "label", "description", or "expense".');
+      throw new Error(
+        'Could not find a name column. Use a header like "name", "label", "description", or "expense".'
+      );
     }
     if (amountIdx === -1) {
-      throw new Error('Could not find an amount column. Use a header like "amount", "cost", "value", or "price".');
+      throw new Error(
+        'Could not find an amount column. Use a header like "amount", "cost", "value", or "price".'
+      );
     }
 
     const rows: ExpenseItem[] = [];
@@ -659,8 +904,10 @@ export default function BudgetingPage() {
 
       if (!name || isNaN(amount)) continue;
 
-      const frequency = frequencyIdx >= 0 ? normaliseFrequency(values[frequencyIdx] || '') : 'monthly';
-      const category = categoryIdx >= 0 ? normaliseCategory(values[categoryIdx] || '') : normaliseCategory(name);
+      const frequency =
+        frequencyIdx >= 0 ? normaliseFrequency(values[frequencyIdx] || '') : 'monthly';
+      const category =
+        categoryIdx >= 0 ? normaliseCategory(values[categoryIdx] || '') : normaliseCategory(name);
 
       rows.push({
         id: `upload-${Date.now()}-${i}`,
@@ -672,7 +919,9 @@ export default function BudgetingPage() {
     }
 
     if (rows.length === 0) {
-      throw new Error('No valid expense rows found. Check that your data has non-empty names and numeric amounts.');
+      throw new Error(
+        'No valid expense rows found. Check that your data has non-empty names and numeric amounts.'
+      );
     }
 
     return rows;
@@ -799,8 +1048,8 @@ export default function BudgetingPage() {
             Investment Budgeting
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Understand your income, expenses, and how much you could put towards investments.
-            Each section can be toggled to show or hide.
+            Understand your income, expenses, and how much you could put towards investments. Each
+            section can be toggled to show or hide.
           </p>
         </div>
 
@@ -811,21 +1060,21 @@ export default function BudgetingPage() {
           <div className="space-y-4">
             <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 text-sm text-emerald-900 dark:text-emerald-200 space-y-2">
               <p>
-                <strong>Gross Salary</strong> is your total salary before any deductions. This is the
-                headline number on your employment contract.
+                <strong>Gross Salary</strong> is your total salary before any deductions. This is
+                the headline number on your employment contract.
               </p>
               <p>
-                <strong>Superannuation (11.5%)</strong> is paid by your employer on top of your gross
-                salary into your super fund. It&apos;s not part of your take-home pay but it&apos;s
-                growing your retirement savings.
+                <strong>Superannuation (11.5%)</strong> is paid by your employer on top of your
+                gross salary into your super fund. It&apos;s not part of your take-home pay but
+                it&apos;s growing your retirement savings.
               </p>
               <p>
-                <strong>Income Tax</strong> is deducted based on ATO tax brackets. The more you earn,
-                the higher percentage you pay on each bracket (progressive tax).
+                <strong>Income Tax</strong> is deducted based on ATO tax brackets. The more you
+                earn, the higher percentage you pay on each bracket (progressive tax).
               </p>
               <p>
-                <strong>Medicare Levy (2%)</strong> funds Australia&apos;s public health system. It&apos;s
-                charged on top of your income tax.
+                <strong>Medicare Levy (2%)</strong> funds Australia&apos;s public health system.
+                It&apos;s charged on top of your income tax.
               </p>
               <p>
                 <strong>Net Pay (take-home)</strong> = Gross Salary - Income Tax - Medicare Levy.
@@ -958,12 +1207,13 @@ export default function BudgetingPage() {
                 repayments. These stay roughly the same each period.
               </p>
               <p>
-                <strong>Variable expenses</strong> like groceries, entertainment, and fuel fluctuate.
-                Use an average amount for these.
+                <strong>Variable expenses</strong> like groceries, entertainment, and fuel
+                fluctuate. Use an average amount for these.
               </p>
               <p>
-                Enter each expense with its natural frequency (weekly groceries, monthly rent, quarterly
-                bills) &mdash; the calculator normalises everything to annual figures automatically.
+                Enter each expense with its natural frequency (weekly groceries, monthly rent,
+                quarterly bills) &mdash; the calculator normalises everything to annual figures
+                automatically.
               </p>
             </div>
 
@@ -1009,14 +1259,17 @@ export default function BudgetingPage() {
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
                     <strong>Required:</strong> name + amount. <strong>Optional:</strong> frequency
-                    (defaults to monthly) and category (auto-detected from name).
-                    Supports exports from Excel, Google Sheets, or any app that saves CSV.
+                    (defaults to monthly) and category (auto-detected from name). Supports exports
+                    from Excel, Google Sheets, or any app that saves CSV.
                   </p>
                 </div>
 
                 {/* Drag & Drop Zone */}
                 <div
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
                   className={`relative flex flex-col items-center justify-center gap-2 p-8 rounded-lg border-2 border-dashed transition-colors cursor-pointer ${
@@ -1037,7 +1290,9 @@ export default function BudgetingPage() {
                   />
                   <Upload className={`w-8 h-8 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {isDragging ? 'Drop your file here' : 'Drag & drop a CSV file, or click to browse'}
+                    {isDragging
+                      ? 'Drop your file here'
+                      : 'Drag & drop a CSV file, or click to browse'}
                   </p>
                 </div>
 
@@ -1060,7 +1315,8 @@ export default function BudgetingPage() {
                           {uploadFile.name}
                         </span>
                         <span className="text-xs text-gray-500">
-                          ({(uploadFile.size / 1024).toFixed(1)} KB &middot; {uploadPreview.length} expense{uploadPreview.length !== 1 ? 's' : ''})
+                          ({(uploadFile.size / 1024).toFixed(1)} KB &middot; {uploadPreview.length}{' '}
+                          expense{uploadPreview.length !== 1 ? 's' : ''})
                         </span>
                       </div>
                       <button
@@ -1077,21 +1333,38 @@ export default function BudgetingPage() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-200 dark:border-gray-700">
-                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Name</th>
-                            <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Amount</th>
-                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Frequency</th>
-                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Category</th>
-                            <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Annual</th>
+                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                              Name
+                            </th>
+                            <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                              Amount
+                            </th>
+                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                              Frequency
+                            </th>
+                            <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                              Category
+                            </th>
+                            <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                              Annual
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {uploadPreview.slice(0, 10).map((row) => (
-                            <tr key={row.id} className="border-b border-gray-100 dark:border-gray-800">
-                              <td className="py-1.5 px-3 text-gray-900 dark:text-white">{row.label}</td>
+                            <tr
+                              key={row.id}
+                              className="border-b border-gray-100 dark:border-gray-800"
+                            >
+                              <td className="py-1.5 px-3 text-gray-900 dark:text-white">
+                                {row.label}
+                              </td>
                               <td className="py-1.5 px-3 text-right text-gray-900 dark:text-white">
                                 {formatCurrency(row.amount)}
                               </td>
-                              <td className="py-1.5 px-3 text-gray-600 dark:text-gray-400 capitalize">{row.frequency}</td>
+                              <td className="py-1.5 px-3 text-gray-600 dark:text-gray-400 capitalize">
+                                {row.frequency}
+                              </td>
                               <td className="py-1.5 px-3 text-gray-600 dark:text-gray-400">
                                 {CATEGORY_LABELS[row.category]}
                               </td>
@@ -1103,15 +1376,24 @@ export default function BudgetingPage() {
                         </tbody>
                         <tfoot>
                           <tr className="border-t border-gray-200 dark:border-gray-700">
-                            <td colSpan={4} className="py-2 px-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            <td
+                              colSpan={4}
+                              className="py-2 px-3 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                            >
                               Total ({uploadPreview.length} items)
                               {uploadPreview.length > 10 && (
-                                <span className="font-normal text-gray-500"> &mdash; showing first 10</span>
+                                <span className="font-normal text-gray-500">
+                                  {' '}
+                                  &mdash; showing first 10
+                                </span>
                               )}
                             </td>
                             <td className="py-2 px-3 text-right text-sm font-semibold text-gray-900 dark:text-white">
                               {formatCurrency(
-                                uploadPreview.reduce((s, r) => s + annualise(r.amount, r.frequency), 0)
+                                uploadPreview.reduce(
+                                  (s, r) => s + annualise(r.amount, r.frequency),
+                                  0
+                                )
                               )}
                               /yr
                             </td>
@@ -1137,7 +1419,8 @@ export default function BudgetingPage() {
                         Add to Existing
                       </button>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        &ldquo;Replace&rdquo; clears current expenses. &ldquo;Add&rdquo; appends to them.
+                        &ldquo;Replace&rdquo; clears current expenses. &ldquo;Add&rdquo; appends to
+                        them.
                       </span>
                     </div>
                   </div>
@@ -1159,7 +1442,9 @@ export default function BudgetingPage() {
                     className="flex-1 min-w-[140px] px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                   <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                      $
+                    </span>
                     <input
                       type="number"
                       min={0}
@@ -1275,7 +1560,9 @@ export default function BudgetingPage() {
                 </div>
                 <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-between text-sm font-semibold">
                   <span className="text-gray-700 dark:text-gray-300">Total Annual Expenses</span>
-                  <span className="text-gray-900 dark:text-white">{formatCurrency(totalAnnualExpenses)}</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {formatCurrency(totalAnnualExpenses)}
+                  </span>
                 </div>
               </div>
             )}
@@ -1286,10 +1573,16 @@ export default function BudgetingPage() {
         {/* SECTION 2.5: Spending Trends & Insights */}
         {/* ============================================ */}
         {spendingInsights.length > 0 && (
-          <ToggleSection title="Spending Trends & Insights" icon={BarChart3} accentColor="purple" defaultOpen={true}>
+          <ToggleSection
+            title="Spending Trends & Insights"
+            icon={BarChart3}
+            accentColor="purple"
+            defaultOpen={true}
+          >
             <div className="space-y-3">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Auto-generated insights based on your expense data. These update live as you add or change expenses.
+                Auto-generated insights based on your expense data. These update live as you add or
+                change expenses.
               </p>
               {spendingInsights.map((insight, i) => {
                 const styles = {
@@ -1317,7 +1610,10 @@ export default function BudgetingPage() {
                 };
                 const s = styles[insight.type];
                 return (
-                  <div key={i} className={`flex items-start gap-3 p-3 rounded-lg border ${s.bg} ${s.border}`}>
+                  <div
+                    key={i}
+                    className={`flex items-start gap-3 p-3 rounded-lg border ${s.bg} ${s.border}`}
+                  >
                     {s.icon}
                     <div>
                       <p className={`text-sm font-semibold ${s.title}`}>{insight.title}</p>
@@ -1377,7 +1673,8 @@ export default function BudgetingPage() {
                   <p className="font-semibold">Your expenses exceed your income.</p>
                   <p className="mt-1">
                     Review your expense categories above to identify areas where you might cut back.
-                    Even reducing discretionary spending by a small amount can free up cash for investment.
+                    Even reducing discretionary spending by a small amount can free up cash for
+                    investment.
                   </p>
                 </div>
               </div>
@@ -1392,8 +1689,8 @@ export default function BudgetingPage() {
           <div className="space-y-4">
             <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 text-sm text-emerald-900 dark:text-emerald-200 space-y-2">
               <p>
-                Decide what percentage of your surplus to allocate towards investments. The remainder
-                stays as a savings buffer for emergencies and short-term goals.
+                Decide what percentage of your surplus to allocate towards investments. The
+                remainder stays as a savings buffer for emergencies and short-term goals.
               </p>
               <p>
                 <strong>Compound growth</strong> means your returns earn their own returns. Starting
@@ -1402,7 +1699,8 @@ export default function BudgetingPage() {
               </p>
               <p>
                 The ASX has historically returned around <strong>8-10% per year</strong> (including
-                dividends, before inflation). Adjust the expected return to model different scenarios.
+                dividends, before inflation). Adjust the expected return to model different
+                scenarios.
               </p>
             </div>
 
@@ -1516,7 +1814,8 @@ export default function BudgetingPage() {
               </p>
               <p>
                 Think of it this way: a $5 coffee today could be worth $30+ in 30 years at 8% p.a.
-                returns. This doesn&apos;t mean never buy coffee &mdash; it means understand the trade-off.
+                returns. This doesn&apos;t mean never buy coffee &mdash; it means understand the
+                trade-off.
               </p>
             </div>
 
@@ -1616,10 +1915,18 @@ export default function BudgetingPage() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-gray-200 dark:border-gray-700">
-                          <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Years</th>
-                          <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Total Missed</th>
-                          <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Would Be Worth</th>
-                          <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">Growth Lost</th>
+                          <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                            Years
+                          </th>
+                          <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                            Total Missed
+                          </th>
+                          <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                            Would Be Worth
+                          </th>
+                          <th className="text-right py-2 px-3 font-medium text-gray-600 dark:text-gray-400">
+                            Growth Lost
+                          </th>
                         </tr>
                       </thead>
                       <tbody>

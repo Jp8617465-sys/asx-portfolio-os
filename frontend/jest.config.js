@@ -37,11 +37,8 @@ const customJestConfig = {
     '!app/admin/**',
     // Exclude API proxy routes (primarily forwarding to backend, low testable logic)
     '!app/api/**',
-    // Exclude wrapper pages (thin client component wrappers)
-    '!app/app/alerts/**',
-    '!app/app/drift-monitor/**',
-    '!app/app/fusion/**',
-    '!app/app/watchlist/**',
+    // Exclude App Router pages (wrappers and self-contained page components)
+    '!app/app/**',
     // Exclude root layout (Next.js infrastructure)
     '!app/layout.tsx',
     // Exclude components with external dependencies or hard to test

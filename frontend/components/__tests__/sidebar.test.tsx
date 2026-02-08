@@ -19,6 +19,8 @@ describe('Sidebar', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Watchlist')).toBeInTheDocument();
     expect(screen.getByText('Portfolio')).toBeInTheDocument();
+    expect(screen.getByText('ETFs')).toBeInTheDocument();
+    expect(screen.getByText('Budgeting')).toBeInTheDocument();
     expect(screen.getByText('Alerts')).toBeInTheDocument();
     expect(screen.getByText('Models')).toBeInTheDocument();
     expect(screen.getByText('Jobs')).toBeInTheDocument();
@@ -38,6 +40,12 @@ describe('Sidebar', () => {
 
     const portfolioLink = screen.getByText('Portfolio').closest('a');
     expect(portfolioLink).toHaveAttribute('href', '/app/portfolio');
+
+    const etfsLink = screen.getByText('ETFs').closest('a');
+    expect(etfsLink).toHaveAttribute('href', '/app/etfs');
+
+    const budgetingLink = screen.getByText('Budgeting').closest('a');
+    expect(budgetingLink).toHaveAttribute('href', '/app/budgeting');
 
     const alertsLink = screen.getByText('Alerts').closest('a');
     expect(alertsLink).toHaveAttribute('href', '/app/alerts');
@@ -83,9 +91,9 @@ describe('Sidebar', () => {
     expect(nav).toHaveClass('flex', 'flex-col', 'gap-3');
   });
 
-  it('renders all ten navigation items', () => {
+  it('renders all twelve navigation items', () => {
     const { container } = render(<Sidebar />);
     const links = container.querySelectorAll('nav a');
-    expect(links).toHaveLength(10);
+    expect(links).toHaveLength(12);
   });
 });
