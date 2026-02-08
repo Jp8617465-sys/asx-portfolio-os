@@ -1,8 +1,8 @@
 /**
  * ASX Portfolio OS - Design System Variables
- * 
- * Core CSS custom properties for the unified design language
- * Supports both light and dark modes with user-facing and internal dashboard palettes
+ *
+ * "Midnight Indigo" palette — navy-tinted dark surfaces with indigo accent
+ * Inspired by TradingView, Wealthfront, and Bloomberg
  */
 
 /* ========================================
@@ -11,46 +11,46 @@
 
 :root[data-theme='dark'],
 .dark {
-  /* Backgrounds */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #242424;
-  --bg-tertiary: #2e2e2e;
-  --bg-elevated: #333333;
+  /* Backgrounds — navy-tinted for depth and sophistication */
+  --bg-primary: #0B1121;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1E293B;
+  --bg-elevated: #334155;
 
   /* Text */
-  --text-primary: #ececec;
-  --text-secondary: #a0a0a0;
-  --text-tertiary: #737373;
-  --text-disabled: #525252;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --text-disabled: #475569;
 
   /* Borders */
-  --border-light: #2e2e2e;
-  --border-medium: #404040;
-  --border-heavy: #525252;
+  --border-light: #1E293B;
+  --border-medium: #334155;
+  --border-heavy: #475569;
 
-  /* Brand/Accent */
-  --accent-primary: #5b9fd7;
-  --accent-hover: #7ab8e8;
-  --accent-subtle: #1e3a5f;
+  /* Brand/Accent — Indigo */
+  --accent-primary: #818CF8;
+  --accent-hover: #A5B4FC;
+  --accent-subtle: rgba(99, 102, 241, 0.15);
 
-  /* Trading Signals */
-  --signal-strong-buy: #10b981;
-  --signal-buy: #34d399;
-  --signal-hold: #9ca3af;
-  --signal-sell: #f87171;
-  --signal-strong-sell: #ef4444;
+  /* Trading Signals — higher saturation for dark backgrounds */
+  --signal-strong-buy: #34D399;
+  --signal-buy: #6EE7B7;
+  --signal-hold: #94A3B8;
+  --signal-sell: #FCA5A5;
+  --signal-strong-sell: #F87171;
 
   /* Signal Backgrounds */
-  --signal-strong-buy-bg: rgba(16, 185, 129, 0.1);
-  --signal-buy-bg: rgba(52, 211, 153, 0.1);
-  --signal-hold-bg: rgba(156, 163, 175, 0.1);
-  --signal-sell-bg: rgba(248, 113, 113, 0.1);
-  --signal-strong-sell-bg: rgba(239, 68, 68, 0.1);
+  --signal-strong-buy-bg: rgba(52, 211, 153, 0.12);
+  --signal-buy-bg: rgba(110, 231, 183, 0.10);
+  --signal-hold-bg: rgba(148, 163, 184, 0.10);
+  --signal-sell-bg: rgba(252, 165, 165, 0.10);
+  --signal-strong-sell-bg: rgba(248, 113, 113, 0.12);
 
   /* Performance Metrics */
-  --metric-positive: #10b981;
-  --metric-negative: #f87171;
-  --metric-neutral: #9ca3af;
+  --metric-positive: #34D399;
+  --metric-negative: #FCA5A5;
+  --metric-neutral: #94A3B8;
 }
 
 /* ========================================
@@ -60,45 +60,45 @@
 :root[data-theme='light'],
 :root:not([data-theme='dark']):not(.dark) {
   /* Backgrounds */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f7f7f5;
-  --bg-tertiary: #e7e9ed;
-  --bg-elevated: #ffffff;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+  --bg-elevated: #FFFFFF;
 
   /* Text */
-  --text-primary: #121417;
-  --text-secondary: #525252;
-  --text-tertiary: #737373;
-  --text-disabled: #a0a0a0;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #64748B;
+  --text-disabled: #94A3B8;
 
   /* Borders */
-  --border-light: #e7e9ed;
-  --border-medium: #d1d5db;
-  --border-heavy: #9ca3af;
+  --border-light: #E2E8F0;
+  --border-medium: #CBD5E1;
+  --border-heavy: #94A3B8;
 
-  /* Brand/Accent */
-  --accent-primary: #2b6cb0;
-  --accent-hover: #1e4e8c;
-  --accent-subtle: #e6eeff;
+  /* Brand/Accent — Indigo */
+  --accent-primary: #6366F1;
+  --accent-hover: #4F46E5;
+  --accent-subtle: #EEF2FF;
 
   /* Trading Signals */
   --signal-strong-buy: #059669;
-  --signal-buy: #10b981;
-  --signal-hold: #6b7280;
-  --signal-sell: #ef4444;
-  --signal-strong-sell: #dc2626;
+  --signal-buy: #10B981;
+  --signal-hold: #6B7280;
+  --signal-sell: #EF4444;
+  --signal-strong-sell: #DC2626;
 
   /* Signal Backgrounds */
-  --signal-strong-buy-bg: rgba(5, 150, 105, 0.1);
-  --signal-buy-bg: rgba(16, 185, 129, 0.1);
-  --signal-hold-bg: rgba(107, 114, 128, 0.1);
-  --signal-sell-bg: rgba(239, 68, 68, 0.1);
-  --signal-strong-sell-bg: rgba(220, 38, 38, 0.1);
+  --signal-strong-buy-bg: rgba(5, 150, 105, 0.08);
+  --signal-buy-bg: rgba(16, 185, 129, 0.08);
+  --signal-hold-bg: rgba(107, 114, 128, 0.08);
+  --signal-sell-bg: rgba(239, 68, 68, 0.08);
+  --signal-strong-sell-bg: rgba(220, 38, 38, 0.08);
 
   /* Performance Metrics */
   --metric-positive: #059669;
-  --metric-negative: #ef4444;
-  --metric-neutral: #6b7280;
+  --metric-negative: #EF4444;
+  --metric-neutral: #6B7280;
 }
 
 /* ========================================
@@ -106,16 +106,14 @@
    ======================================== */
 
 :root[data-dashboard='internal'] {
-  /* Model Performance */
   --model-excellent: #059669;
-  --model-good: #10b981;
-  --model-acceptable: #f59e0b;
-  --model-poor: #ef4444;
+  --model-good: #10B981;
+  --model-acceptable: #F59E0B;
+  --model-poor: #EF4444;
 
-  /* System Status */
-  --system-healthy: #10b981;
-  --system-degraded: #f59e0b;
-  --system-down: #ef4444;
+  --system-healthy: #10B981;
+  --system-degraded: #F59E0B;
+  --system-down: #EF4444;
 }
 
 /* ========================================
@@ -123,28 +121,24 @@
    ======================================== */
 
 :root {
-  /* Font Families */
-  --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, monospace;
-  --font-numeric: 'SF Pro Display', -apple-system, sans-serif;
+  --font-numeric: 'Inter', 'SF Pro Display', -apple-system, sans-serif;
 
-  /* Type Scale */
-  --text-4xl: 2.25rem; /* 36px */
-  --text-3xl: 1.875rem; /* 30px */
-  --text-2xl: 1.5rem; /* 24px */
-  --text-xl: 1.25rem; /* 20px */
-  --text-lg: 1.125rem; /* 18px */
-  --text-base: 1rem; /* 16px */
-  --text-sm: 0.875rem; /* 14px */
-  --text-xs: 0.75rem; /* 12px */
+  --text-4xl: 2.25rem;
+  --text-3xl: 1.875rem;
+  --text-2xl: 1.5rem;
+  --text-xl: 1.25rem;
+  --text-lg: 1.125rem;
+  --text-base: 1rem;
+  --text-sm: 0.875rem;
+  --text-xs: 0.75rem;
 
-  /* Font Weights */
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
 
-  /* Line Heights */
   --leading-none: 1;
   --leading-tight: 1.25;
   --leading-snug: 1.375;
@@ -152,7 +146,6 @@
   --leading-relaxed: 1.625;
   --leading-loose: 2;
 
-  /* Letter Spacing */
   --tracking-tighter: -0.05em;
   --tracking-tight: -0.025em;
   --tracking-normal: 0;
@@ -167,18 +160,18 @@
 
 :root {
   --spacing-0: 0;
-  --spacing-1: 0.25rem; /* 4px */
-  --spacing-2: 0.5rem; /* 8px */
-  --spacing-3: 0.75rem; /* 12px */
-  --spacing-4: 1rem; /* 16px */
-  --spacing-5: 1.25rem; /* 20px */
-  --spacing-6: 1.5rem; /* 24px */
-  --spacing-8: 2rem; /* 32px */
-  --spacing-10: 2.5rem; /* 40px */
-  --spacing-12: 3rem; /* 48px */
-  --spacing-16: 4rem; /* 64px */
-  --spacing-20: 5rem; /* 80px */
-  --spacing-24: 6rem; /* 96px */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
 }
 
 /* ========================================
@@ -191,6 +184,7 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-card: 0 16px 40px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
 }
 
 /* ========================================
@@ -198,11 +192,11 @@
    ======================================== */
 
 :root {
-  --radius-sm: 0.25rem; /* 4px */
-  --radius-md: 0.375rem; /* 6px */
-  --radius-lg: 0.5rem; /* 8px */
-  --radius-xl: 0.75rem; /* 12px */
-  --radius-2xl: 1rem; /* 16px */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
   --radius-full: 9999px;
 }
 
@@ -235,7 +229,6 @@
    ACCESSIBILITY
    ======================================== */
 
-/* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -246,7 +239,6 @@
   }
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
     --border-light: var(--border-medium);

@@ -247,7 +247,7 @@ export default function BrowseStocksPage() {
         },
       },
     ],
-    [router]
+    [] // router excluded – it's stable across re-renders in Next.js App Router
   );
 
   const table = useReactTable({

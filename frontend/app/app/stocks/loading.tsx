@@ -1,0 +1,70 @@
+export default function StocksLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header skeleton */}
+        <div className="mb-8">
+          <div className="h-8 w-40 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+          <div className="h-4 w-72 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mt-2" />
+        </div>
+
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </div>
+              <div className="h-8 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+
+        {/* Search and filters skeleton */}
+        <div className="mb-6 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+            <div className="h-12 w-28 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+          </div>
+          <div className="flex items-center gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-7 w-20 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Table skeleton */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex gap-6">
+            {['w-8', 'w-20', 'w-28', 'w-16', 'w-32', 'w-16'].map((w, i) => (
+              <div
+                key={i}
+                className={`h-4 ${w} bg-gray-200 dark:bg-gray-700 rounded animate-pulse`}
+              />
+            ))}
+          </div>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div
+              key={i}
+              className="px-6 py-4 flex gap-6 border-b border-gray-200 dark:border-gray-700 last:border-0"
+            >
+              <div className="h-4 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+              <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

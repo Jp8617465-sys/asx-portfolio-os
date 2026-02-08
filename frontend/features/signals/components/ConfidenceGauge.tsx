@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { designTokens } from '@/lib/design-tokens';
 import { SignalType } from '@/contracts';
 
@@ -44,39 +44,11 @@ export default function ConfidenceGauge({
   size = 'md',
   animate = true,
 }: ConfidenceGaugeProps) {
-  const [displayConfidence, setDisplayConfidence] = useState(animate ? 0 : confidence);
   const { diameter, strokeWidth, fontSize } = getSizeConfig(size);
   const radius = (diameter - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (displayConfidence / 100) * circumference;
+  const offset = circumference - (confidence / 100) * circumference;
   const color = getSignalColor(signal);
-
-  // Animate confidence value
-  useEffect(() => {
-    if (!animate) return;
-
-    const start = 0;
-    const duration = 800; // ms
-    const startTime = Date.now();
-
-    const animateValue = () => {
-      const now = Date.now();
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      // Easing function (easeOutCubic)
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.floor(eased * confidence);
-
-      setDisplayConfidence(current);
-
-      if (progress < 1) {
-        requestAnimationFrame(animateValue);
-      }
-    };
-
-    requestAnimationFrame(animateValue);
-  }, [confidence, animate]);
 
   return (
     <div data-testid="confidence-gauge" className="flex flex-col items-center justify-center">
@@ -91,7 +63,7 @@ export default function ConfidenceGauge({
           strokeWidth={strokeWidth}
         />
 
-        {/* Progress circle */}
+        {/* Progress circle – CSS transition replaces the rAF loop */}
         <circle
           cx={diameter / 2}
           cy={diameter / 2}
@@ -102,7 +74,11 @@ export default function ConfidenceGauge({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className="transition-all duration-300 ease-out"
+          style={{
+            transition: animate
+              ? 'stroke-dashoffset 0.8s cubic-bezier(0.33, 1, 0.68, 1)'
+              : 'none',
+          }}
         />
 
         {/* Center text */}
@@ -118,7 +94,7 @@ export default function ConfidenceGauge({
             fill: color,
           }}
         >
-          {displayConfidence}%
+          {confidence}%
         </text>
       </svg>
 

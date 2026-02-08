@@ -42,10 +42,10 @@ export default function StockChart({
     }
   };
 
+  // Create chart once on mount – never recreate on data changes
   useEffect(() => {
-    if (!chartContainerRef.current || data.length === 0) return;
+    if (!chartContainerRef.current) return;
 
-    // Initialize chart
     const chart = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
       height,
@@ -81,10 +81,51 @@ export default function StockChart({
       wickUpColor: designTokens.colors.chart.bullish,
       wickDownColor: designTokens.colors.chart.bearish,
     });
-
     candlestickSeriesRef.current = candlestickSeries;
 
-    // Format data for lightweight-charts
+    // Add volume series if enabled
+    if (showVolume) {
+      const volumeSeries = chart.addHistogramSeries({
+        color: designTokens.colors.neutral[400],
+        priceFormat: { type: 'volume' },
+        priceScaleId: '',
+      });
+      volumeSeriesRef.current = volumeSeries;
+      volumeSeries.priceScale().applyOptions({
+        scaleMargins: { top: 0.8, bottom: 0 },
+      });
+    }
+
+    // Handle resize with debounce to avoid excessive reflows
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (chartContainerRef.current && chartRef.current) {
+          chartRef.current.applyOptions({
+            width: chartContainerRef.current.clientWidth,
+          });
+        }
+      }, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup – destroy chart only on unmount
+    return () => {
+      clearTimeout(resizeTimer);
+      window.removeEventListener('resize', handleResize);
+      chart.remove();
+      chartRef.current = null;
+      candlestickSeriesRef.current = null;
+      volumeSeriesRef.current = null;
+    };
+  }, [height, showVolume]); // Only recreate if structural props change
+
+  // Update data in-place without recreating the chart
+  useEffect(() => {
+    if (!chartRef.current || !candlestickSeriesRef.current || data.length === 0) return;
+
     const formattedData = data.map((d) => ({
       time: d.time as UTCTimestamp,
       open: d.open,
@@ -93,32 +134,10 @@ export default function StockChart({
       close: d.close,
     }));
 
-    candlestickSeries.setData(formattedData);
+    candlestickSeriesRef.current.setData(formattedData);
 
-    // Add signal markers
-    if (signalMarkers.length > 0) {
-      const markers = signalMarkers.map((marker) => ({
-        time: marker.time as UTCTimestamp,
-        position: marker.position,
-        color: marker.color,
-        shape: marker.shape,
-        text: marker.text,
-      }));
-      candlestickSeries.setMarkers(markers);
-    }
-
-    // Add volume series if enabled
-    if (showVolume) {
-      const volumeSeries = chart.addHistogramSeries({
-        color: designTokens.colors.neutral[400],
-        priceFormat: {
-          type: 'volume',
-        },
-        priceScaleId: '',
-      });
-
-      volumeSeriesRef.current = volumeSeries;
-
+    // Update volume data
+    if (showVolume && volumeSeriesRef.current) {
       const volumeData = data.map((d) => ({
         time: d.time as UTCTimestamp,
         value: d.volume,
@@ -127,39 +146,29 @@ export default function StockChart({
             ? `${designTokens.colors.chart.bullish}80`
             : `${designTokens.colors.chart.bearish}80`,
       }));
-
-      volumeSeries.setData(volumeData);
-
-      volumeSeries.priceScale().applyOptions({
-        scaleMargins: {
-          top: 0.8,
-          bottom: 0,
-        },
-      });
+      volumeSeriesRef.current.setData(volumeData);
     }
 
-    // Handle resize
-    const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({
-          width: chartContainerRef.current.clientWidth,
-        });
-      }
-    };
+    // Update markers
+    if (signalMarkers.length > 0) {
+      const markers = signalMarkers.map((marker) => ({
+        time: marker.time as UTCTimestamp,
+        position: marker.position,
+        color: marker.color,
+        shape: marker.shape,
+        text: marker.text,
+      }));
+      candlestickSeriesRef.current.setMarkers(markers);
+    } else {
+      candlestickSeriesRef.current.setMarkers([]);
+    }
 
-    window.addEventListener('resize', handleResize);
-    chart.timeScale().fitContent();
+    chartRef.current.timeScale().fitContent();
     setIsLoading(false);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
-  }, [data, signalMarkers, height, showVolume]);
+  }, [data, signalMarkers, showVolume]);
 
   return (
-    <div className="w-full">
+    <div className="w-full" role="img" aria-label={`Price chart for ${ticker}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           {ticker} Price Chart
@@ -172,11 +181,16 @@ export default function StockChart({
       </div>
 
       {/* Timeframe Selector */}
-      <div className="flex gap-1 mb-3 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg w-fit">
+      <div
+        className="flex gap-1 mb-3 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg w-fit"
+        role="group"
+        aria-label="Chart timeframe"
+      >
         {timeframes.map((timeframe) => (
           <button
             key={timeframe}
             onClick={() => handleTimeframeChange(timeframe)}
+            aria-pressed={selectedTimeframe === timeframe}
             className={`
               px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200
               ${

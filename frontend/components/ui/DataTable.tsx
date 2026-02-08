@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Badge } from './badge';
 
@@ -52,18 +52,20 @@ export function DataTable<T extends Record<string, unknown>>({
     }
   };
 
-  const sortedData = [...data].sort((a, b) => {
-    if (!sortColumn || !sortDirection) return 0;
+  const sortedData = useMemo(() => {
+    if (!sortColumn || !sortDirection) return data;
 
-    const aValue = a[sortColumn];
-    const bValue = b[sortColumn];
+    return [...data].sort((a, b) => {
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
 
-    if (aValue === bValue) return 0;
+      if (aValue === bValue) return 0;
 
-    // Handle comparison with type safety
-    const comparison = (aValue as number | string) < (bValue as number | string) ? -1 : 1;
-    return sortDirection === 'asc' ? comparison : -comparison;
-  });
+      // Handle comparison with type safety
+      const comparison = (aValue as number | string) < (bValue as number | string) ? -1 : 1;
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [data, sortColumn, sortDirection]);
 
   const getAlignClass = (align?: 'left' | 'center' | 'right') => {
     switch (align) {
@@ -103,6 +105,15 @@ export function DataTable<T extends Record<string, unknown>>({
                   column.className
                 )}
                 onClick={() => handleSort(column.key, column.sortable)}
+                aria-sort={
+                  sortColumn === column.key && sortDirection
+                    ? sortDirection === 'asc'
+                      ? 'ascending'
+                      : 'descending'
+                    : column.sortable
+                      ? 'none'
+                      : undefined
+                }
               >
                 <div className="flex items-center gap-1">
                   <span>{column.header}</span>

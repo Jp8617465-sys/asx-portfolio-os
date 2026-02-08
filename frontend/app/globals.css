@@ -29,22 +29,9 @@ html {
 
 body {
   @apply font-sans antialiased;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
   font-family: var(--font-primary);
   line-height: var(--leading-normal);
   transition: background-color var(--transition-base), color var(--transition-base);
-}
-
-/* Legacy compatibility */
-body {
-  @apply bg-paper text-ink;
-}
-
-.dark body {
-  @apply bg-graphite text-mist;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
 }
 
 .dark {
@@ -62,10 +49,14 @@ body {
   font-family: var(--font-numeric);
 }
 
-/* Gradient background */
+/* Gradient background for app shell */
 .gradient-shell {
-  background: radial-gradient(circle at 10% 20%, rgba(47, 111, 237, 0.12), transparent 45%),
-    radial-gradient(circle at 90% 0%, rgba(15, 23, 42, 0.05), transparent 45%);
+  background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08), transparent 45%),
+    radial-gradient(circle at 90% 0%, rgba(15, 23, 42, 0.04), transparent 45%);
+}
+
+.dark .gradient-shell {
+  background: #0B1121;
 }
 
 /* Focus ring for accessibility */

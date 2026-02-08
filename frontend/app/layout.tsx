@@ -1,6 +1,4 @@
 import './globals.css';
-import Sidebar from '../components/Sidebar';
-import MobileNav from '../components/MobileNav';
 import Toaster from '../components/ui/toaster';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
@@ -15,17 +13,18 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-paper text-ink dark:bg-graphite dark:text-mist">
+      <body className="min-h-screen bg-white dark:bg-[#0B1121] text-slate-900 dark:text-slate-100">
         <ErrorBoundary>
-          <div className="gradient-shell min-h-screen">
-            <div className="mx-auto flex min-h-screen max-w-[1440px]">
-              <Sidebar />
-              <main className="flex-1 px-6 py-10 lg:px-12">
-                <MobileNav />
-                {children}
-              </main>
-            </div>
-          </div>
+          {/* Skip to content link for keyboard / screen reader users */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+          >
+            Skip to content
+          </a>
+          <main id="main-content">
+            {children}
+          </main>
           <Toaster />
         </ErrorBoundary>
       </body>
